@@ -22,4 +22,13 @@ class FleetItem {
     required this.price,
     required this.image,
   });
+
+  String get title => name;
+  String get imageUrl => image;
+  String get vehicleType => model;
+  int get passengers => pax;
+  double get priceMin {
+    final match = RegExp(r'(\d+(?:\.\d+)?)').firstMatch(price);
+    return double.tryParse(match?.group(1) ?? '') ?? 0;
+  }
 }

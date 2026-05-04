@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../theme/app_colors.dart';
+import '../common/brand_logo.dart';
 import '../common/fallback_network_image.dart';
 
 class HeroSection extends StatelessWidget {
@@ -9,9 +11,6 @@ class HeroSection extends StatelessWidget {
     super.key,
     required this.onBookNowTap,
   });
-
-  static const _heroImage =
-      'https://images.unsplash.com/photo-1633433491270-5c9c57a4ddb0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1400';
 
   @override
   Widget build(BuildContext context) {
@@ -31,11 +30,6 @@ class HeroSection extends StatelessWidget {
             : compact
                 ? 14.0
                 : 24.0;
-        final interBlockSpacing = superCompact
-            ? 10.0
-            : compact
-                ? 14.0
-                : 18.0;
         final titleSize = superCompact
             ? 22.0
             : compact
@@ -60,13 +54,17 @@ class HeroSection extends StatelessWidget {
               ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(bottom: Radius.circular(34)),
-                child: FallbackNetworkImage(
-                  url: _heroImage,
-                  fit: BoxFit.cover,
+                child: ColorFiltered(
+                  colorFilter: const ColorFilter.mode(
+                    Color(0x1FE4B756),
+                    BlendMode.softLight,
+                  ),
+                  child: FallbackNetworkImage(
+                    url: 'assets/images/background.png',
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
-
-              // Improved readability layer
               Container(
                 decoration: const BoxDecoration(
                   borderRadius:
@@ -75,15 +73,27 @@ class HeroSection extends StatelessWidget {
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                     colors: [
-                      Color(0x14000000),
-                      Color(0x5C000000),
-                      Color(0xCC000000),
+                      Color(0x28F8EDD5),
+                      Color(0x55302312),
+                      Color(0xC8100C07),
+                      Color(0xEC070503),
                     ],
+                    stops: [0.0, 0.34, 0.68, 1.0],
                   ),
                 ),
               ),
-
-              // Gold top shimmer
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(
+                        bottom: Radius.circular(34),
+                      ),
+                      border: Border.all(color: const Color(0x40E4B756)),
+                    ),
+                  ),
+                ),
+              ),
               Positioned(
                 top: 0,
                 left: 0,
@@ -102,7 +112,6 @@ class HeroSection extends StatelessWidget {
                   ),
                 ),
               ),
-
               SafeArea(
                 child: Padding(
                   padding:
@@ -124,19 +133,33 @@ class HeroSection extends StatelessWidget {
                           fontSize: titleSize,
                           fontWeight: FontWeight.w800,
                           height: 1.0,
-                          letterSpacing: -0.25,
+                          letterSpacing: 0,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0xC9000000),
+                              blurRadius: 12,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
                       SizedBox(height: compact ? 4 : 6),
                       Text(
-                        'Comfortable · Punctual · Reliable',
+                        'Comfortable - Punctual - Reliable',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: const Color(0xCCFFFFFF),
+                          color: const Color(0xF2FFFFFF),
                           fontSize: subtitleSize,
-                          letterSpacing: .25,
-                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0,
+                          fontWeight: FontWeight.w600,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0xB3000000),
+                              blurRadius: 8,
+                              offset: Offset(0, 1),
+                            ),
+                          ],
                         ),
                       ),
                       const Spacer(),
@@ -153,65 +176,40 @@ class HeroSection extends StatelessWidget {
   }
 
   Widget _topBar() {
-    return Row(
-      children: [
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [AppColors.secondaryLight, AppColors.secondary],
-            ),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x66E6A200),
-                blurRadius: 16,
-                offset: Offset(0, 4),
-              ),
-            ],
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xEAF8F0DF),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0x99E4B756)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x4DE4B756),
+            blurRadius: 20,
+            offset: Offset(0, 8),
           ),
-          child: const Icon(Icons.flight_rounded,
-              color: AppColors.primary, size: 16),
-        ),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'PREMIUM SERVICE',
-              style: TextStyle(
-                color: Color(0x99FFFFFF),
-                fontSize: 9,
-                letterSpacing: 2.1,
-                fontWeight: FontWeight.w500,
-              ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const BrandLogo(width: 192, height: 46),
+          const Spacer(),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFE4B756),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0x66FFFFFF)),
             ),
-            SizedBox(height: 2),
-            Text(
-              'CARTHAGE TRANSFER',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.0,
-              ),
+            child: const Icon(
+              Icons.notifications_none_rounded,
+              color: AppColors.primary,
+              size: 18,
             ),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: const Color(0x26FFFFFF),
-            shape: BoxShape.circle,
-            border: Border.all(color: const Color(0x38FFFFFF)),
           ),
-          child: const Icon(Icons.notifications_none_rounded,
-              color: Colors.white, size: 18),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -257,8 +255,11 @@ class HeroSection extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 6),
-                    Icon(Icons.arrow_forward_rounded,
-                        color: AppColors.primary, size: 16),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      color: AppColors.primary,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -269,30 +270,48 @@ class HeroSection extends StatelessWidget {
                 vertical: 8,
               ),
               decoration: BoxDecoration(
-                color: const Color(0x24FFFFFF),
+                color: const Color(0x38E4B756),
                 borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: const Color(0x38FFFFFF)),
+                border: Border.all(color: const Color(0x88E4B756)),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.star_rounded,
-                      color: AppColors.secondaryLight, size: 14),
+                  Icon(
+                    Icons.star_rounded,
+                    color: AppColors.secondaryLight,
+                    size: 14,
+                  ),
                   SizedBox(width: 4),
                   Text(
                     '4.9',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 13,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(
+                          color: Color(0x99000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
                     ),
                   ),
                   SizedBox(width: 4),
                   Text(
-                    '· 2,400+ rides',
+                    '- 2,400+ rides',
                     style: TextStyle(
-                      color: Color(0xCCFFFFFF),
+                      color: Color(0xF0FFFFFF),
                       fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      shadows: [
+                        Shadow(
+                          color: Color(0x99000000),
+                          blurRadius: 6,
+                          offset: Offset(0, 1),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -313,22 +332,32 @@ class _VerifiedChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0x26FFFFFF),
+        color: const Color(0x38E4B756),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0x40FFFFFF)),
+        border: Border.all(color: const Color(0x88E4B756)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: const [
-          Icon(Icons.verified_user_outlined,
-              size: 14, color: AppColors.secondaryLight),
+          Icon(
+            Icons.verified_user_outlined,
+            size: 14,
+            color: AppColors.secondaryLight,
+          ),
           SizedBox(width: 6),
           Text(
-            'Verified · Licensed · Insured',
+            'Verified - Licensed - Insured',
             style: TextStyle(
-              color: Color(0xE6FFFFFF),
+              color: Color(0xF8FFFFFF),
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.w700,
+              shadows: [
+                Shadow(
+                  color: Color(0x99000000),
+                  blurRadius: 6,
+                  offset: Offset(0, 1),
+                ),
+              ],
             ),
           ),
         ],

@@ -4,6 +4,7 @@ import '../services/auth_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/common/app_card.dart';
+import '../widgets/common/brand_logo.dart';
 import '../widgets/custom_text_field.dart';
 import '../widgets/primary_button.dart';
 import 'admin/admin_shell.dart';
@@ -265,40 +266,8 @@ class _BrandHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 86,
-          height: 86,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFF6DE), Color(0xFFFFD56B)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            border: Border.all(color: AppColors.secondary.withOpacity(0.3)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 24,
-                offset: Offset(0, 10),
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.local_taxi_rounded,
-            color: AppColors.primary,
-            size: 38,
-          ),
-        ),
+        const BrandLogo(width: 170, height: 120),
         const SizedBox(height: 18),
-        Text(
-          'Carthage Transfer',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.h1.copyWith(
-            color: AppColors.textPrimary,
-            fontSize: 30,
-          ),
-        ),
         const SizedBox(height: 8),
         Text(
           'Luxury airport transfers with a calm, premium booking experience.',

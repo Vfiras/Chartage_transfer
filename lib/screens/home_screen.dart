@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
 import '../widgets/home/booking_card.dart';
+import '../widgets/home/google_reviews_section.dart';
 import '../widgets/home/hero_section.dart';
 import '../widgets/home/home_divider.dart';
 import '../widgets/home/how_it_works_section.dart';
@@ -73,6 +74,8 @@ class HomeScreen extends StatelessWidget {
                   const HomeDivider(),
                   const SizedBox(height: 24),
                   const PartnersStrip(),
+                  const SizedBox(height: 16),
+                  const GoogleReviewsSection(),
                   const SizedBox(height: 16),
 
                   // Quick links

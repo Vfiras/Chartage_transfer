@@ -1,8 +1,8 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../models/fleet_item.dart';
 import '../themes/app_theme.dart';
+import '../widgets/common/fallback_network_image.dart';
 
 class FleetDetailScreen extends StatelessWidget {
   final FleetItem item;
@@ -21,8 +21,8 @@ class FleetDetailScreen extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              imageUrl: item.imageUrl,
+            child: FallbackNetworkImage(
+              url: item.imageUrl,
               height: 230,
               fit: BoxFit.cover,
             ),
@@ -47,7 +47,7 @@ class FleetDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Starting from ${item.priceMin.toStringAsFixed(2)} €',
+            'Starting from ${item.priceMin.toStringAsFixed(0)} TND',
             style: const TextStyle(
               color: AppTheme.primaryText,
               fontSize: 20,

@@ -1,9 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../models/fleet_item.dart';
 import '../themes/app_theme.dart';
+import 'common/fallback_network_image.dart';
 
 class FleetCard extends StatefulWidget {
   final FleetItem item;
@@ -63,14 +63,9 @@ class _FleetCardState extends State<FleetCard> {
                     aspectRatio: 16 / 9,
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: CachedNetworkImage(
-                        imageUrl: widget.item.imageUrl,
+                      child: FallbackNetworkImage(
+                        url: widget.item.imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) => _ImagePlaceholder(),
-                        errorWidget: (_, __, ___) => Container(
-                          color: AppTheme.subtleGray,
-                          child: const Icon(Icons.directions_car),
-                        ),
                       ),
                     ),
                   ),

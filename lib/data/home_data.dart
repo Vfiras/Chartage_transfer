@@ -32,7 +32,14 @@ class HowItWorksItem {
 }
 
 class HomeData {
-  static const partners = ['Tunisair', 'Marriott', 'Radisson', 'Hertz', 'Novotel'];
+  static const partnerLogos = [
+    'assets/images/partners/Lufthansa-Logo.webp',
+    'assets/images/partners/OAI-LOGO.webp',
+    'assets/images/partners/tunisair-logo.webp',
+    'assets/images/partners/Turkish_Airlines-logo-800x289.webp',
+    'assets/images/partners/viatovia.webp',
+    'assets/images/partners/ysf-partner.webp',
+  ];
 
   static const trustChips = [
     TrustChipItem(
@@ -122,47 +129,58 @@ class HomeData {
   static const vehicles = [
     Vehicle(
       id: 1,
-      name: 'Business Sedan',
-      model: 'Mercedes E-Class',
+      name: 'Mercedes E-Class 2024',
+      model: 'Executive sedan',
       capacity: '1–3',
       bags: 3,
       label: 'Popular',
       labelGold: true,
       price: 30,
-      image: 'https://images.unsplash.com/photo-1767285610734-f0858d5248fe?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1000',
+      image: 'assets/images/fleet/mercedes-e-class-2024-carthage-transfer.webp',
     ),
     Vehicle(
       id: 2,
-      name: 'Executive SUV',
-      model: 'BMW X5 / GLE',
-      capacity: '1–6',
-      bags: 5,
+      name: 'Mercedes V-Class VIP',
+      model: 'Luxury van',
+      capacity: '1–7',
+      bags: 6,
       label: 'Premium',
       labelGold: false,
       price: 55,
-      image: 'https://images.unsplash.com/photo-1767749995450-7b63ab7cd4fd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1000',
+      image: 'assets/images/fleet/Mercedes-V-Class-Vip-Transfers-Tunisia.webp',
     ),
     Vehicle(
       id: 3,
-      name: 'VIP Limousine',
-      model: 'Mercedes S-Class',
-      capacity: '1–3',
-      bags: 2,
+      name: 'Toyota Hiace',
+      model: 'Premium shuttle',
+      capacity: '1–12',
+      bags: 10,
       label: 'Elite',
       labelGold: false,
       price: 90,
-      image: 'https://images.unsplash.com/photo-1771775751121-3091d79073d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1000',
+      image: 'assets/images/fleet/Toyota-Hiace-Transfers-Tunisia.webp',
     ),
     Vehicle(
       id: 4,
-      name: 'Premium Van',
-      model: 'Mercedes V-Class',
-      capacity: '1–8',
-      bags: 8,
+      name: 'Toyota Coaster',
+      model: 'Executive coach',
+      capacity: '1–18',
+      bags: 18,
       label: 'Group',
       labelGold: false,
       price: 70,
-      image: 'https://images.unsplash.com/photo-1750210505997-ed85e9f8cb12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1000',
+      image: 'assets/images/fleet/Toyota-Coaster-Transfers-Tunisia.webp',
+    ),
+    Vehicle(
+      id: 5,
+      name: 'Land Cruiser Prado',
+      model: 'Premium SUV',
+      capacity: '1–5',
+      bags: 5,
+      label: 'SUV',
+      labelGold: false,
+      price: 80,
+      image: 'assets/images/fleet/landcruiser-prado.webp',
     ),
   ];
 }

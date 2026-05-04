@@ -15,10 +15,10 @@ class LuxuryAirportTransferApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Carthage Transfer',
+      title: 'Carthage',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(
-        baseTextTheme: GoogleFonts.interTextTheme(),
+        baseTextTheme: GoogleFonts.comfortaaTextTheme(),
       ),
       home: const LoginScreen(),
     );

@@ -18,6 +18,16 @@ class FallbackNetworkImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (url.startsWith('assets/')) {
+      return Image.asset(
+        url,
+        width: width,
+        height: height,
+        fit: fit,
+        alignment: alignment,
+      );
+    }
+
     return Image.network(
       url,
       width: width,
