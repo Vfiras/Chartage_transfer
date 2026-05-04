@@ -1,7 +1,7 @@
 enum AppTab {
   home,
-  book,
   vehicles,
+  book,
   services,
-  support,
+  profile,
 }

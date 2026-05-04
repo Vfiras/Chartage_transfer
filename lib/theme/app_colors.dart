@@ -6,6 +6,16 @@ class AppColors {
   static const Color secondaryDark = Color(0xFFCC8C00);
   static const Color secondaryLight = Color(0xFFFFB400);
 
+  static const Color darkBackground = Color(0xFF0D0D0D);
+  static const Color darkSurface = Color(0xFF171717);
+  static const Color darkSurfaceElevated = Color(0xFF202020);
+  static const Color darkBorder = Color(0x29FFFFFF);
+  static const Color darkDivider = Color(0x1FFFFFFF);
+  static const Color darkTextPrimary = Color(0xFFF5F5F5);
+  static const Color darkTextSecondary = Color(0xFFB8B8B8);
+  static const Color darkTextMuted = Color(0xFF7D7D7D);
+  static const Color darkChip = Color(0x1AF5A623);
+
   static const Color background = Color(0xFFF5F5F5);
   static const Color surface = Color(0xFFFFFFFF);
 

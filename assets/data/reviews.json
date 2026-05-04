@@ -1,0 +1,74 @@
+[
+  {
+    "id": "review-001",
+    "google_review_id": "g-ct-001",
+    "author": "Sophie Martin",
+    "avatar_url": "https://i.pravatar.cc/120?img=32",
+    "text": "Excellent airport transfer. The driver was waiting with a name board, helped with the luggage, and the car was spotless.",
+    "rating": 5,
+    "created_at": "2026-03-18T09:20:00Z",
+    "verified": true,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-001"
+  },
+  {
+    "id": "review-002",
+    "google_review_id": "g-ct-002",
+    "author": "Marc Delorme",
+    "avatar_url": "https://i.pravatar.cc/120?img=12",
+    "text": "Professional, punctual and reassuring after a late flight into Tunis. The fixed price was exactly what we paid.",
+    "rating": 5,
+    "created_at": "2026-02-27T18:45:00Z",
+    "verified": true,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-002"
+  },
+  {
+    "id": "review-003",
+    "google_review_id": "g-ct-003",
+    "author": "Nadia Salem",
+    "avatar_url": "https://i.pravatar.cc/120?img=47",
+    "text": "Very comfortable ride to Hammamet. Booking was simple and the team answered quickly on WhatsApp.",
+    "rating": 5,
+    "created_at": "2026-01-14T12:05:00Z",
+    "verified": true,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-003"
+  },
+  {
+    "id": "review-004",
+    "google_review_id": "g-ct-004",
+    "author": "Yassine Ben Ali",
+    "avatar_url": "https://i.pravatar.cc/120?img=58",
+    "text": "Clean van, friendly driver and no waiting at the airport. Great option for families with luggage.",
+    "rating": 4.8,
+    "created_at": "2025-12-08T07:30:00Z",
+    "verified": true,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-004"
+  },
+  {
+    "id": "review-005",
+    "google_review_id": "g-ct-005",
+    "author": "Claire Dubois",
+    "avatar_url": "https://i.pravatar.cc/120?img=25",
+    "text": "Smooth transfer from Monastir to Sousse. The driver tracked the flight and adjusted the pickup time.",
+    "rating": 5,
+    "created_at": "2025-11-22T15:10:00Z",
+    "verified": false,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-005"
+  },
+  {
+    "id": "review-006",
+    "google_review_id": "g-ct-006",
+    "author": "Thomas Weber",
+    "avatar_url": "https://i.pravatar.cc/120?img=15",
+    "text": "Reliable service with a premium feel. The car was quiet, comfortable, and the route was handled perfectly.",
+    "rating": 5,
+    "created_at": "2025-10-05T21:00:00Z",
+    "verified": true,
+    "language": "en",
+    "review_url": "https://carthage-transfer.com/reviews/review-006"
+  }
+]

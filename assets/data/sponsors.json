@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sponsor-001",
+    "name": "Tunisair",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Tunisair",
+    "website_url": "https://www.tunisair.com"
+  },
+  {
+    "id": "sponsor-002",
+    "name": "Lufthansa",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Lufthansa",
+    "website_url": "https://www.lufthansa.com"
+  },
+  {
+    "id": "sponsor-003",
+    "name": "Qatar Airways",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Qatar+Airways",
+    "website_url": "https://www.qatarairways.com"
+  },
+  {
+    "id": "sponsor-004",
+    "name": "Turkish Airlines",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Turkish+Airlines",
+    "website_url": "https://www.turkishairlines.com"
+  },
+  {
+    "id": "sponsor-005",
+    "name": "Proven Expert",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Proven+Expert",
+    "website_url": "https://www.provenexpert.com"
+  },
+  {
+    "id": "sponsor-006",
+    "name": "Drivado",
+    "logo_url": "https://dummyimage.com/220x80/ffffff/0f1723.png&text=Drivado",
+    "website_url": "https://www.drivado.com"
+  }
+]

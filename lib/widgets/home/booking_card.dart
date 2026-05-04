@@ -26,21 +26,15 @@ class _BookingCardState extends State<BookingCard> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      // Premium floating surface
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0x14FFFFFF)),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: AppColors.border),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x22000000),
-            blurRadius: 36,
-            offset: Offset(0, 12),
-          ),
-          BoxShadow(
             color: Color(0x12000000),
-            blurRadius: 12,
-            offset: Offset(0, 3),
+            blurRadius: 26,
+            offset: Offset(0, 12),
           ),
         ],
       ),
@@ -70,9 +64,9 @@ class _BookingCardState extends State<BookingCard> {
 
   Widget _header() {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0x0A000000))),
+        border: Border(bottom: BorderSide(color: Color(0x0C000000))),
       ),
       child: Row(
         children: [
@@ -94,7 +88,7 @@ class _BookingCardState extends State<BookingCard> {
                   'Where are you going?',
                   style: TextStyle(
                     color: AppColors.textPrimary,
-                    fontSize: 15,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                   ),
@@ -102,7 +96,9 @@ class _BookingCardState extends State<BookingCard> {
               ],
             ),
           ),
+          const SizedBox(width: 10),
           Container(
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: const Color(0xFFF2F2F2),
               borderRadius: BorderRadius.circular(999),
@@ -125,7 +121,7 @@ class _BookingCardState extends State<BookingCard> {
       onTap: () => setState(() => _tripType = value),
       child: Container(
         margin: const EdgeInsets.all(2),
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
           color: active ? AppColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(999),
@@ -134,7 +130,7 @@ class _BookingCardState extends State<BookingCard> {
           label,
           style: TextStyle(
             color: active ? Colors.white : const Color(0xFF888888),
-            fontSize: 10,
+            fontSize: 12,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -232,7 +228,7 @@ class _BookingCardState extends State<BookingCard> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
         color: bg,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         border: Border.all(color: borderColor),
       ),
       child: Row(
@@ -314,6 +310,7 @@ class _BookingCardState extends State<BookingCard> {
       decoration: BoxDecoration(
         color: const Color(0xFFF8F8F8),
         borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         children: [

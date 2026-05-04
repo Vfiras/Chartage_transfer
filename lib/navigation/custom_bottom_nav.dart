@@ -79,10 +79,10 @@ class CustomBottomNav extends StatelessWidget {
                           ),
                           Expanded(
                             child: _NavItem(
-                              icon: Icons.headset_mic_rounded,
-                              label: 'Help',
-                              active: current == AppTab.support,
-                              onTap: () => onChanged(AppTab.support),
+                              icon: Icons.person_outline_rounded,
+                              label: 'Profile',
+                              active: current == AppTab.profile,
+                              onTap: () => onChanged(AppTab.profile),
                             ),
                           ),
                         ],

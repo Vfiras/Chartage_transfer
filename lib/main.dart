@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'screens/app_shell.dart';
+import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -15,12 +15,12 @@ class LuxuryAirportTransferApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Luxury Airport Transfer',
+      title: 'Carthage Transfer',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme(
         baseTextTheme: GoogleFonts.interTextTheme(),
       ),
-      home: const AppShell(),
+      home: const LoginScreen(),
     );
   }
 }

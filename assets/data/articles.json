@@ -1,0 +1,50 @@
+[
+  {
+    "id": "article-001",
+    "title": "Effortless Airport Transfers in Tunisia",
+    "excerpt": "How fixed pricing, flight tracking, and professional chauffeurs make your arrival calmer.",
+    "image_url": "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2026-04-15T08:00:00Z",
+    "slug": "effortless-airport-transfers-tunisia"
+  },
+  {
+    "id": "article-002",
+    "title": "Direct & Reliable Airport Transfer",
+    "excerpt": "A trusted local provider can simplify travel between Tunis, Hammamet, Sousse, and Djerba.",
+    "image_url": "https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2026-03-10T08:00:00Z",
+    "slug": "direct-reliable-airport-transfer"
+  },
+  {
+    "id": "article-003",
+    "title": "Your Trusted Partner in Airport Transportation",
+    "excerpt": "What to look for when booking a premium private transfer in Tunisia.",
+    "image_url": "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2026-02-24T08:00:00Z",
+    "slug": "trusted-partner-airport-transportation"
+  },
+  {
+    "id": "article-004",
+    "title": "Versatile Airport Shuttle and Car Services",
+    "excerpt": "From solo arrivals to group travel, choose the right vehicle size for your journey.",
+    "image_url": "https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2026-01-30T08:00:00Z",
+    "slug": "versatile-airport-shuttle-car-services"
+  },
+  {
+    "id": "article-005",
+    "title": "Experience the Difference with Carthage Transfer",
+    "excerpt": "Comfort, punctuality, and transparent rates shape a better first impression.",
+    "image_url": "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2025-12-14T08:00:00Z",
+    "slug": "experience-difference-carthage-transfer"
+  },
+  {
+    "id": "article-006",
+    "title": "Directions for Your Tunis Airport Transfer",
+    "excerpt": "Practical tips for meeting your driver and avoiding delays at Tunis Carthage Airport.",
+    "image_url": "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=900&q=80",
+    "published_at": "2025-11-08T08:00:00Z",
+    "slug": "directions-tunis-airport-transfer"
+  }
+]

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "fleet-001",
+    "vehicle_type": "Sedan",
+    "title": "Standard Sedan",
+    "passengers": 4,
+    "bags": 4,
+    "image_url": "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=80",
+    "price_min": 30.95
+  },
+  {
+    "id": "fleet-002",
+    "vehicle_type": "Van",
+    "title": "Renault Express",
+    "passengers": 4,
+    "bags": 8,
+    "image_url": "https://images.unsplash.com/photo-1549927681-0b673b8243ab?auto=format&fit=crop&w=900&q=80",
+    "price_min": 42.5
+  },
+  {
+    "id": "fleet-003",
+    "vehicle_type": "Sedan",
+    "title": "Toyota Yaris",
+    "passengers": 3,
+    "bags": 3,
+    "image_url": "https://images.unsplash.com/photo-1542362567-b07e54358753?auto=format&fit=crop&w=900&q=80",
+    "price_min": 28.75
+  },
+  {
+    "id": "fleet-004",
+    "vehicle_type": "Van",
+    "title": "VW Multivan",
+    "passengers": 7,
+    "bags": 14,
+    "image_url": "https://images.unsplash.com/photo-1619767886558-efdc259cde1a?auto=format&fit=crop&w=900&q=80",
+    "price_min": 65.0
+  },
+  {
+    "id": "fleet-005",
+    "vehicle_type": "Luxury",
+    "title": "Mercedes E Class",
+    "passengers": 4,
+    "bags": 6,
+    "image_url": "https://images.unsplash.com/photo-1618843479313-40f8afb4b4d8?auto=format&fit=crop&w=900&q=80",
+    "price_min": 55.0
+  },
+  {
+    "id": "fleet-006",
+    "vehicle_type": "Bus",
+    "title": "Man A51",
+    "passengers": 52,
+    "bags": 70,
+    "image_url": "https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&w=900&q=80",
+    "price_min": 160.0
+  }
+]

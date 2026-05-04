@@ -7,6 +7,8 @@ import '../screens/about_screen.dart';
 import '../screens/booking_screen.dart';
 import '../screens/destinations_screen.dart';
 import '../screens/home_screen.dart';
+import '../screens/login_screen.dart';
+import '../screens/profile_screen.dart';
 import '../screens/services_screen.dart';
 import '../screens/support_screen.dart';
 import '../screens/vehicles_screen.dart';
@@ -63,7 +65,19 @@ class _AppShellState extends State<AppShell> {
           onOpenBooking: () => nav.goToTab(AppTab.book),
           onOpenVehicles: () => nav.goToTab(AppTab.vehicles),
           onOpenServices: () => nav.goToTab(AppTab.services),
-          onOpenSupport: () => nav.goToTab(AppTab.support),
+          onOpenSupport: () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => SupportScreen(
+                  onOpenAbout: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const AboutScreen()),
+                    );
+                  },
+                ),
+              ),
+            );
+          },
           onOpenDestinations: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const DestinationsScreen()),
@@ -85,11 +99,13 @@ class _AppShellState extends State<AppShell> {
       case AppTab.services:
         return const ServicesScreen();
 
-      case AppTab.support:
-        return SupportScreen(
-          onOpenAbout: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const AboutScreen()),
+      case AppTab.profile:
+        return ProfileScreen(
+          onBack: () => nav.goToTab(AppTab.home),
+          onLogout: () {
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (_) => const LoginScreen()),
+              (route) => false,
             );
           },
         );
