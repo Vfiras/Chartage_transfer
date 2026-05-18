@@ -1,0 +1,48 @@
+# Local tooling and editor state
+.claude/
+.vscode/
+.idea/
+
+# Environment and secrets
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# Runtime logs and local database data
+run-logs/
+run-data/
+**/run-logs/
+**/run-data/
+*.log
+
+# Flutter / Dart generated files
+**/.dart_tool/
+**/build/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/.pub-cache/
+**/*.iml
+
+# Android generated/local files
+**/.gradle/
+**/android/local.properties
+**/android/app/.cxx/
+
+# iOS/macOS generated files
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/Flutter/ephemeral/
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Desktop generated files
+**/linux/flutter/ephemeral/
+**/windows/flutter/ephemeral/
+
+# Python generated files
+**/.venv/
+**/__pycache__/
+**/*.py[cod]
+
+# Unrelated local folder beside the project
+ollama/

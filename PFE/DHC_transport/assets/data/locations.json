@@ -1,0 +1,50 @@
+[
+  {
+    "id": "location-001",
+    "origin": "Tunis Carthage Airport",
+    "destination": "Tunis",
+    "sub_location": "City Centre",
+    "image_url": "https://images.unsplash.com/photo-1665083767053-5e7ad680953d?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 30.95
+  },
+  {
+    "id": "location-002",
+    "origin": "Tunis Carthage Airport",
+    "destination": "Hammamet",
+    "sub_location": "Hotel Zone",
+    "image_url": "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 74.95
+  },
+  {
+    "id": "location-003",
+    "origin": "Monastir Airport",
+    "destination": "Sousse",
+    "sub_location": "Marina",
+    "image_url": "https://images.unsplash.com/photo-1559827260-dc66d52bef19?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 35.5
+  },
+  {
+    "id": "location-004",
+    "origin": "Djerba Airport",
+    "destination": "Djerba",
+    "sub_location": "Midoun",
+    "image_url": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 28.95
+  },
+  {
+    "id": "location-005",
+    "origin": "Tunis Carthage Airport",
+    "destination": "La Marsa",
+    "sub_location": "Sidi Bou Said",
+    "image_url": "https://images.unsplash.com/photo-1512453979798-5ea266f8880c?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 24.95
+  },
+  {
+    "id": "location-006",
+    "origin": "Enfidha Airport",
+    "destination": "Port El Kantaoui",
+    "sub_location": "Resort Area",
+    "image_url": "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=900&q=80",
+    "starting_price": 49.95
+  }
+]
