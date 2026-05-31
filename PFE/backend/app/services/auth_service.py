@@ -19,16 +19,21 @@ def build_token_response(user: dict) -> dict:
         "access_token": create_access_token(str(user["_id"])),
         "token_type": "bearer",
         "role": user["role"],
-        "user": {
-            "id": str(user["_id"]),
-            "name": user.get("full_name", ""),
-            "email": user.get("email", ""),
-            "phone": user.get("phone", ""),
-            "role": user.get("role", ""),
-            "preferred_language": user.get("preferred_language", "en"),
-            "theme_mode": user.get("theme_mode", "dark"),
-            "avatar_url": user.get("avatar_url"),
-        },
+        "user": build_user_payload(user),
+    }
+
+
+def build_user_payload(user: dict) -> dict:
+    return {
+        "id": str(user["_id"]),
+        "name": user.get("full_name", ""),
+        "full_name": user.get("full_name", ""),
+        "email": user.get("email", ""),
+        "phone": user.get("phone", ""),
+        "role": user.get("role", ""),
+        "preferred_language": user.get("preferred_language", "en"),
+        "theme_mode": user.get("theme_mode", "dark"),
+        "avatar_url": user.get("avatar_url"),
     }
 
 

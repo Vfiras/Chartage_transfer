@@ -5,7 +5,8 @@ class TripService {
   const TripService();
 
   Future<List<TransportTrip>> listTrips({String? status}) async {
-    final response = await TransportApiClient.instance.get('/bookings/', query: {
+    final response =
+        await TransportApiClient.instance.get('/bookings/', query: {
       if (status != null) 'booking_status': status,
     });
     return (response['bookings'] as List? ?? const [])
@@ -15,8 +16,7 @@ class TripService {
   }
 
   Future<Map<String, List<TransportTrip>>> history() async {
-    final response =
-        await TransportApiClient.instance.get('/bookings/history');
+    final response = await TransportApiClient.instance.get('/bookings/history');
     List<TransportTrip> parse(String key) {
       return (response[key] as List? ?? const [])
           .cast<Map>()

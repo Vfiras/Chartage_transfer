@@ -20,7 +20,7 @@ class MapPlaceholder extends StatelessWidget {
       borderRadius: BorderRadius.circular(28),
       child: Container(
         height: 320,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFFFFFCF4), Color(0xFFF8F3E5), Color(0xFFF3E5C0)],
             begin: Alignment.topLeft,
@@ -55,7 +55,7 @@ class MapPlaceholder extends StatelessWidget {
                   color: Colors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(22),
                   border: Border.all(color: const Color(0xFFE8E0CC)),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
                       color: Color(0x0F000000),
                       blurRadius: 16,
@@ -68,12 +68,12 @@ class MapPlaceholder extends StatelessWidget {
                     Container(
                       width: 42,
                       height: 42,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: Color(0xFFFFF5D9),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.map_rounded,
-                          color: AppColors.secondary),
+                      child:
+                          Icon(Icons.map_rounded, color: AppColors.secondary),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -82,7 +82,7 @@ class MapPlaceholder extends StatelessWidget {
                         children: [
                           Text(
                             title,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 18,
                               fontWeight: FontWeight.w800,
@@ -91,7 +91,7 @@ class MapPlaceholder extends StatelessWidget {
                           const SizedBox(height: 4),
                           Text(
                             subtitle,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Color(0xFF7B7D7D),
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -120,11 +120,11 @@ class MapPlaceholder extends StatelessWidget {
                     Container(
                       width: 42,
                       height: 42,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: Color(0xFFFFF5D9),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.timer_outlined,
+                      child: Icon(Icons.timer_outlined,
                           color: AppColors.secondary, size: 22),
                     ),
                     const SizedBox(width: 12),
@@ -134,14 +134,14 @@ class MapPlaceholder extends StatelessWidget {
                         children: [
                           Text(
                             '$etaLabel route progress',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.primary,
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          const Text(
+                          Text(
                             'Placeholder map frame prepared for live navigation later',
                             style: TextStyle(
                               color: Color(0xFF7B7D7D),

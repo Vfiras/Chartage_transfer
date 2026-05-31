@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/language_service.dart';
 import 'auth_design.dart';
 
 class AuthWelcomeScreen extends StatelessWidget {
@@ -15,6 +16,8 @@ class AuthWelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+
     return AuthScaffold(
       imageAlignment: Alignment.bottomCenter,
       child: LayoutBuilder(
@@ -42,8 +45,8 @@ class AuthWelcomeScreen extends StatelessWidget {
                       SizedBox(height: topGap),
                       const AuthBrandLockup(stacked: true),
                       const SizedBox(height: 22),
-                      const Text(
-                        'Premium rides. Trusted drivers.\nEvery time.',
+                      Text(
+                        '${l.t('premium_rides')}.\n${l.t('every_time')}',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: AppColors.textSecondary,
@@ -54,13 +57,13 @@ class AuthWelcomeScreen extends StatelessWidget {
                       ),
                       SizedBox(height: brandToButtonsGap),
                       AuthPrimaryButton(
-                        text: 'Get Started',
+                        text: l.t('login_or_register'),
                         onPressed: () =>
                             Navigator.of(context).pushNamed(AppRoutes.login),
                       ),
                       const SizedBox(height: 14),
                       AuthOutlineButton(
-                        text: 'Explore as Guest',
+                        text: l.t('guest_browsing'),
                         onPressed: () => _continueAsGuest(context),
                       ),
                     ],

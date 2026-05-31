@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../features/admin/presentation/admin_booking_details_screen.dart';
 import '../../features/admin/presentation/admin_shell.dart';
 import '../../features/auth/presentation/auth_welcome_screen.dart';
 import '../../features/auth/presentation/forgot_password_screen.dart';
@@ -10,7 +9,6 @@ import '../../features/destination_guide/presentation/destination_guide_screen.d
 import '../../features/recommendations/presentation/recommendation_management_screen.dart';
 import '../../screens/client/client_shell.dart';
 import '../../screens/assistant_screen.dart';
-import '../models/admin_booking.dart';
 import 'app_routes.dart';
 
 class AppRouter {
@@ -37,12 +35,6 @@ class AppRouter {
       case AppRoutes.adminShell:
         return MaterialPageRoute(
             builder: (_) => const AdminShell(), settings: settings);
-      case AppRoutes.adminBookingDetails:
-        final booking = settings.arguments as AdminBooking;
-        return MaterialPageRoute(
-          builder: (_) => AdminBookingDetailsScreen(booking: booking),
-          settings: settings,
-        );
       case AppRoutes.destinationGuide:
         final destination = (settings.arguments as String?) ?? 'Bizerte';
         return MaterialPageRoute(

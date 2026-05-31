@@ -34,8 +34,7 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
       final res = await TransportApiClient.instance.get('/cars/all');
       if (!mounted) return;
       setState(() {
-        _cars = ((res['cars'] as List?) ?? [])
-            .cast<Map<String, dynamic>>();
+        _cars = ((res['cars'] as List?) ?? []).cast<Map<String, dynamic>>();
         _loading = false;
       });
     } catch (e) {
@@ -75,18 +74,18 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
     return await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Delete vehicle'),
+            title: Text('Delete vehicle'),
             content: Text('Remove "$name" from the fleet?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFFEF4444)),
-                child: const Text('Delete'),
+                child: Text('Delete'),
               ),
             ],
           ),
@@ -109,7 +108,7 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => _CarFormSheet(
@@ -133,7 +132,7 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -165,11 +164,10 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
             ),
             const SizedBox(height: 20),
             if (_loading)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(
-                  child:
-                      CircularProgressIndicator(color: AppColors.secondary),
+                  child: CircularProgressIndicator(color: AppColors.secondary),
                 ),
               )
             else if (_error != null)
@@ -249,7 +247,7 @@ class _CarCard extends StatelessWidget {
                   children: [
                     Text(
                       car['name']?.toString() ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
@@ -258,7 +256,7 @@ class _CarCard extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       car['model']?.toString() ?? '',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 13,
                       ),
@@ -309,7 +307,8 @@ class _CarCard extends StatelessWidget {
                     Switch(
                       value: available,
                       activeThumbColor: AppColors.secondary,
-                      activeTrackColor: AppColors.secondary.withValues(alpha: 0.4),
+                      activeTrackColor:
+                          AppColors.secondary.withValues(alpha: 0.4),
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       onChanged: (_) => onToggle(),
                     ),
@@ -328,13 +327,13 @@ class _CarCard extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.edit_rounded,
+                icon: Icon(Icons.edit_rounded,
                     color: AppColors.textSecondary, size: 20),
                 onPressed: onEdit,
                 tooltip: 'Edit',
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded,
+                icon: Icon(Icons.delete_outline_rounded,
                     color: Color(0xFFEF4444), size: 20),
                 onPressed: onDelete,
                 tooltip: 'Delete',
@@ -388,12 +387,9 @@ class _CarFormSheetState extends State<_CarFormSheet> {
   void initState() {
     super.initState();
     final c = widget.car;
-    _nameCtrl =
-        TextEditingController(text: c?['name']?.toString() ?? '');
-    _modelCtrl =
-        TextEditingController(text: c?['model']?.toString() ?? '');
-    _seatsCtrl =
-        TextEditingController(text: c?['seats']?.toString() ?? '4');
+    _nameCtrl = TextEditingController(text: c?['name']?.toString() ?? '');
+    _modelCtrl = TextEditingController(text: c?['model']?.toString() ?? '');
+    _seatsCtrl = TextEditingController(text: c?['seats']?.toString() ?? '4');
     _luggageCtrl =
         TextEditingController(text: c?['luggage']?.toString() ?? '2');
     _priceCtrl =
@@ -459,7 +455,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit vehicle' : 'Add vehicle',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -491,15 +487,12 @@ class _CarFormSheetState extends State<_CarFormSheet> {
             DropdownButtonFormField<String>(
               initialValue: _category,
               dropdownColor: AppColors.surface,
-              style: const TextStyle(
-                  color: AppColors.textPrimary, fontSize: 15),
-              decoration: const InputDecoration(labelText: 'Category'),
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+              decoration: InputDecoration(labelText: 'Category'),
               items: widget.categories
-                  .map((c) =>
-                      DropdownMenuItem(value: c, child: Text(c)))
+                  .map((c) => DropdownMenuItem(value: c, child: Text(c)))
                   .toList(),
-              onChanged: (v) =>
-                  setState(() => _category = v ?? _category),
+              onChanged: (v) => setState(() => _category = v ?? _category),
             ),
             const SizedBox(height: 12),
             Row(
@@ -509,9 +502,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                     controller: _seatsCtrl,
                     label: 'Seats',
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Required' : null,
                   ),
@@ -522,9 +513,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                     controller: _luggageCtrl,
                     label: 'Luggage',
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Required' : null,
                   ),
@@ -534,8 +523,8 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                   child: _Field(
                     controller: _priceCtrl,
                     label: 'Base price (DT)',
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Required';
                       if (double.tryParse(v) == null) return 'Invalid';
@@ -555,7 +544,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                   onChanged: (v) => setState(() => _available = v),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Available',
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -588,7 +577,7 @@ class _CarFormSheetState extends State<_CarFormSheet> {
                       )
                     : Text(
                         isEdit ? 'Save changes' : 'Add vehicle',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
@@ -626,7 +615,7 @@ class _Field extends StatelessWidget {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
       decoration: InputDecoration(labelText: label),
     );
   }
@@ -653,7 +642,7 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -685,8 +674,7 @@ class _GoldButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -694,7 +682,7 @@ class _GoldButton extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
@@ -720,17 +708,15 @@ class _ErrorView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded,
-              color: AppColors.textMuted, size: 40),
+          Icon(Icons.wifi_off_rounded, color: AppColors.textMuted, size: 40),
           const SizedBox(height: 12),
           Text(
             message,
             textAlign: TextAlign.center,
-            style:
-                const TextStyle(color: AppColors.textMuted, fontSize: 14),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 14),
           ),
           const SizedBox(height: 12),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(onPressed: onRetry, child: Text('Retry')),
         ],
       ),
     );
@@ -753,8 +739,7 @@ class _EmptyView extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             message,
-            style:
-                const TextStyle(color: AppColors.textMuted, fontSize: 14),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 14),
           ),
         ],
       ),

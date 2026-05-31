@@ -44,6 +44,20 @@ async def mark_all_read(current_user: dict = Depends(require_client)) -> dict:
     return {"updated": True}
 
 
+@router.delete("/{notification_id}")
+async def delete_notification(
+    notification_id: str,
+    current_user: dict = Depends(require_client),
+) -> dict:
+    db = get_database()
+    result = await db.notifications.delete_one(
+        {"_id": notification_id, "user_id": current_user["_id"]}
+    )
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    return {"deleted": True}
+
+
 @router.post("/")
 async def push_notification(
     user_id: str,

@@ -8,21 +8,27 @@ class FavoriteService {
   static const defaults = [
     FavoriteLocation(
       id: 'home',
-      label: 'Home',
-      address: 'La Marsa, Tunis',
+      label: 'La Marsa Residence',
+      address: '2 Rue des Jasmins, La Marsa 2078',
       type: 'home',
     ),
     FavoriteLocation(
       id: 'work',
-      label: 'Work',
-      address: 'Tunis Centre',
+      label: 'Tunis Business Centre',
+      address: 'Avenue Habib Bourguiba, Tunis 1000',
       type: 'work',
     ),
     FavoriteLocation(
       id: 'airport',
-      label: 'Airport',
-      address: 'Tunis-Carthage Airport',
+      label: 'Tunis-Carthage Airport',
+      address: 'Route de l\'Aéroport, Ariana 2035',
       type: 'airport',
+    ),
+    FavoriteLocation(
+      id: 'hammamet',
+      label: 'Hôtel Les Orangers',
+      address: 'Avenue Habib Thameur, Hammamet 8050',
+      type: 'hotel',
     ),
   ];
 
@@ -35,7 +41,13 @@ class FavoriteService {
           .map(
               (item) => FavoriteLocation.fromJson(item.cast<String, dynamic>()))
           .toList(growable: false);
-      return items.isEmpty ? defaults : items;
+      if (items.isEmpty) return defaults;
+      // Merge: real saved items first, then any default whose type isn't
+      // already represented by a saved item (avoids duplicating Home / Work etc.)
+      final savedTypes = items.map((e) => e.type).toSet();
+      final missingDefaults =
+          defaults.where((d) => !savedTypes.contains(d.type)).toList();
+      return [...items, ...missingDefaults];
     } catch (_) {
       return defaults;
     }

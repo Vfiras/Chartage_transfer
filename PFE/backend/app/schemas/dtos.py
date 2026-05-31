@@ -15,6 +15,7 @@ class SignupRequest(BaseModel):
 
 class UserProfileUpdate(BaseModel):
     full_name: str | None = None
+    email: str | None = None
     phone: str | None = None
     preferred_language: str | None = None
     theme_mode: str | None = None

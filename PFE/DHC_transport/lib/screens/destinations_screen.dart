@@ -22,7 +22,7 @@ class _DestinationsScreenState extends State<DestinationsScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.fromLTRB(20, 12, 20, 8),
               child: Align(
                 alignment: Alignment.centerLeft,
@@ -95,12 +95,12 @@ class _DestinationsScreenState extends State<DestinationsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(r.from,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 11,
                                         color: Color(0xFF888888))),
                                 const SizedBox(height: 2),
                                 Text(r.to,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w800)),
                                 const SizedBox(height: 8),
@@ -109,16 +109,16 @@ class _DestinationsScreenState extends State<DestinationsScreen> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text('${r.price} TND',
-                                        style: const TextStyle(
+                                        style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w800)),
                                     Row(
                                       children: [
-                                        const Icon(Icons.schedule_rounded,
+                                        Icon(Icons.schedule_rounded,
                                             size: 13, color: Color(0xFF888888)),
                                         const SizedBox(width: 4),
                                         Text(r.time,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                                 fontSize: 11,
                                                 color:
                                                     AppColors.textSecondary)),

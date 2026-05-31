@@ -21,4 +21,8 @@ class NotificationService {
   Future<void> markAllRead() async {
     await TransportApiClient.instance.patch('/notifications/read-all', {});
   }
+
+  Future<void> deleteNotification(String notificationId) async {
+    await TransportApiClient.instance.delete('/notifications/$notificationId');
+  }
 }

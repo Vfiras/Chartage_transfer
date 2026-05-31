@@ -29,7 +29,7 @@ class AuthPrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           gradient: disabled
               ? null
-              : const LinearGradient(
+              : LinearGradient(
                   colors: [
                     Color(0xFFEEC96B),
                     Color(0xFFE4B756),

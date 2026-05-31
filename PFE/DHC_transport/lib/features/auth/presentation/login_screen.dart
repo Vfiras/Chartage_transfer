@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routing/app_routes.dart';
 import '../../../core/services/auth_service.dart';
+import '../../../core/services/language_service.dart';
 import 'auth_design.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -52,13 +53,18 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _socialSoon(String provider) {
+    final l = LanguageService.instance;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('$provider sign-in is coming soon.')),
+      SnackBar(
+        content: Text(l.t('social_login_soon', args: {'provider': provider})),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+
     return AuthPageFrame(
       showImage: false,
       contentAlignment: Alignment.topCenter,
@@ -75,9 +81,9 @@ class _LoginScreenState extends State<LoginScreen> {
             filterQuality: FilterQuality.high,
           ),
           const SizedBox(height: 28),
-          const AuthTitle(
-            title: 'Welcome Back',
-            subtitle: 'Login to your account',
+          AuthTitle(
+            title: l.t('welcome_back'),
+            subtitle: l.t('login_subtitle'),
           ),
           const SizedBox(height: 30),
           Form(
@@ -87,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
               children: [
                 AuthTextField(
                   controller: _emailController,
-                  hintText: 'Email or Phone Number',
+                  hintText: l.t('email_or_phone'),
                   autofillHints: const [
                     AutofillHints.username,
                     AutofillHints.email,
@@ -99,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 14),
                 AuthTextField(
                   controller: _passwordController,
-                  hintText: 'Password',
+                  hintText: l.t('password'),
                   obscureText: _obscurePassword,
                   suffixIcon: Icon(
                     _obscurePassword
@@ -127,8 +133,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 minimumSize: Size.zero,
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: const Text(
-                'Forgot Password?',
+              child: Text(
+                l.t('forgot_password'),
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 12,
@@ -139,20 +145,20 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           const SizedBox(height: 22),
           AuthPrimaryButton(
-            text: 'Login',
+            text: l.t('login'),
             loading: _loading,
             onPressed: _handleLogin,
           ),
           const SizedBox(height: 26),
-          const AuthDividerLabel(text: 'Or continue with'),
+          AuthDividerLabel(text: l.t('continue_with')),
           const SizedBox(height: 18),
           AuthSocialButtons(
             onGoogle: () => _socialSoon('Google'),
           ),
           const SizedBox(height: 62),
           AuthBottomPrompt(
-            text: "Don't have an account? ",
-            action: 'Sign Up',
+            text: l.t('no_account'),
+            action: l.t('signup'),
             onPressed: () => Navigator.of(context).pushNamed(AppRoutes.signup),
           ),
         ],

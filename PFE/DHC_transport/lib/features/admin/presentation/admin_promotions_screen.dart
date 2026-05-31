@@ -32,8 +32,8 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
       final res = await TransportApiClient.instance.get('/promotions/');
       if (!mounted) return;
       setState(() {
-        _promos = ((res['promotions'] as List?) ?? [])
-            .cast<Map<String, dynamic>>();
+        _promos =
+            ((res['promotions'] as List?) ?? []).cast<Map<String, dynamic>>();
         _loading = false;
       });
     } catch (e) {
@@ -58,18 +58,18 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
     final confirmed = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Delete promotion'),
+            title: Text('Delete promotion'),
             content: Text('Remove promo code "$code"?'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
+                child: Text('Cancel'),
               ),
               TextButton(
                 onPressed: () => Navigator.pop(ctx, true),
                 style: TextButton.styleFrom(
                     foregroundColor: const Color(0xFFEF4444)),
-                child: const Text('Delete'),
+                child: Text('Delete'),
               ),
             ],
           ),
@@ -88,8 +88,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-          content: Text(message),
-          backgroundColor: const Color(0xFFEF4444)),
+          content: Text(message), backgroundColor: const Color(0xFFEF4444)),
     );
   }
 
@@ -98,7 +97,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
+      shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       builder: (_) => _PromoFormSheet(promo: promo, onSaved: _load),
@@ -118,7 +117,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
           children: [
             Row(
               children: [
-                const Expanded(
+                Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -148,7 +147,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
             ),
             const SizedBox(height: 20),
             if (_loading)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(
                     child:
@@ -166,8 +165,7 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
                 _PromoCard(
                   promo: promo,
                   onEdit: () => _openForm(promo: promo),
-                  onToggle: () =>
-                      _toggle(promo['_id']?.toString() ?? ''),
+                  onToggle: () => _toggle(promo['_id']?.toString() ?? ''),
                   onDelete: () => _delete(
                     promo['_id']?.toString() ?? '',
                     promo['code']?.toString() ?? '',
@@ -224,7 +222,7 @@ class _PromoCard extends StatelessWidget {
                 ),
                 child: Text(
                   promo['code']?.toString() ?? '',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.secondary,
                     fontSize: 14,
                     fontWeight: FontWeight.w900,
@@ -242,7 +240,7 @@ class _PromoCard extends StatelessWidget {
                 ),
                 child: Text(
                   valueLabel,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -251,13 +249,13 @@ class _PromoCard extends StatelessWidget {
               ),
               const Spacer(),
               IconButton(
-                icon: const Icon(Icons.edit_rounded,
+                icon: Icon(Icons.edit_rounded,
                     color: AppColors.textSecondary, size: 18),
                 onPressed: onEdit,
                 tooltip: 'Edit',
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded,
+                icon: Icon(Icons.delete_outline_rounded,
                     color: Color(0xFFEF4444), size: 18),
                 onPressed: onDelete,
                 tooltip: 'Delete',
@@ -294,8 +292,7 @@ class _PromoCard extends StatelessWidget {
               Text(
                 active ? 'Active' : 'Inactive',
                 style: TextStyle(
-                  color:
-                      active ? const Color(0xFF55A86B) : AppColors.textMuted,
+                  color: active ? const Color(0xFF55A86B) : AppColors.textMuted,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                 ),
@@ -335,14 +332,12 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
     super.initState();
     final p = widget.promo;
     _codeCtrl = TextEditingController(text: p?['code']?.toString() ?? '');
-    _valueCtrl =
-        TextEditingController(text: p?['value']?.toString() ?? '');
+    _valueCtrl = TextEditingController(text: p?['value']?.toString() ?? '');
     _limitCtrl =
         TextEditingController(text: p?['usage_limit']?.toString() ?? '100');
     _expiryCtrl =
         TextEditingController(text: p?['expiry_date']?.toString() ?? '');
-    _discountType =
-        p?['discount_type']?.toString() ?? 'percentage';
+    _discountType = p?['discount_type']?.toString() ?? 'percentage';
     _active = p?['active'] != false;
   }
 
@@ -401,7 +396,7 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
           children: [
             Text(
               isEdit ? 'Edit promotion' : 'New promotion',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
@@ -414,11 +409,9 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[A-Z0-9a-z]'))
               ],
-              style: const TextStyle(
-                  color: AppColors.textPrimary, fontSize: 15),
-              decoration: const InputDecoration(labelText: 'Promo code'),
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Required' : null,
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
+              decoration: InputDecoration(labelText: 'Promo code'),
+              validator: (v) => v == null || v.isEmpty ? 'Required' : null,
             ),
             const SizedBox(height: 12),
             Row(
@@ -427,14 +420,12 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
                   child: DropdownButtonFormField<String>(
                     initialValue: _discountType,
                     dropdownColor: AppColors.surface,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15),
-                    decoration:
-                        const InputDecoration(labelText: 'Type'),
+                    style:
+                        TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    decoration: InputDecoration(labelText: 'Type'),
                     items: const [
                       DropdownMenuItem(
-                          value: 'percentage',
-                          child: Text('Percentage')),
+                          value: 'percentage', child: Text('Percentage')),
                       DropdownMenuItem(
                           value: 'fixed', child: Text('Fixed (DT)')),
                     ],
@@ -446,11 +437,11 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
                 Expanded(
                   child: TextFormField(
                     controller: _valueCtrl,
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15),
-                    decoration: const InputDecoration(labelText: 'Value'),
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    style:
+                        TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    decoration: InputDecoration(labelText: 'Value'),
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Required';
                       if (double.tryParse(v) == null) return 'Invalid';
@@ -467,23 +458,20 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
                   child: TextFormField(
                     controller: _limitCtrl,
                     keyboardType: TextInputType.number,
-                    inputFormatters: [
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15),
-                    decoration:
-                        const InputDecoration(labelText: 'Usage limit'),
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    style:
+                        TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    decoration: InputDecoration(labelText: 'Usage limit'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextFormField(
                     controller: _expiryCtrl,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 15),
-                    decoration: const InputDecoration(
-                        labelText: 'Expiry (YYYY-MM-DD)'),
+                    style:
+                        TextStyle(color: AppColors.textPrimary, fontSize: 15),
+                    decoration:
+                        InputDecoration(labelText: 'Expiry (YYYY-MM-DD)'),
                   ),
                 ),
               ],
@@ -494,12 +482,11 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
                 Switch(
                   value: _active,
                   activeThumbColor: AppColors.secondary,
-                  activeTrackColor:
-                      AppColors.secondary.withValues(alpha: 0.4),
+                  activeTrackColor: AppColors.secondary.withValues(alpha: 0.4),
                   onChanged: (v) => setState(() => _active = v),
                 ),
                 const SizedBox(width: 8),
-                const Text(
+                Text(
                   'Active',
                   style: TextStyle(
                     color: AppColors.textSecondary,
@@ -532,7 +519,7 @@ class _PromoFormSheetState extends State<_PromoFormSheet> {
                       )
                     : Text(
                         isEdit ? 'Save changes' : 'Create promo',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w800,
                           fontSize: 15,
                         ),
@@ -569,7 +556,7 @@ class _InfoChip extends StatelessWidget {
           const SizedBox(width: 4),
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 12,
               fontWeight: FontWeight.w600,
@@ -598,8 +585,7 @@ class _GoldButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
         child: Padding(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -607,7 +593,7 @@ class _GoldButton extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 label,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w800,
                   fontSize: 13,
@@ -633,15 +619,13 @@ class _ErrorView extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 32),
       child: Column(
         children: [
-          const Icon(Icons.wifi_off_rounded,
-              color: AppColors.textMuted, size: 40),
+          Icon(Icons.wifi_off_rounded, color: AppColors.textMuted, size: 40),
           const SizedBox(height: 12),
           Text(message,
               textAlign: TextAlign.center,
-              style:
-                  const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+              style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
           const SizedBox(height: 12),
-          TextButton(onPressed: onRetry, child: const Text('Retry')),
+          TextButton(onPressed: onRetry, child: Text('Retry')),
         ],
       ),
     );
@@ -663,8 +647,7 @@ class _EmptyView extends StatelessWidget {
           Icon(icon, color: AppColors.textMuted, size: 48),
           const SizedBox(height: 12),
           Text(message,
-              style:
-                  const TextStyle(color: AppColors.textMuted, fontSize: 14)),
+              style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
         ],
       ),
     );

@@ -64,7 +64,7 @@ class AdminCard extends StatelessWidget {
                     if (label != null) ...[
                       Text(
                         label!.toUpperCase(),
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -87,7 +87,7 @@ class AdminCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         subtitle!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 12,
                           height: 1.4,

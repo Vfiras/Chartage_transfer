@@ -106,7 +106,7 @@ class _InfoRow extends StatelessWidget {
           width: 70,
           child: Text(
             label.toUpperCase(),
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF7B7D7D),
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -118,7 +118,7 @@ class _InfoRow extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 14,
               fontWeight: FontWeight.w600,

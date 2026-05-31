@@ -40,11 +40,10 @@ class RecommendationCard extends StatelessWidget {
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => Container(
                       color: const Color(0xFF242424),
-                      child: const Icon(Icons.photo_outlined,
-                          color: Colors.white54),
+                      child: Icon(Icons.photo_outlined, color: Colors.white54),
                     ),
                   ),
-                  const DecoratedBox(
+                  DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [Color(0x00222222), Color(0xAA000000)],
@@ -85,7 +84,7 @@ class RecommendationCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '${item.city}, ${item.region}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
                   ),
@@ -110,7 +109,7 @@ class RecommendationCard extends StatelessWidget {
                     item.description,
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.textSecondary,
                       fontSize: 13,
                       height: 1.45,
@@ -134,7 +133,7 @@ class RecommendationCard extends StatelessWidget {
                           ),
                           child: Text(
                             tag,
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: AppColors.secondary,
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
@@ -152,13 +151,13 @@ class RecommendationCard extends StatelessWidget {
                           onPressed: onTap,
                           style: OutlinedButton.styleFrom(
                             foregroundColor: AppColors.secondary,
-                            side: const BorderSide(color: AppColors.goldBorder),
+                            side: BorderSide(color: AppColors.goldBorder),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
                             padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          child: const Text('View details'),
+                          child: Text('View details'),
                         ),
                       ),
                     ],
@@ -196,7 +195,7 @@ class _CategoryPill extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.primary,
           fontSize: 11,
           fontWeight: FontWeight.w800,
@@ -223,11 +222,11 @@ class _RatingPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_rounded, size: 14, color: AppColors.primary),
+          Icon(Icons.star_rounded, size: 14, color: AppColors.primary),
           const SizedBox(width: 4),
           Text(
             rating.toStringAsFixed(1),
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.primary,
               fontSize: 11,
               fontWeight: FontWeight.w800,
@@ -263,7 +262,7 @@ class _MetaChip extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -272,7 +271,7 @@ class _MetaChip extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 12,
               fontWeight: FontWeight.w700,

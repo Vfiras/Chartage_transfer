@@ -71,7 +71,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
               children: [
-                const Text(
+                Text(
                   'Suppliers',
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -80,7 +80,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'Edit, suspend, or reactivate supplier partners from MongoDB.',
                   style: TextStyle(
                     color: AppColors.textMuted,
@@ -93,7 +93,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                   future: _future,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(
+                      return Center(
                         child: Padding(
                           padding: EdgeInsets.all(28),
                           child: CircularProgressIndicator(),
@@ -123,7 +123,7 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
             Positioned.fill(
               child: ColoredBox(
                 color: Colors.black.withValues(alpha: 0.45),
-                child: const Center(child: CircularProgressIndicator()),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -186,7 +186,7 @@ class _SupplierEditSheetState extends State<_SupplierEditSheet> {
         constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.82),
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
         ),
@@ -204,7 +204,7 @@ class _SupplierEditSheetState extends State<_SupplierEditSheet> {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Edit Supplier',
               style: TextStyle(
                 color: AppColors.textPrimary,
@@ -236,7 +236,7 @@ class _SupplierEditSheetState extends State<_SupplierEditSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text('Cancel'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -247,7 +247,7 @@ class _SupplierEditSheetState extends State<_SupplierEditSheet> {
                       backgroundColor: AppColors.secondary,
                       foregroundColor: AppColors.primary,
                     ),
-                    child: const Text('Save'),
+                    child: Text('Save'),
                   ),
                 ),
               ],
@@ -287,11 +287,11 @@ InputDecoration _inputDecoration(String label) {
     fillColor: AppColors.surfaceElevated,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: AppColors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: AppColors.border),
     ),
   );
 }

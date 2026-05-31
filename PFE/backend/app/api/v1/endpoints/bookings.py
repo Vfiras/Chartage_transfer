@@ -138,12 +138,31 @@ async def modify_booking(
     if current_user.get("role") != "admin" and booking.get("user_id") != current_user["_id"]:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    rules = await _get_pricing_rules()
-    _check_time_rule(booking, rules["modification_limit_hours"], "Modification")
+    # Only enforce the modification time-window for clients, not admins
+    if current_user.get("role") != "admin":
+        rules = await _get_pricing_rules()
+        _check_time_rule(booking, rules["modification_limit_hours"], "Modification")
+
+    # Validate status when provided
+    if payload.status is not None and payload.status not in VALID_STATUSES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid status '{payload.status}'. Must be one of: {', '.join(sorted(VALID_STATUSES))}",
+        )
 
     updated = await update_trip(booking_id, payload.model_dump())
     if not updated:
         raise HTTPException(status_code=404, detail="Booking not found")
+
+    # Push a status-change notification when admin explicitly sets a new status
+    if payload.status is not None and booking.get("user_id"):
+        await _push_notification(
+            user_id=booking["user_id"],
+            title="Booking Update",
+            message=f"Your booking status has been updated to: {payload.status.replace('_', ' ').title()}.",
+            notif_type="status_update",
+            booking_id=booking_id,
+        )
     return {"booking": updated}
 
 

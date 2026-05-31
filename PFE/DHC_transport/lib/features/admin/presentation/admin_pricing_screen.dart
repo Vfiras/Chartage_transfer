@@ -78,11 +78,9 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
       _error = null;
     });
     try {
-      final res =
-          await TransportApiClient.instance.get('/pricing/config');
+      final res = await TransportApiClient.instance.get('/pricing/config');
       if (!mounted) return;
-      final c =
-          (res['pricing_config'] as Map?)?.cast<String, dynamic>() ?? {};
+      final c = (res['pricing_config'] as Map?)?.cast<String, dynamic>() ?? {};
       _applyConfig(c);
       setState(() {
         _loading = false;
@@ -99,8 +97,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
   void _applyConfig(Map<String, dynamic> c) {
     _minHoursCtrl.text = c['minimum_booking_hours']?.toString() ?? '3';
     _modLimitCtrl.text = c['modification_limit_hours']?.toString() ?? '24';
-    _cancelLimitCtrl.text =
-        c['cancellation_limit_hours']?.toString() ?? '24';
+    _cancelLimitCtrl.text = c['cancellation_limit_hours']?.toString() ?? '24';
 
     final night = (c['night_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
     _nightEnabled = night['enabled'] == true;
@@ -114,13 +111,11 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
     _lastMinuteHoursCtrl.text = lm['within_hours']?.toString() ?? '24';
     _lastMinutePctCtrl.text = lm['percentage']?.toString() ?? '20';
 
-    final wk =
-        (c['weekend_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
+    final wk = (c['weekend_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
     _weekendEnabled = wk['enabled'] == true;
     _weekendPctCtrl.text = wk['percentage']?.toString() ?? '10';
 
-    final se =
-        (c['seasonal_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
+    final se = (c['seasonal_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
     _seasonalEnabled = se['enabled'] == true;
     _seasonalPctCtrl.text = se['percentage']?.toString() ?? '0';
   }
@@ -129,8 +124,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
     setState(() => _saving = true);
     try {
       final payload = {
-        'minimum_booking_hours':
-            int.tryParse(_minHoursCtrl.text.trim()) ?? 3,
+        'minimum_booking_hours': int.tryParse(_minHoursCtrl.text.trim()) ?? 3,
         'modification_limit_hours':
             int.tryParse(_modLimitCtrl.text.trim()) ?? 24,
         'cancellation_limit_hours':
@@ -139,25 +133,20 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
           'enabled': _nightEnabled,
           'start_time': _nightStartCtrl.text.trim(),
           'end_time': _nightEndCtrl.text.trim(),
-          'percentage':
-              double.tryParse(_nightPctCtrl.text.trim()) ?? 30,
+          'percentage': double.tryParse(_nightPctCtrl.text.trim()) ?? 30,
         },
         'last_minute_pricing': {
           'enabled': _lastMinuteEnabled,
-          'within_hours':
-              int.tryParse(_lastMinuteHoursCtrl.text.trim()) ?? 24,
-          'percentage':
-              double.tryParse(_lastMinutePctCtrl.text.trim()) ?? 20,
+          'within_hours': int.tryParse(_lastMinuteHoursCtrl.text.trim()) ?? 24,
+          'percentage': double.tryParse(_lastMinutePctCtrl.text.trim()) ?? 20,
         },
         'weekend_pricing': {
           'enabled': _weekendEnabled,
-          'percentage':
-              double.tryParse(_weekendPctCtrl.text.trim()) ?? 10,
+          'percentage': double.tryParse(_weekendPctCtrl.text.trim()) ?? 10,
         },
         'seasonal_pricing': {
           'enabled': _seasonalEnabled,
-          'percentage':
-              double.tryParse(_seasonalPctCtrl.text.trim()) ?? 0,
+          'percentage': double.tryParse(_seasonalPctCtrl.text.trim()) ?? 0,
         },
       };
       await TransportApiClient.instance.put('/pricing/rules', payload);
@@ -186,7 +175,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        title: const Text(
+        title: Text(
           'Pricing Rules',
           style: TextStyle(
             color: AppColors.textPrimary,
@@ -198,7 +187,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 16),
               child: _saving
-                  ? const Padding(
+                  ? Padding(
                       padding: EdgeInsets.all(10),
                       child: SizedBox(
                         width: 20,
@@ -209,7 +198,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
                     )
                   : TextButton(
                       onPressed: _save,
-                      child: const Text(
+                      child: Text(
                         'Save',
                         style: TextStyle(
                           color: AppColors.secondary,
@@ -223,23 +212,22 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
       ),
       body: SafeArea(
         child: _loading
-            ? const Center(
+            ? Center(
                 child: CircularProgressIndicator(color: AppColors.secondary))
             : _error != null
                 ? Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.wifi_off_rounded,
+                        Icon(Icons.wifi_off_rounded,
                             color: AppColors.textMuted, size: 40),
                         const SizedBox(height: 12),
                         Text(_error!,
                             textAlign: TextAlign.center,
-                            style: const TextStyle(
+                            style: TextStyle(
                                 color: AppColors.textMuted, fontSize: 14)),
                         const SizedBox(height: 12),
-                        TextButton(
-                            onPressed: _load, child: const Text('Retry')),
+                        TextButton(onPressed: _load, child: Text('Retry')),
                       ],
                     ),
                   )
@@ -409,7 +397,7 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
                                   strokeWidth: 2.5,
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 'Save pricing rules',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
@@ -434,7 +422,7 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title.toUpperCase(),
-      style: const TextStyle(
+      style: TextStyle(
         color: AppColors.textMuted,
         fontSize: 12,
         fontWeight: FontWeight.w800,
@@ -462,7 +450,7 @@ class _ToggleRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textSecondary,
               fontSize: 14,
               fontWeight: FontWeight.w600,
@@ -492,7 +480,7 @@ class _IntField extends StatelessWidget {
       controller: controller,
       keyboardType: TextInputType.number,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
       decoration: InputDecoration(labelText: label),
     );
   }
@@ -508,9 +496,8 @@ class _PctField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       controller: controller,
-      keyboardType:
-          const TextInputType.numberWithOptions(decimal: true),
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
       decoration: InputDecoration(labelText: label, suffixText: '%'),
     );
   }
@@ -527,7 +514,7 @@ class _TimeField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: TextInputType.datetime,
-      style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
+      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
       decoration: InputDecoration(labelText: label),
     );
   }

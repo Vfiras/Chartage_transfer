@@ -13,7 +13,7 @@ class AuthBrandLogo extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.secondary.withValues(alpha: 0.22)),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: Color(0x12000000),
             blurRadius: 18,

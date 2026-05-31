@@ -4,9 +4,15 @@ import '../constants/app_colors.dart';
 
 class AppTheme {
   static ThemeData darkTheme({TextTheme? baseTextTheme}) =>
-      lightTheme(baseTextTheme: baseTextTheme);
+      _theme(baseTextTheme: baseTextTheme, brightness: Brightness.dark);
 
-  static ThemeData lightTheme({TextTheme? baseTextTheme}) {
+  static ThemeData lightTheme({TextTheme? baseTextTheme}) =>
+      _theme(baseTextTheme: baseTextTheme, brightness: Brightness.light);
+
+  static ThemeData _theme({
+    TextTheme? baseTextTheme,
+    required Brightness brightness,
+  }) {
     final textTheme = (baseTextTheme ?? const TextTheme()).apply(
       bodyColor: AppColors.textPrimary,
       displayColor: AppColors.textPrimary,
@@ -23,7 +29,7 @@ class AppTheme {
         onSecondary: AppColors.primary,
         surface: AppColors.surface,
         onSurface: AppColors.textPrimary,
-        brightness: Brightness.dark,
+        brightness: brightness,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
@@ -33,7 +39,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.secondary,
-          textStyle: const TextStyle(fontWeight: FontWeight.w900),
+          textStyle: TextStyle(fontWeight: FontWeight.w900),
         ),
       ),
       datePickerTheme: DatePickerThemeData(
@@ -45,21 +51,21 @@ class AppTheme {
         subHeaderForegroundColor: AppColors.textSecondary,
         dividerColor: AppColors.softBorder,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
-        headerHelpStyle: const TextStyle(
+        headerHelpStyle: TextStyle(
           color: AppColors.textSecondary,
           fontSize: 13,
           fontWeight: FontWeight.w700,
         ),
-        headerHeadlineStyle: const TextStyle(
+        headerHeadlineStyle: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 28,
           fontWeight: FontWeight.w500,
         ),
-        weekdayStyle: const TextStyle(
+        weekdayStyle: TextStyle(
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w800,
         ),
-        dayStyle: const TextStyle(fontWeight: FontWeight.w700),
+        dayStyle: TextStyle(fontWeight: FontWeight.w700),
         dayForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
@@ -81,7 +87,7 @@ class AppTheme {
           }
           return AppColors.secondaryLight;
         }),
-        todayBorder: const BorderSide(color: AppColors.secondary, width: 1.4),
+        todayBorder: BorderSide(color: AppColors.secondary, width: 1.4),
         yearForegroundColor: WidgetStateProperty.resolveWith<Color?>((states) {
           if (states.contains(WidgetState.selected)) {
             return AppColors.primary;
@@ -114,14 +120,14 @@ class AppTheme {
         dayPeriodColor: AppColors.surfaceElevated,
         dayPeriodTextColor: AppColors.textPrimary,
         entryModeIconColor: AppColors.secondary,
-        helpTextStyle: const TextStyle(
+        helpTextStyle: TextStyle(
           color: AppColors.textSecondary,
           fontWeight: FontWeight.w800,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
       ),
       textTheme: textTheme,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         elevation: 0,
         backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textPrimary,

@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
@@ -62,7 +63,8 @@ class AuthService {
     _token = response['access_token']?.toString();
     _guest = false;
     TransportApiClient.instance.setToken(_token);
-    final user = _userFromAuthResponse(response, fallbackEmail: identifier.trim());
+    final user =
+        _userFromAuthResponse(response, fallbackEmail: identifier.trim());
     _currentUser = user;
     await _saveToStorage(user, _token);
     return user;
@@ -111,6 +113,7 @@ class AuthService {
   }) async {
     final response = await TransportApiClient.instance.put('/auth/me', {
       'full_name': name.trim(),
+      'email': email.trim(),
       'phone': phone.trim(),
     });
     final userPayload =
@@ -119,6 +122,53 @@ class AuthService {
       name: userPayload['full_name']?.toString() ?? name,
       email: userPayload['email']?.toString() ?? email,
       phone: userPayload['phone']?.toString() ?? phone,
+      avatarUrl: userPayload['avatar_url']?.toString(),
+    );
+    _currentUser = updated;
+    await _saveToStorage(updated, _token);
+    return updated;
+  }
+
+  Future<UserModel> refreshProfile() async {
+    final response = await TransportApiClient.instance.get('/auth/me');
+    final userPayload =
+        (response['user'] as Map?)?.cast<String, dynamic>() ?? {};
+    final updated = (_currentUser ?? demoUser).copyWith(
+      id: userPayload['id']?.toString() ?? _currentUser?.id ?? '',
+      name: userPayload['full_name']?.toString() ??
+          userPayload['name']?.toString() ??
+          _currentUser?.name ??
+          '',
+      email: userPayload['email']?.toString() ?? _currentUser?.email ?? '',
+      phone: userPayload['phone']?.toString() ?? _currentUser?.phone ?? '',
+      role: userPayload['role']?.toString() ?? _currentUser?.role ?? 'client',
+      avatarUrl: userPayload['avatar_url']?.toString(),
+    );
+    _currentUser = updated;
+    await _saveToStorage(updated, _token);
+    return updated;
+  }
+
+  Future<UserModel> uploadAvatar(XFile file) async {
+    final bytes = await file.readAsBytes();
+    final response = await TransportApiClient.instance.postMultipart(
+      '/auth/me/avatar',
+      fileField: 'file',
+      bytes: bytes,
+      filename: file.name.isEmpty ? 'avatar.jpg' : file.name,
+    );
+    final userPayload =
+        (response['user'] as Map?)?.cast<String, dynamic>() ?? {};
+    final updated = (_currentUser ?? demoUser).copyWith(
+      id: userPayload['id']?.toString() ?? _currentUser?.id ?? '',
+      name: userPayload['full_name']?.toString() ??
+          userPayload['name']?.toString() ??
+          _currentUser?.name ??
+          '',
+      email: userPayload['email']?.toString() ?? _currentUser?.email ?? '',
+      phone: userPayload['phone']?.toString() ?? _currentUser?.phone ?? '',
+      role: userPayload['role']?.toString() ?? _currentUser?.role ?? 'client',
+      avatarUrl: userPayload['avatar_url']?.toString(),
     );
     _currentUser = updated;
     await _saveToStorage(updated, _token);

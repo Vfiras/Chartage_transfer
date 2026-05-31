@@ -40,7 +40,7 @@ class _DestinationGuideScreenState extends State<DestinationGuideScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
-        title: const Text('Destination Guide'),
+        title: Text('Destination Guide'),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
@@ -51,7 +51,7 @@ class _DestinationGuideScreenState extends State<DestinationGuideScreen> {
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(28),
               border: Border.all(color: const Color(0xFFE8E0CC)),
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
                   color: Color(0x11000000),
                   blurRadius: 20,
@@ -62,7 +62,7 @@ class _DestinationGuideScreenState extends State<DestinationGuideScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Destination Guide',
                   style: TextStyle(
                     color: AppColors.textPrimary,
@@ -73,7 +73,7 @@ class _DestinationGuideScreenState extends State<DestinationGuideScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'Premium suggestions for ${widget.destination}. Use these cards to guide tourists confidently.',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 13,
                     height: 1.5,
@@ -100,7 +100,7 @@ class _DestinationGuideScreenState extends State<DestinationGuideScreen> {
             etaLabel: '12 min',
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             'Featured nearby',
             style: TextStyle(
               color: AppColors.textPrimary,
@@ -144,7 +144,7 @@ class _SearchBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE6D7B2)),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.search_rounded, color: AppColors.textMuted),
           SizedBox(width: 12),
@@ -202,7 +202,7 @@ class _CategoryBar extends StatelessWidget {
             ),
             selectedColor: AppColors.secondary,
             backgroundColor: AppColors.surface,
-            side: const BorderSide(color: Color(0xFFE6D7B2)),
+            side: BorderSide(color: Color(0xFFE6D7B2)),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(999),
             ),
@@ -225,7 +225,7 @@ class _EmptyState extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: const Color(0xFFE8E0CC)),
       ),
-      child: const Text(
+      child: Text(
         'No recommendations for this filter yet. Add more destinations from the admin dashboard.',
         style: TextStyle(
           color: AppColors.textMuted,

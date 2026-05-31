@@ -71,7 +71,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
             const _Header(),
             const SizedBox(height: 18),
             if (_loading)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Center(
                   child: CircularProgressIndicator(color: AppColors.secondary),
@@ -82,19 +82,19 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 32),
                 child: Column(
                   children: [
-                    const Icon(Icons.wifi_off_rounded,
+                    Icon(Icons.wifi_off_rounded,
                         color: AppColors.textMuted, size: 40),
                     const SizedBox(height: 12),
                     Text(
                       _error!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextButton(onPressed: _load, child: const Text('Retry')),
+                    TextButton(onPressed: _load, child: Text('Retry')),
                   ],
                 ),
               )
@@ -190,7 +190,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
@@ -253,12 +253,12 @@ class _BookingBreakdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      _StatusItem('Pending', stats['pending_bookings'] ?? 0,
-          const Color(0xFFF59E0B)),
+      _StatusItem(
+          'Pending', stats['pending_bookings'] ?? 0, const Color(0xFFF59E0B)),
       _StatusItem('Confirmed', stats['confirmed_bookings'] ?? 0,
           const Color(0xFF55A86B)),
-      _StatusItem('Completed', stats['completed_bookings'] ?? 0,
-          AppColors.secondary),
+      _StatusItem(
+          'Completed', stats['completed_bookings'] ?? 0, AppColors.secondary),
       _StatusItem('Cancelled', stats['cancelled_bookings'] ?? 0,
           const Color(0xFFEF4444)),
     ];
@@ -282,7 +282,7 @@ class _BookingBreakdown extends StatelessWidget {
                 const SizedBox(width: 10),
                 Text(
                   item.label,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textSecondary,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -291,7 +291,7 @@ class _BookingBreakdown extends StatelessWidget {
                 const Spacer(),
                 Text(
                   '${item.count}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textPrimary,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
@@ -365,7 +365,7 @@ class _ActionRow extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -374,7 +374,7 @@ class _ActionRow extends StatelessWidget {
                     const SizedBox(height: 3),
                     Text(
                       subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12,
                       ),
@@ -382,8 +382,7 @@ class _ActionRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.textMuted),
+              Icon(Icons.chevron_right_rounded, color: AppColors.textMuted),
             ],
           ),
         ),

@@ -24,14 +24,34 @@ class TransportApiClient {
     }
 
     if (kIsWeb) {
-      return 'http://127.0.0.1:8080/api/v1';
+      return 'http://127.0.0.1:8000/api/v1';
     }
 
     if (defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:8080/api/v1';
+      return 'http://10.0.2.2:8000/api/v1';
     }
 
-    return 'http://127.0.0.1:8080/api/v1';
+    return 'http://127.0.0.1:8000/api/v1';
+  }
+
+  static String get mediaBaseUrl {
+    final base = defaultBaseUrl;
+    if (base.endsWith('/api/v1')) {
+      return base.substring(0, base.length - '/api/v1'.length);
+    }
+    return base;
+  }
+
+  static String resolveUrl(String url) {
+    if (url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('assets/')) {
+      return url;
+    }
+    if (url.startsWith('/')) {
+      return '$mediaBaseUrl$url';
+    }
+    return '$mediaBaseUrl/$url';
   }
 
   final http.Client _client = http.Client();
@@ -63,6 +83,48 @@ class TransportApiClient {
 
   Future<Map<String, dynamic>> delete(String path) {
     return _send('DELETE', path);
+  }
+
+  Future<Map<String, dynamic>> postMultipart(
+    String path, {
+    required String fileField,
+    required Uint8List bytes,
+    required String filename,
+    Map<String, String>? fields,
+  }) async {
+    final uri = Uri.parse('$defaultBaseUrl$path');
+    final request = http.MultipartRequest('POST', uri)
+      ..headers.addAll({
+        'Accept': 'application/json',
+        if (_token != null) 'Authorization': 'Bearer $_token',
+      })
+      ..fields.addAll(fields ?? const {})
+      ..files.add(
+        http.MultipartFile.fromBytes(
+          fileField,
+          bytes,
+          filename: filename,
+        ),
+      );
+
+    final streamedResponse = await request.send().timeout(
+          const Duration(seconds: 20),
+          onTimeout: () => throw const TransportApiException(
+            'Could not reach the server. Check that the backend is running.',
+          ),
+        );
+    final response = await http.Response.fromStream(streamedResponse);
+    final decoded = response.body.isEmpty
+        ? <String, dynamic>{}
+        : jsonDecode(response.body) as Map<String, dynamic>;
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw TransportApiException(
+        decoded['detail']?.toString() ?? 'API request failed',
+      );
+    }
+
+    return decoded;
   }
 
   Future<Map<String, dynamic>> _send(

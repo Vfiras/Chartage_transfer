@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
-import '../../../core/routing/app_routes.dart';
 import '../../../shared/widgets/common/luxury_components.dart';
 import 'admin_bookings_screen.dart';
 import 'admin_cars_screen.dart';
@@ -43,14 +42,7 @@ class _AdminShellState extends State<AdminShell> {
         onOpenPromotions: _pushPromotions,
         onOpenPricing: _pushPricing,
       ),
-      AdminBookingsScreen(
-        onOpenBookingDetails: (booking) {
-          Navigator.of(context).pushNamed(
-            AppRoutes.adminBookingDetails,
-            arguments: booking,
-          );
-        },
-      ),
+      const AdminBookingsScreen(),
       const AdminCarsScreen(),
       const AdminProfileScreen(),
     ];

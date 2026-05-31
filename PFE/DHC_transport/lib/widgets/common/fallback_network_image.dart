@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../core/services/transport_api_client.dart';
+
 class FallbackNetworkImage extends StatelessWidget {
   final String url;
   final BoxFit fit;
@@ -28,8 +30,9 @@ class FallbackNetworkImage extends StatelessWidget {
       );
     }
 
+    final resolvedUrl = TransportApiClient.resolveUrl(url);
     return Image.network(
-      url,
+      resolvedUrl,
       width: width,
       height: height,
       fit: fit,
@@ -56,7 +59,7 @@ class FallbackNetworkImage extends StatelessWidget {
           height: height,
           color: const Color(0xFF2F2F2F),
           alignment: Alignment.center,
-          child: const Icon(
+          child: Icon(
             Icons.image_not_supported_rounded,
             color: Colors.white54,
             size: 32,

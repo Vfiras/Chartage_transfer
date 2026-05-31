@@ -17,21 +17,21 @@ class ServicesScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('WHAT WE OFFER',
+              Text('WHAT WE OFFER',
                   style: TextStyle(
                       color: AppColors.secondary,
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 1.8)),
               const SizedBox(height: 4),
-              const Text('Our Services',
+              Text('Our Services',
                   style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
                       height: 1.1)),
               const SizedBox(height: 4),
-              const Text('Tailored transfer solutions for every need.',
+              Text('Tailored transfer solutions for every need.',
                   style: TextStyle(fontSize: 13, color: Color(0xFF888888))),
               const SizedBox(height: 16),
               ...items.map((item) {
@@ -42,7 +42,7 @@ class ServicesScreen extends StatelessWidget {
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: AppColors.softBorder),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
                           color: Color(0x0F000000),
                           blurRadius: 20,
@@ -61,7 +61,7 @@ class ServicesScreen extends StatelessWidget {
                             color: const Color(0x26FFB400),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text('POPULAR',
+                          child: Text('POPULAR',
                               style: TextStyle(
                                   color: AppColors.secondary,
                                   fontSize: 9,
@@ -69,13 +69,13 @@ class ServicesScreen extends StatelessWidget {
                                   letterSpacing: .8)),
                         ),
                       Text(item.label,
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: AppColors.textPrimary,
                               fontSize: 15,
                               fontWeight: FontWeight.w800)),
                       const SizedBox(height: 6),
                       Text(item.desc,
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Color(0xFF777777),
                               fontSize: 12,
                               height: 1.55)),
@@ -92,7 +92,7 @@ class ServicesScreen extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(999),
                                   ),
                                   child: Text(tag,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                           color: AppColors.secondary,
                                           fontSize: 10,
                                           fontWeight: FontWeight.w700)),

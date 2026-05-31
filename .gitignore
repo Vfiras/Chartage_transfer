@@ -16,6 +16,9 @@ run-data/
 **/run-data/
 *.log
 
+# Backend user uploads (avatars, etc.)
+**/backend/uploads/
+
 # Flutter / Dart generated files
 **/.dart_tool/
 **/build/

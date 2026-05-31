@@ -10,7 +10,7 @@ class AuthBackground extends StatelessWidget {
     return Stack(
       fit: StackFit.expand,
       children: [
-        const DecoratedBox(
+        DecoratedBox(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFFFDFCF8), Color(0xFFF4F1E8), Color(0xFFFFFFFF)],

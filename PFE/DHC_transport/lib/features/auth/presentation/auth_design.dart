@@ -24,6 +24,8 @@ class AuthScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppColors.setDarkMode(true);
+
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
@@ -157,7 +159,7 @@ class AuthBackButton extends StatelessWidget {
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints.tightFor(width: 44, height: 44),
         onPressed: () => Navigator.of(context).maybePop(),
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_back_ios_new_rounded,
           color: AppColors.textPrimary,
           size: 22,
@@ -194,7 +196,7 @@ class AuthTitle extends StatelessWidget {
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w600,
@@ -237,19 +239,19 @@ class AuthTextField extends StatelessWidget {
         keyboardType: keyboardType,
         autofillHints: autofillHints,
         validator: validator,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.textPrimary,
           fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(
+          hintStyle: TextStyle(
             color: Color(0xFF85878D),
             fontSize: 13,
             fontWeight: FontWeight.w600,
           ),
-          errorStyle: const TextStyle(height: 0.01, fontSize: 0),
+          errorStyle: TextStyle(height: 0.01, fontSize: 0),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
           filled: true,
@@ -259,23 +261,23 @@ class AuthTextField extends StatelessWidget {
               : InkWell(onTap: onSuffixTap, child: suffixIcon),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: _fieldBorder),
+            borderSide: BorderSide(color: _fieldBorder),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: _fieldBorder),
+            borderSide: BorderSide(color: _fieldBorder),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.goldBorder),
+            borderSide: BorderSide(color: _goldDark),
           ),
           errorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.danger),
+            borderSide: BorderSide(color: AppColors.danger),
           ),
           focusedErrorBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(8),
-            borderSide: const BorderSide(color: AppColors.danger),
+            borderSide: BorderSide(color: AppColors.danger),
           ),
         ),
       ),
@@ -302,7 +304,7 @@ class AuthPrimaryButton extends StatelessWidget {
       width: double.infinity,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [Color(0xFFF6C04C), _goldDark],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
@@ -331,7 +333,7 @@ class AuthPrimaryButton extends StatelessWidget {
                 )
               : Text(
                   text,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.primary,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
@@ -346,14 +348,14 @@ class AuthPrimaryButton extends StatelessWidget {
 class AuthOutlineButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
-  final Color borderColor;
+  final Color? borderColor;
   final Color backgroundColor;
 
   const AuthOutlineButton({
     super.key,
     required this.text,
     required this.onPressed,
-    this.borderColor = AppColors.goldBorder,
+    this.borderColor,
     this.backgroundColor = Colors.transparent,
   });
 
@@ -367,12 +369,12 @@ class AuthOutlineButton extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: AppColors.textPrimary,
-          side: BorderSide(color: borderColor),
+          side: BorderSide.none,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: Text(
           text,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
+          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
         ),
       ),
     );
@@ -388,19 +390,19 @@ class AuthDividerLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const Expanded(child: Divider(color: _panelBorder, height: 1)),
+        Expanded(child: Divider(color: _panelBorder, height: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Text(
             text,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        const Expanded(child: Divider(color: _panelBorder, height: 1)),
+        Expanded(child: Divider(color: _panelBorder, height: 1)),
       ],
     );
   }
@@ -498,7 +500,7 @@ class _SocialButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.transparent,
-          side: const BorderSide(color: _panelBorder),
+          side: BorderSide(color: _panelBorder),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         child: child,
@@ -527,7 +529,7 @@ class AuthBottomPrompt extends StatelessWidget {
       children: [
         Text(
           text,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textSecondary,
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -542,7 +544,7 @@ class AuthBottomPrompt extends StatelessWidget {
           ),
           child: Text(
             action,
-            style: const TextStyle(
+            style: TextStyle(
               color: _gold,
               fontSize: 12,
               fontWeight: FontWeight.w800,
@@ -566,7 +568,6 @@ class AuthBodyCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0x33000000),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.03)),
       ),
       child: child,
     );

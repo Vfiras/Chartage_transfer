@@ -70,11 +70,11 @@ class _RecommendationManagementScreenState
       appBar: AppBar(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.textPrimary,
-        title: const Text('Recommendation Management'),
+        title: Text('Recommendation Management'),
         actions: [
           IconButton(
             onPressed: _openCreateSheet,
-            icon: const Icon(Icons.add_circle_outline_rounded),
+            icon: Icon(Icons.add_circle_outline_rounded),
           ),
         ],
       ),
@@ -120,7 +120,7 @@ class _RecommendationManagementScreenState
             Positioned.fill(
               child: ColoredBox(
                 color: Colors.black.withValues(alpha: 0.45),
-                child: const Center(child: CircularProgressIndicator()),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ),
         ],
@@ -129,8 +129,8 @@ class _RecommendationManagementScreenState
         onPressed: _openCreateSheet,
         backgroundColor: AppColors.secondary,
         foregroundColor: AppColors.primary,
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('Add guide item'),
+        icon: Icon(Icons.add_rounded),
+        label: Text('Add guide item'),
       ),
     );
   }
@@ -236,7 +236,7 @@ class _GuideItemSheetState extends State<_GuideItemSheet> {
         constraints:
             BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.9),
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 18),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
         ),
@@ -254,7 +254,7 @@ class _GuideItemSheetState extends State<_GuideItemSheet> {
               ),
             ),
             const SizedBox(height: 18),
-            const Text(
+            Text(
               'Add Guide Item',
               style: TextStyle(
                 color: AppColors.textPrimary,
@@ -295,7 +295,7 @@ class _GuideItemSheetState extends State<_GuideItemSheet> {
             SwitchListTile.adaptive(
               contentPadding: EdgeInsets.zero,
               value: _featured,
-              title: const Text('Feature for customers'),
+              title: Text('Feature for customers'),
               activeThumbColor: AppColors.secondary,
               onChanged: (value) => setState(() => _featured = value),
             ),
@@ -305,7 +305,7 @@ class _GuideItemSheetState extends State<_GuideItemSheet> {
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Cancel'),
+                    child: Text('Cancel'),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -316,7 +316,7 @@ class _GuideItemSheetState extends State<_GuideItemSheet> {
                       backgroundColor: AppColors.secondary,
                       foregroundColor: AppColors.primary,
                     ),
-                    child: const Text('Add'),
+                    child: Text('Add'),
                   ),
                 ),
               ],
@@ -346,7 +346,7 @@ class _StatsHeader extends StatelessWidget {
         children: [
           Expanded(child: _StatTile(label: 'Total items', value: '$total')),
           Expanded(child: _StatTile(label: 'Visible', value: '$total')),
-          const Expanded(child: _StatTile(label: 'Drafts', value: '0')),
+          Expanded(child: _StatTile(label: 'Drafts', value: '0')),
         ],
       ),
     );
@@ -368,7 +368,7 @@ class _StatTile extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 26,
             fontWeight: FontWeight.w800,
@@ -378,7 +378,7 @@ class _StatTile extends StatelessWidget {
         Text(
           label,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textMuted,
             fontSize: 12,
           ),
@@ -427,7 +427,7 @@ class _CategoryBar extends StatelessWidget {
             ),
             selectedColor: AppColors.secondary,
             backgroundColor: AppColors.surface,
-            side: const BorderSide(color: AppColors.border),
+            side: BorderSide(color: AppColors.border),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(999),
             ),
@@ -488,7 +488,7 @@ class _InfoCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w800,
               fontSize: 16,
@@ -497,7 +497,7 @@ class _InfoCard extends StatelessWidget {
           const SizedBox(height: 6),
           Text(
             subtitle,
-            style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],
       ),
@@ -512,11 +512,11 @@ InputDecoration _inputDecoration(String label) {
     fillColor: AppColors.surfaceElevated,
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: AppColors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.border),
+      borderSide: BorderSide(color: AppColors.border),
     ),
   );
 }

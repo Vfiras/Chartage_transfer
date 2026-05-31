@@ -38,7 +38,7 @@ class AdminProfileScreen extends StatelessWidget {
             subtitle: 'Manage recommendations, bookings, and suppliers',
             icon: Icons.admin_panel_settings_rounded,
             child: Column(
-              children: const [
+              children: [
                 _ProfileLine('Role', 'Admin'),
                 SizedBox(height: 10),
                 _ProfileLine('Status', 'Active'),
@@ -72,7 +72,7 @@ class AdminProfileScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(18),
                   ),
                 ),
-                child: const Text(
+                child: Text(
                   'Logout',
                   style: TextStyle(fontWeight: FontWeight.w800),
                 ),
@@ -90,7 +90,7 @@ class _ProfileNote extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Text(
+    return Text(
       'This dashboard is reserved for trusted operations staff and recommendation management.',
       style: TextStyle(
         color: AppColors.textSecondary,
@@ -114,7 +114,7 @@ class _ProfileLine extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textMuted,
               fontSize: 13,
             ),
@@ -122,7 +122,7 @@ class _ProfileLine extends StatelessWidget {
         ),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textPrimary,
             fontSize: 13,
             fontWeight: FontWeight.w700,

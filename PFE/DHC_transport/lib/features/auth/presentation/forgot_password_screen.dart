@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/language_service.dart';
 import '../../../shared/widgets/common/luxury_components.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -22,26 +23,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _sendReset() async {
+    final l = LanguageService.instance;
     if (!(_formKey.currentState?.validate() ?? false)) return;
     setState(() => _loading = true);
     await Future<void>.delayed(const Duration(milliseconds: 700));
     if (!mounted) return;
     setState(() => _loading = false);
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-          content:
-              Text('Reset instructions have been queued for the admin team.')),
+      SnackBar(content: Text(l.t('reset_password_sent'))),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+
     return LuxuryScaffold(
-      title: 'Reset Password',
-      subtitle: 'Account support',
+      title: l.t('reset_password'),
+      subtitle: l.t('support'),
       leading: IconButton(
         onPressed: () => Navigator.of(context).maybePop(),
-        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.secondary),
+        icon: Icon(Icons.arrow_back_rounded, color: AppColors.secondary),
       ),
       body: Form(
         key: _formKey,
@@ -50,11 +52,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.lock_reset_rounded,
+              Icon(Icons.lock_reset_rounded,
                   color: AppColors.secondary, size: 58),
               const SizedBox(height: 16),
-              const Text(
-                'Enter your account email. The operations team will queue reset instructions.',
+              Text(
+                l.t('reset_password_body'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     color: AppColors.textSecondary,
@@ -64,22 +66,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const SizedBox(height: 22),
               LuxuryTextField(
                 controller: _emailController,
-                label: 'Account email',
+                label: l.t('email_or_phone'),
                 hintText: 'name@example.com',
                 icon: Icons.email_outlined,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
-                validator: (value) => (value ?? '').trim().isEmpty
-                    ? 'Enter an email address'
-                    : null,
+                validator: (value) =>
+                    (value ?? '').trim().isEmpty ? l.t('email_or_phone') : null,
               ),
               const SizedBox(height: 20),
               LuxuryButton(
-                text: 'Send Reset Link',
+                text: l.t('send_reset_link'),
                 loading: _loading,
                 onPressed: _sendReset,
-                icon: const Icon(Icons.arrow_forward_rounded,
-                    color: AppColors.primary),
+                icon:
+                    Icon(Icons.arrow_forward_rounded, color: AppColors.primary),
               ),
             ],
           ),

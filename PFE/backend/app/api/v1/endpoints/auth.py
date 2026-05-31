@@ -1,9 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime, timezone
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 
 from app.core.database import get_database
 from app.core.deps import get_current_user
 from app.schemas.dtos import LoginRequest, SignupRequest, UserProfileUpdate
-from app.services.auth_service import authenticate_user, build_token_response, register_client
+from app.services.auth_service import (
+    authenticate_user,
+    build_token_response,
+    build_user_payload,
+    register_client,
+)
+from app.services.profile_media_service import delete_local_avatar, save_avatar_upload
 from app.services.utils import serialize_document
 
 router = APIRouter()
@@ -31,18 +39,7 @@ async def signup(payload: SignupRequest) -> dict:
 
 @router.get("/me")
 async def get_me(current_user: dict = Depends(get_current_user)) -> dict:
-    return {
-        "user": {
-            "id": current_user["_id"],
-            "full_name": current_user.get("full_name", ""),
-            "email": current_user.get("email", ""),
-            "phone": current_user.get("phone", ""),
-            "role": current_user.get("role", ""),
-            "preferred_language": current_user.get("preferred_language", "en"),
-            "theme_mode": current_user.get("theme_mode", "dark"),
-            "avatar_url": current_user.get("avatar_url"),
-        }
-    }
+    return {"user": build_user_payload(current_user)}
 
 
 @router.put("/me")
@@ -50,25 +47,54 @@ async def update_me(
     payload: UserProfileUpdate,
     current_user: dict = Depends(get_current_user),
 ) -> dict:
-    from datetime import datetime, timezone
     db = get_database()
     update_data = {k: v for k, v in payload.model_dump().items() if v is not None}
+    if "email" in update_data:
+        normalized_email = update_data["email"].strip().lower()
+        existing = await db.users.find_one(
+            {"email": normalized_email, "_id": {"$ne": current_user["_id"]}}
+        )
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Email already in use",
+            )
+        update_data["email"] = normalized_email
     update_data["updated_at"] = datetime.now(timezone.utc)
     await db.users.update_one({"_id": current_user["_id"]}, {"$set": update_data})
     updated = await db.users.find_one({"_id": current_user["_id"]})
     updated = serialize_document(updated) or {}
-    return {
-        "user": {
-            "id": updated["_id"],
-            "full_name": updated.get("full_name", ""),
-            "email": updated.get("email", ""),
-            "phone": updated.get("phone", ""),
-            "role": updated.get("role", ""),
-            "preferred_language": updated.get("preferred_language", "en"),
-            "theme_mode": updated.get("theme_mode", "dark"),
-            "avatar_url": updated.get("avatar_url"),
-        }
-    }
+    return {"user": build_user_payload(updated)}
+
+
+@router.post("/me/avatar")
+async def upload_avatar(
+    file: UploadFile = File(...),
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    filename = (file.filename or "").lower()
+    allowed_extensions = (".jpg", ".jpeg", ".png", ".webp")
+    if not filename.endswith(allowed_extensions):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only JPG, PNG, and WebP images are supported",
+        )
+
+    avatar_url = await save_avatar_upload(str(current_user["_id"]), file)
+    db = get_database()
+    delete_local_avatar(current_user.get("avatar_url"))
+    await db.users.update_one(
+        {"_id": current_user["_id"]},
+        {
+            "$set": {
+                "avatar_url": avatar_url,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        },
+    )
+    updated = await db.users.find_one({"_id": current_user["_id"]})
+    updated = serialize_document(updated) or {}
+    return {"user": build_user_payload(updated)}
 
 
 @router.post("/forgot-password")

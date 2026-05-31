@@ -12,16 +12,26 @@ class LuxuryBackdrop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
+
+    final colors = AppColors.isDark
+        ? [
+            AppColors.background,
+            const Color(0xFF050403),
+            const Color(0xFF000000),
+          ]
+        : [
+            AppColors.background,
+            const Color(0xFFFFFEFA),
+            const Color(0xFFF1E8D7),
+          ];
+
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [
-            AppColors.background,
-            Color(0xFF050403),
-            Color(0xFF000000),
-          ],
+          colors: colors,
           stops: [0, 0.62, 1],
         ),
       ),
@@ -112,7 +122,7 @@ class LuxuryHeader extends StatelessWidget {
               if (subtitle != null) ...[
                 Text(
                   subtitle!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.textMuted,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
@@ -124,7 +134,7 @@ class LuxuryHeader extends StatelessWidget {
                 title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 26,
                   fontWeight: FontWeight.w900,
@@ -162,26 +172,35 @@ class LuxuryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    AppColors.setDarkMode(dark);
+    final shadowColor =
+        dark ? const Color(0xCC000000) : const Color(0x143B2A10);
+    final cardColor =
+        color ?? (dark ? const Color(0xFF101010) : const Color(0xFFFFFEFA));
+
     final card = AnimatedContainer(
       duration: const Duration(milliseconds: 180),
       margin: margin,
       padding: padding,
       decoration: BoxDecoration(
-        color: color ?? AppColors.surface,
+        color: cardColor,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(
-          color: selected ? AppColors.secondary : AppColors.softBorder,
-          width: selected ? 1.6 : 1,
-        ),
+        border: dark || selected
+            ? Border.all(
+                color: selected ? AppColors.accent : AppColors.softBorder,
+                width: selected ? 1.6 : 1,
+              )
+            : null,
         boxShadow: [
-          const BoxShadow(
-            color: Color(0xCC000000),
+          BoxShadow(
+            color: shadowColor,
             blurRadius: 18,
             offset: Offset(0, 10),
           ),
           if (selected)
             BoxShadow(
-              color: AppColors.secondary.withValues(alpha: 0.38),
+              color: AppColors.accent.withValues(alpha: 0.24),
               blurRadius: 28,
               spreadRadius: 1,
             ),
@@ -245,11 +264,13 @@ class LuxuryButton extends StatelessWidget {
               : null,
           color: primary ? null : Colors.transparent,
           borderRadius: BorderRadius.circular(14),
-          border: outline ? Border.all(color: AppColors.goldBorder) : null,
+          border: outline && AppColors.isDark
+              ? Border.all(color: AppColors.goldBorder)
+              : null,
           boxShadow: primary && enabled
               ? [
                   BoxShadow(
-                    color: AppColors.secondary.withValues(alpha: 0.35),
+                    color: AppColors.accent.withValues(alpha: 0.25),
                     blurRadius: 22,
                     offset: const Offset(0, 8),
                   ),
@@ -258,11 +279,11 @@ class LuxuryButton extends StatelessWidget {
         ),
         child: IconTheme(
           data: IconThemeData(
-            color: primary ? AppColors.primary : AppColors.secondary,
+            color: primary ? AppColors.primary : AppColors.accentText,
           ),
           child: DefaultTextStyle(
             style: TextStyle(
-              color: primary ? AppColors.primary : AppColors.secondary,
+              color: primary ? AppColors.primary : AppColors.accentText,
               fontWeight: FontWeight.w900,
               fontSize: 15,
             ),
@@ -326,7 +347,7 @@ class LuxuryTextField extends StatelessWidget {
       children: [
         Text(
           label.toUpperCase(),
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.textMuted,
             fontSize: 11,
             fontWeight: FontWeight.w800,
@@ -341,7 +362,7 @@ class LuxuryTextField extends StatelessWidget {
           autofillHints: autofillHints,
           validator: validator,
           maxLines: maxLines,
-          style: const TextStyle(
+          style: TextStyle(
               color: AppColors.textPrimary, fontWeight: FontWeight.w700),
           decoration: InputDecoration(
             hintText: hintText,
@@ -383,7 +404,7 @@ class LuxurySectionHeader extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 19,
                   fontWeight: FontWeight.w900,
@@ -392,8 +413,7 @@ class LuxurySectionHeader extends StatelessWidget {
               if (subtitle != null)
                 Text(
                   subtitle!,
-                  style:
-                      const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                  style: TextStyle(color: AppColors.textMuted, fontSize: 12),
                 ),
             ],
           ),
@@ -402,7 +422,7 @@ class LuxurySectionHeader extends StatelessWidget {
           TextButton(
             onPressed: onAction,
             child: Text(actionLabel!,
-                style: const TextStyle(color: AppColors.secondary)),
+                style: TextStyle(color: AppColors.secondary)),
           ),
       ],
     );
@@ -437,6 +457,11 @@ class LuxuryBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final navColor =
+        AppColors.isDark ? const Color(0xF4000000) : const Color(0xFAFFFEFA);
+    final shadowColor =
+        AppColors.isDark ? const Color(0xCC000000) : const Color(0x224D3A16);
+
     return SafeArea(
       top: false,
       child: Container(
@@ -444,17 +469,17 @@ class LuxuryBottomNav extends StatelessWidget {
         height: 66,
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xF4000000),
+          color: navColor,
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: AppColors.border),
+          border: AppColors.isDark ? Border.all(color: AppColors.border) : null,
           boxShadow: [
-            const BoxShadow(
-              color: Color(0xCC000000),
+            BoxShadow(
+              color: shadowColor,
               blurRadius: 16,
               offset: Offset(0, 6),
             ),
             BoxShadow(
-              color: AppColors.secondary.withValues(alpha: 0.08),
+              color: AppColors.accent.withValues(alpha: 0.08),
               blurRadius: 16,
             ),
           ],
@@ -472,12 +497,12 @@ class LuxuryBottomNav extends StatelessWidget {
                   curve: Curves.easeOut,
                   decoration: BoxDecoration(
                     color: active
-                        ? AppColors.secondary.withValues(alpha: 0.10)
+                        ? AppColors.accent.withValues(alpha: 0.12)
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(16),
-                    border: active
+                    border: active && AppColors.isDark
                         ? Border.all(
-                            color: AppColors.secondary.withValues(alpha: 0.20),
+                            color: AppColors.accent.withValues(alpha: 0.20),
                           )
                         : null,
                   ),
@@ -490,7 +515,7 @@ class LuxuryBottomNav extends StatelessWidget {
                           Icon(
                             active ? item.activeIcon : item.icon,
                             color: active
-                                ? AppColors.secondary
+                                ? AppColors.accentText
                                 : AppColors.textMuted,
                             size: 21,
                           ),
@@ -501,7 +526,7 @@ class LuxuryBottomNav extends StatelessWidget {
                               child: Container(
                                 width: 8,
                                 height: 8,
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   color: Color(0xFFEF4444),
                                   shape: BoxShape.circle,
                                 ),
@@ -516,7 +541,7 @@ class LuxuryBottomNav extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           color: active
-                              ? AppColors.secondary
+                              ? AppColors.accentText
                               : AppColors.textMuted,
                           fontSize: 10.5,
                           fontWeight:
@@ -577,27 +602,26 @@ class VehicleSelectionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(name,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.w900)),
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 3),
                 Text(subtitle,
-                    style: const TextStyle(
-                        color: AppColors.textMuted, fontSize: 12)),
+                    style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.event_seat_rounded,
+                    Icon(Icons.event_seat_rounded,
                         size: 14, color: AppColors.secondary),
                     const SizedBox(width: 4),
                     Text('$seats seats',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: AppColors.textSecondary, fontSize: 12)),
                     const SizedBox(width: 10),
-                    const Icon(Icons.luggage_rounded,
+                    Icon(Icons.luggage_rounded,
                         size: 14, color: AppColors.secondary),
                     const SizedBox(width: 4),
                     Text('$bags bags',
-                        style: const TextStyle(
+                        style: TextStyle(
                             color: AppColors.textSecondary, fontSize: 12)),
                   ],
                 ),
@@ -608,7 +632,7 @@ class VehicleSelectionCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text('${price.toStringAsFixed(0)} TND',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: AppColors.secondary, fontWeight: FontWeight.w900)),
               const SizedBox(height: 14),
               Icon(
@@ -648,7 +672,7 @@ class BookingInfoRow extends StatelessWidget {
             width: 112,
             child: Text(
               label.toUpperCase(),
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.textMuted,
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
