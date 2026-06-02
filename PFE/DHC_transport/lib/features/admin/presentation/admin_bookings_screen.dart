@@ -27,7 +27,9 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
     _future = _service.listTrips();
   }
 
-  void _reload() => setState(() => _future = _service.listTrips());
+  void _reload() => setState(() {
+        _future = _service.listTrips();
+      });
 
   // ── Details ─────────────────────────────────────────────────────────────────
 

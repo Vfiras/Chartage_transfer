@@ -111,15 +111,21 @@ async def create_booking(
         "Booking",
     )
 
+    # create_trip emits the single "Booking received / pending confirmation"
+    # notification, so no extra push is needed here.
     booking = await create_trip(data)
-    # Create confirmation notification
-    await _push_notification(
-        user_id=current_user["_id"],
-        title="Booking Confirmed",
-        message=f"Your transfer to {data.get('destination_name', 'your destination')} has been received.",
-        notif_type="booking_confirmed",
-        booking_id=booking.get("_id"),
-    )
+
+    # Count the promo redemption once, at booking time (not during validation).
+    promo_code = (data.get("promo_code") or "").strip().upper()
+    if promo_code:
+        await db.promotions.update_one(
+            {"code": promo_code},
+            {
+                "$inc": {"usage_count": 1},
+                "$set": {"updated_at": datetime.now(timezone.utc)},
+            },
+        )
+
     return {"booking": booking}
 
 
@@ -186,14 +192,8 @@ async def cancel_booking(
     rules = await _get_pricing_rules()
     _check_time_rule(booking, rules["cancellation_limit_hours"], "Cancellation")
 
+    # update_trip_status emits the single "Booking cancelled" notification.
     updated = await update_trip_status(booking_id, "cancelled")
-    await _push_notification(
-        user_id=booking.get("user_id", ""),
-        title="Booking Cancelled",
-        message="Your booking has been cancelled.",
-        notif_type="booking_cancelled",
-        booking_id=booking_id,
-    )
     return {"booking": updated}
 
 
@@ -210,18 +210,11 @@ async def admin_update_status(
             status_code=400,
             detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}",
         )
+    # update_trip_status pushes a single, well-worded status notification
+    # (see _STATUS_MESSAGES in booking_service); no extra push needed here.
     booking = await update_trip_status(booking_id, payload.status)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
-
-    if booking.get("user_id"):
-        await _push_notification(
-            user_id=booking["user_id"],
-            title="Booking Update",
-            message=f"Your booking status has changed to: {payload.status.replace('_', ' ').title()}.",
-            notif_type="status_update",
-            booking_id=booking_id,
-        )
     return {"booking": booking}
 
 

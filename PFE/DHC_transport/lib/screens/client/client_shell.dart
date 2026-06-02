@@ -13,7 +13,6 @@ import '../../core/services/language_service.dart';
 import '../../core/services/theme_service.dart';
 import '../../core/services/notification_service.dart';
 import '../../core/services/pricing_service.dart';
-import '../../core/services/reward_service.dart';
 import '../../core/services/trip_service.dart';
 import '../../data/fleet_data.dart';
 import '../../data/home_data.dart';
@@ -1140,7 +1139,9 @@ class _BookingsTabState extends State<_BookingsTab> {
   }
 
   void _reload() {
-    setState(() => _future = _load());
+    setState(() {
+      _future = _load();
+    });
   }
 
   @override
@@ -2294,7 +2295,9 @@ class _FavoritesTabState extends State<_FavoritesTab> {
   }
 
   void _reload() {
-    setState(() => _future = const FavoriteService().listFavorites());
+    setState(() {
+      _future = const FavoriteService().listFavorites();
+    });
   }
 
   @override
@@ -2845,27 +2848,30 @@ class _RewardsScreen extends StatelessWidget {
         onPressed: () => Navigator.of(context).maybePop(),
         icon: Icon(Icons.arrow_back_rounded, color: AppColors.secondary),
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: const RewardService().getRewards(),
-        builder: (context, snapshot) {
-          final data = snapshot.data ?? const {};
-          final completed =
-              (data['completed_rides_count'] as num?)?.toInt() ?? 0;
-          final promoCodes = (data['promo_codes'] as List? ?? const [])
-              .map((item) => item.toString())
-              .toList(growable: false);
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Padding(
-              padding: EdgeInsets.all(28),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
+      body: Builder(
+        builder: (context) {
+          // Demo rewards data — static, no backend dependency.
+          // Tiers: Silver (0-4), Gold (5-14), Black (15+).
+          const completed = 8;
+          const tier = 'Gold';
+          const nextTier = 'Black';
+          const nextThreshold = 15;
+          final toNext = (nextThreshold - completed).clamp(0, nextThreshold);
+          final tierProgress =
+              (completed / nextThreshold).clamp(0.0, 1.0).toDouble();
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const _RewardsHero(),
+              const SizedBox(height: 18),
+              _TierSummaryCard(
+                tier: tier,
+                completed: completed,
+                nextTier: nextTier,
+                toNext: toNext,
+                progress: tierProgress,
+              ),
               const SizedBox(height: 18),
               _RewardProgressCard(
                 icon: Icons.card_giftcard_rounded,
@@ -2893,19 +2899,131 @@ class _RewardsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _PromoRewardCard(
-                code: promoCodes.contains('CDHC5') ? 'CDHC5' : 'CDHC5',
+                code: 'CDHC5',
                 rides: '5 ${l.t('rides')}',
                 discount: '5% Discount',
               ),
               const SizedBox(height: 10),
               _PromoRewardCard(
-                code: promoCodes.contains('CDHC10') ? 'CDHC10' : 'CDHC10',
+                code: 'CDHC10',
                 rides: '10 ${l.t('rides')}',
                 discount: '10% Discount',
               ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _TierSummaryCard extends StatelessWidget {
+  final String tier;
+  final int completed;
+  final String nextTier;
+  final int toNext;
+  final double progress;
+
+  const _TierSummaryCard({
+    required this.tier,
+    required this.completed,
+    required this.nextTier,
+    required this.toNext,
+    required this.progress,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return LuxuryCard(
+      padding: const EdgeInsets.all(16),
+      radius: 16,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.secondary.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(13),
+                  border: Border.all(color: AppColors.goldBorder),
+                ),
+                child: Icon(Icons.workspace_premium_rounded,
+                    color: AppColors.secondary, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'CURRENT TIER',
+                      style: TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.4,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${tier.toUpperCase()} MEMBER',
+                      style: TextStyle(
+                        color: AppColors.secondary,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    '$completed',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Text(
+                    'rides',
+                    style: TextStyle(
+                      color: AppColors.textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: AppColors.isDark
+                  ? const Color(0xFF070707)
+                  : const Color(0xFFE8DDC6),
+              color: AppColors.secondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '$toNext more rides to reach ${nextTier.toUpperCase()}',
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -3310,6 +3428,14 @@ class _ProfileTabState extends State<_ProfileTab> {
               title: l.t('favorites'),
               subtitle: l.t('favorites_subtitle'),
               onTap: widget.onOpenFavorites,
+            ),
+            PremiumProfileActionCard(
+              icon: Icons.workspace_premium_outlined,
+              title: l.t('rewards'),
+              subtitle: l.t('rewards_subtitle'),
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const _RewardsScreen()),
+              ),
             ),
             ValueListenableBuilder<ThemeMode>(
               valueListenable: ThemeService.instance.mode,

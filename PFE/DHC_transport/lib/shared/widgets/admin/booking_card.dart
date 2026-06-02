@@ -122,7 +122,7 @@ class _QuickActions extends StatelessWidget {
           children: [
             Expanded(
               child: _StatusBtn(
-                label: 'Confirm',
+                label: 'Approve',
                 icon: Icons.check_circle_outline_rounded,
                 color: AppColors.secondary,
                 onTap: () => onStatusChange('confirmed'),
@@ -131,7 +131,7 @@ class _QuickActions extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: _StatusBtn(
-                label: 'Cancel',
+                label: 'Reject',
                 icon: Icons.cancel_outlined,
                 color: const Color(0xFFE05050),
                 onTap: () => onStatusChange('cancelled'),

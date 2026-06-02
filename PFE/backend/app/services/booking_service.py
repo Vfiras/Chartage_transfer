@@ -88,8 +88,9 @@ async def update_trip(trip_id: str, payload: dict) -> dict | None:
 
 _STATUS_MESSAGES: dict[str, tuple[str, str]] = {
     "confirmed": ("Booking confirmed", "Your reservation has been confirmed. We'll be there on time."),
-    "cancelled": ("Booking cancelled", "Your reservation has been cancelled as requested."),
+    "on_route": ("Driver on the way", "Your driver is on the way to the pickup location."),
     "completed": ("Transfer completed", "Thank you for travelling with Carthage Transfer. We hope to see you again."),
+    "cancelled": ("Booking cancelled", "Your reservation has been cancelled."),
     "assigned": ("Driver assigned", "A driver has been assigned to your transfer."),
 }
 

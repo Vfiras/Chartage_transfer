@@ -42,9 +42,25 @@ DEFAULT_PROMOS = {
 }
 
 
+def _parse_expiry(raw: object) -> datetime | None:
+    """Parse a promo `expiry_date` (ISO string or datetime) to a tz-aware UTC datetime."""
+    if isinstance(raw, datetime):
+        return raw if raw.tzinfo else raw.replace(tzinfo=timezone.utc)
+    if isinstance(raw, str) and raw.strip():
+        try:
+            dt = datetime.fromisoformat(raw.strip().replace("Z", "+00:00"))
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        except ValueError:
+            return None
+    return None
+
+
 async def _pricing_config() -> dict:
+    # Single source of truth: the `pricing_rules` collection (also used by the
+    # booking service, the admin PUT /rules write, and the DB seed). Reading the
+    # same collection that admins write to keeps config edits in sync.
     db = get_database()
-    document = await db.pricing_config.find_one({"_id": "active"})
+    document = await db.pricing_rules.find_one({"_id": "active"})
     if not document:
         return DEFAULT_PRICING_CONFIG
     config = dict(DEFAULT_PRICING_CONFIG)
@@ -72,13 +88,25 @@ async def validate_promo(payload: PromoValidationRequest) -> dict:
             "message": "Promo code is not valid.",
         }
 
-    expires_at = promo.get("expires_at")
-    if isinstance(expires_at, datetime) and expires_at < datetime.now(timezone.utc):
+    # Expiry — promotions store `expiry_date` as an ISO date/datetime string.
+    expiry_dt = _parse_expiry(promo.get("expiry_date"))
+    if expiry_dt is not None and expiry_dt < datetime.now(timezone.utc):
         return {
             "valid": False,
             "code": code,
             "discount": 0,
             "message": "Promo code has expired.",
+        }
+
+    # Usage limit — reject once the configured number of redemptions is reached.
+    usage_limit = promo.get("usage_limit") or 0
+    usage_count = promo.get("usage_count") or 0
+    if usage_limit and usage_count >= usage_limit:
+        return {
+            "valid": False,
+            "code": code,
+            "discount": 0,
+            "message": "Promo code usage limit reached.",
         }
 
     discount_type = promo.get("discount_type", "percentage")

@@ -434,14 +434,14 @@ class _QuickActionPanel extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _BigActionBtn(
-              label: 'Confirm Booking',
+              label: 'Approve Booking',
               icon: Icons.check_circle_outline_rounded,
               color: AppColors.secondary,
               onTap: () => onStatusChange('confirmed'),
             ),
             const SizedBox(height: 10),
             _BigActionBtn(
-              label: 'Cancel Booking',
+              label: 'Reject Booking',
               icon: Icons.cancel_outlined,
               color: const Color(0xFFE05050),
               onTap: () => onStatusChange('cancelled'),
