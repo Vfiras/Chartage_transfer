@@ -31,6 +31,12 @@ def create_app() -> FastAPI:
     async def startup_event() -> None:
         await connect_to_mongo()
         await ensure_indexes()
+        from app.ai.build_vectorstore import log_freshness_on_startup
+        log_freshness_on_startup()
+        if not settings.google_api_key:
+            print(
+                "\nWARNING: GOOGLE_API_KEY not set — AVA will fail for all requests.\n"
+            )
 
     @app.on_event("shutdown")
     async def shutdown_event() -> None:

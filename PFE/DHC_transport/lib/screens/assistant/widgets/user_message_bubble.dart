@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/services/auth_service.dart';
+import '../../../widgets/common/fallback_network_image.dart';
 import '../chat_message_model.dart';
 
 const _goldBg = Color(0x26C8A96B);   // ~15% gold fill
@@ -9,7 +11,15 @@ const _textColor = Color(0xFFE9E1DA);
 class UserMessageBubble extends StatefulWidget {
   final ChatMessage message;
 
-  const UserMessageBubble({super.key, required this.message});
+  /// Space beneath this bubble. The client chat passes 20 between exchange
+  /// pairs and 8 within same-sender runs; default preserves other callers.
+  final double bottomSpacing;
+
+  const UserMessageBubble({
+    super.key,
+    required this.message,
+    this.bottomSpacing = 18,
+  });
 
   @override
   State<UserMessageBubble> createState() => _UserMessageBubbleState();
@@ -50,7 +60,7 @@ class _UserMessageBubbleState extends State<UserMessageBubble>
       child: SlideTransition(
         position: _slide,
         child: Padding(
-          padding: const EdgeInsets.only(bottom: 18, left: 48),
+          padding: EdgeInsets.only(bottom: widget.bottomSpacing, left: 48),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -85,8 +95,9 @@ class _UserMessageBubbleState extends State<UserMessageBubble>
                     const SizedBox(height: 4),
                     Text(
                       widget.message.timeLabel,
-                      style: const TextStyle(
-                        color: Color(0xFF998F81),
+                      // Recedes into a supporting role.
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.40),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -94,9 +105,39 @@ class _UserMessageBubbleState extends State<UserMessageBubble>
                   ],
                 ),
               ),
+              const SizedBox(width: 8),
+              const _UserChatAvatar(),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The client's real profile photo beside their message (fallback: icon).
+class _UserChatAvatar extends StatelessWidget {
+  const _UserChatAvatar();
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarUrl = AuthService.instance.currentUser?.avatarUrl;
+    return Container(
+      width: 30,
+      height: 30,
+      margin: const EdgeInsets.only(bottom: 18),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: _goldBorder),
+      ),
+      child: ClipOval(
+        child: (avatarUrl != null && avatarUrl.isNotEmpty)
+            ? FallbackNetworkImage(url: avatarUrl, fit: BoxFit.cover)
+            : const ColoredBox(
+                color: Color(0xFF1B1B1B),
+                child: Icon(Icons.person_rounded,
+                    color: Color(0xFFC8A96B), size: 16),
+              ),
       ),
     );
   }

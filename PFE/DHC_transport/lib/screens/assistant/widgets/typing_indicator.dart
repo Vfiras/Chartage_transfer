@@ -60,6 +60,17 @@ class _TypingIndicatorState extends State<TypingIndicator>
                 _Dot(delay: 0.22, ctrl: _ctrl),
                 const SizedBox(width: 5),
                 _Dot(delay: 0.44, ctrl: _ctrl),
+                const SizedBox(width: 10),
+                // Concierge reassurance: dispatches can take several seconds,
+                // and silence reads as a hang. Quiet copy, no gold.
+                Text(
+                  'AVA is preparing your answer…',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.45),
+                    fontSize: 11.5,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
               ],
             ),
           ),

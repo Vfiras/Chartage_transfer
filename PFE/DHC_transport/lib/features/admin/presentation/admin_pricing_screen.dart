@@ -3,8 +3,17 @@ import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/transport_api_client.dart';
-import '../../../shared/widgets/admin/admin_card.dart';
+import '../../../widgets/common/luxury_skeleton.dart';
 
+/// Admin Pricing — per-vehicle pricing parameters dashboard.
+///
+/// Shows every vehicle in the fleet as a card with its live pricing values
+/// (Chauffeur Booking System model: initial fee, per-km, per-hour, waypoint
+/// rates…). Tapping a card opens an editor with one number field per
+/// parameter; saving calls PUT /cars/{id} with the updated `pricing` object.
+///
+/// This replaces the old static surcharge-rules form. The surcharge endpoint
+/// (PUT /pricing/rules) still exists and surcharges still apply at quote time.
 class AdminPricingScreen extends StatefulWidget {
   const AdminPricingScreen({super.key});
 
@@ -13,63 +22,14 @@ class AdminPricingScreen extends StatefulWidget {
 }
 
 class _AdminPricingScreenState extends State<AdminPricingScreen> {
+  List<Map<String, dynamic>> _cars = [];
   bool _loading = true;
-  bool _saving = false;
   String? _error;
-
-  // General
-  late TextEditingController _minHoursCtrl;
-  late TextEditingController _modLimitCtrl;
-  late TextEditingController _cancelLimitCtrl;
-
-  // Night pricing
-  bool _nightEnabled = true;
-  late TextEditingController _nightStartCtrl;
-  late TextEditingController _nightEndCtrl;
-  late TextEditingController _nightPctCtrl;
-
-  // Last-minute pricing
-  bool _lastMinuteEnabled = true;
-  late TextEditingController _lastMinuteHoursCtrl;
-  late TextEditingController _lastMinutePctCtrl;
-
-  // Weekend pricing
-  bool _weekendEnabled = true;
-  late TextEditingController _weekendPctCtrl;
-
-  // Seasonal pricing
-  bool _seasonalEnabled = false;
-  late TextEditingController _seasonalPctCtrl;
 
   @override
   void initState() {
     super.initState();
-    _minHoursCtrl = TextEditingController();
-    _modLimitCtrl = TextEditingController();
-    _cancelLimitCtrl = TextEditingController();
-    _nightStartCtrl = TextEditingController();
-    _nightEndCtrl = TextEditingController();
-    _nightPctCtrl = TextEditingController();
-    _lastMinuteHoursCtrl = TextEditingController();
-    _lastMinutePctCtrl = TextEditingController();
-    _weekendPctCtrl = TextEditingController();
-    _seasonalPctCtrl = TextEditingController();
     _load();
-  }
-
-  @override
-  void dispose() {
-    _minHoursCtrl.dispose();
-    _modLimitCtrl.dispose();
-    _cancelLimitCtrl.dispose();
-    _nightStartCtrl.dispose();
-    _nightEndCtrl.dispose();
-    _nightPctCtrl.dispose();
-    _lastMinuteHoursCtrl.dispose();
-    _lastMinutePctCtrl.dispose();
-    _weekendPctCtrl.dispose();
-    _seasonalPctCtrl.dispose();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -78,11 +38,10 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
       _error = null;
     });
     try {
-      final res = await TransportApiClient.instance.get('/pricing/config');
+      final res = await TransportApiClient.instance.get('/cars/all');
       if (!mounted) return;
-      final c = (res['pricing_config'] as Map?)?.cast<String, dynamic>() ?? {};
-      _applyConfig(c);
       setState(() {
+        _cars = ((res['cars'] as List?) ?? []).cast<Map<String, dynamic>>();
         _loading = false;
       });
     } catch (e) {
@@ -94,428 +53,386 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
     }
   }
 
-  void _applyConfig(Map<String, dynamic> c) {
-    _minHoursCtrl.text = c['minimum_booking_hours']?.toString() ?? '3';
-    _modLimitCtrl.text = c['modification_limit_hours']?.toString() ?? '24';
-    _cancelLimitCtrl.text = c['cancellation_limit_hours']?.toString() ?? '24';
-
-    final night = (c['night_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
-    _nightEnabled = night['enabled'] == true;
-    _nightStartCtrl.text = night['start_time']?.toString() ?? '22:00';
-    _nightEndCtrl.text = night['end_time']?.toString() ?? '06:00';
-    _nightPctCtrl.text = night['percentage']?.toString() ?? '30';
-
-    final lm =
-        (c['last_minute_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
-    _lastMinuteEnabled = lm['enabled'] == true;
-    _lastMinuteHoursCtrl.text = lm['within_hours']?.toString() ?? '24';
-    _lastMinutePctCtrl.text = lm['percentage']?.toString() ?? '20';
-
-    final wk = (c['weekend_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
-    _weekendEnabled = wk['enabled'] == true;
-    _weekendPctCtrl.text = wk['percentage']?.toString() ?? '10';
-
-    final se = (c['seasonal_pricing'] as Map?)?.cast<String, dynamic>() ?? {};
-    _seasonalEnabled = se['enabled'] == true;
-    _seasonalPctCtrl.text = se['percentage']?.toString() ?? '0';
-  }
-
-  Future<void> _save() async {
-    setState(() => _saving = true);
-    try {
-      final payload = {
-        'minimum_booking_hours': int.tryParse(_minHoursCtrl.text.trim()) ?? 3,
-        'modification_limit_hours':
-            int.tryParse(_modLimitCtrl.text.trim()) ?? 24,
-        'cancellation_limit_hours':
-            int.tryParse(_cancelLimitCtrl.text.trim()) ?? 24,
-        'night_pricing': {
-          'enabled': _nightEnabled,
-          'start_time': _nightStartCtrl.text.trim(),
-          'end_time': _nightEndCtrl.text.trim(),
-          'percentage': double.tryParse(_nightPctCtrl.text.trim()) ?? 30,
-        },
-        'last_minute_pricing': {
-          'enabled': _lastMinuteEnabled,
-          'within_hours': int.tryParse(_lastMinuteHoursCtrl.text.trim()) ?? 24,
-          'percentage': double.tryParse(_lastMinutePctCtrl.text.trim()) ?? 20,
-        },
-        'weekend_pricing': {
-          'enabled': _weekendEnabled,
-          'percentage': double.tryParse(_weekendPctCtrl.text.trim()) ?? 10,
-        },
-        'seasonal_pricing': {
-          'enabled': _seasonalEnabled,
-          'percentage': double.tryParse(_seasonalPctCtrl.text.trim()) ?? 0,
-        },
-      };
-      await TransportApiClient.instance.put('/pricing/rules', payload);
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Pricing rules saved'),
-          backgroundColor: Color(0xFF55A86B),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: const Color(0xFFEF4444)),
-      );
-    }
+  void _openEditor(Map<String, dynamic> car) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (_) => _PricingEditSheet(car: car, onSaved: _load),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        title: Text(
-          'Pricing Rules',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        actions: [
-          if (!_loading && _error == null)
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Padding(
-              padding: const EdgeInsets.only(right: 16),
-              child: _saving
-                  ? Padding(
-                      padding: EdgeInsets.all(10),
-                      child: SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                            color: AppColors.secondary, strokeWidth: 2.5),
-                      ),
-                    )
-                  : TextButton(
-                      onPressed: _save,
-                      child: Text(
-                        'Save',
-                        style: TextStyle(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 15,
-                        ),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: Icon(Icons.arrow_back_rounded,
+                        color: AppColors.textPrimary),
+                  ),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      'Vehicle Pricing',
+                      style: TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
+                  ),
+                  IconButton(
+                    onPressed: _load,
+                    icon: Icon(Icons.refresh_rounded,
+                        color: AppColors.accentText),
+                  ),
+                ],
+              ),
             ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Text(
+                'Live rates from the Chauffeur Booking System model. '
+                'Tap a vehicle to edit its parameters.',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(child: _body()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _body() {
+    if (_loading) {
+      // Vehicle-pricing-card-shaped skeletons instead of a spinner.
+      return const SkeletonCardList(count: 4, cardHeight: 132);
+    }
+    if (_error != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(_error!,
+              style: const TextStyle(color: AppColors.danger),
+              textAlign: TextAlign.center),
+        ),
+      );
+    }
+    return RefreshIndicator(
+      color: AppColors.secondary,
+      onRefresh: _load,
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+        itemCount: _cars.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 14),
+        itemBuilder: (_, i) => _VehiclePricingCard(
+          car: _cars[i],
+          onTap: () => _openEditor(_cars[i]),
+        ),
+      ),
+    );
+  }
+}
+
+class _VehiclePricingCard extends StatelessWidget {
+  final Map<String, dynamic> car;
+  final VoidCallback onTap;
+
+  const _VehiclePricingCard({required this.car, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final pricing = (car['pricing'] as Map?)?.cast<String, dynamic>() ?? {};
+    final currency = pricing['currency']?.toString() ?? 'EUR';
+    final unverified = car['pricing_verified'] == false;
+
+    String fmt(dynamic v) =>
+        v == null ? '—' : (v as num).toStringAsFixed(v % 1 == 0 ? 0 : 3);
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.softBorder),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    car['name']?.toString() ?? 'Vehicle',
+                    style: TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                if (unverified)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.chipPinkBg,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'VERIFY RATES',
+                      style: TextStyle(
+                        color: AppColors.danger,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                  ),
+                const SizedBox(width: 8),
+                Icon(Icons.edit_rounded,
+                    size: 16, color: AppColors.accentText),
+              ],
+            ),
+            const SizedBox(height: 4),
+            Text(
+              '${car['category'] ?? ''} · ${car['seats'] ?? '?'} pax · '
+              '${car['luggage'] ?? '?'} bags',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 8,
+              children: [
+                _RateChip('Initial', '${fmt(pricing['initial_fee'])} $currency'),
+                _RateChip('Return init',
+                    '${fmt(pricing['initial_fee_return'])} $currency'),
+                _RateChip('Per km', '${fmt(pricing['per_km'])} $currency'),
+                _RateChip('Per hour', '${fmt(pricing['per_hour'])} $currency'),
+                _RateChip('Waypoint',
+                    '${fmt(pricing['per_waypoint'])} $currency'),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RateChip extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _RateChip(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceElevated,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: TextStyle(
+                  color: AppColors.textMuted,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8)),
+          const SizedBox(height: 2),
+          Text(value,
+              style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
-      body: SafeArea(
-        child: _loading
-            ? Center(
-                child: CircularProgressIndicator(color: AppColors.secondary))
-            : _error != null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.wifi_off_rounded,
-                            color: AppColors.textMuted, size: 40),
-                        const SizedBox(height: 12),
-                        Text(_error!,
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: AppColors.textMuted, fontSize: 14)),
-                        const SizedBox(height: 12),
-                        TextButton(onPressed: _load, child: Text('Retry')),
-                      ],
-                    ),
-                  )
-                : ListView(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
-                    children: [
-                      _SectionHeader('General limits'),
-                      const SizedBox(height: 12),
-                      AdminCard(
-                        child: Column(
-                          children: [
-                            _IntField(
-                              controller: _minHoursCtrl,
-                              label: 'Minimum booking lead time (hours)',
-                            ),
-                            const SizedBox(height: 12),
-                            _IntField(
-                              controller: _modLimitCtrl,
-                              label: 'Modification deadline (hours before)',
-                            ),
-                            const SizedBox(height: 12),
-                            _IntField(
-                              controller: _cancelLimitCtrl,
-                              label: 'Cancellation deadline (hours before)',
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Night pricing'),
-                      const SizedBox(height: 12),
-                      AdminCard(
-                        child: Column(
-                          children: [
-                            _ToggleRow(
-                              label: 'Enable night surcharge',
-                              value: _nightEnabled,
-                              onChanged: (v) =>
-                                  setState(() => _nightEnabled = v),
-                            ),
-                            if (_nightEnabled) ...[
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _TimeField(
-                                      controller: _nightStartCtrl,
-                                      label: 'Start (HH:MM)',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _TimeField(
-                                      controller: _nightEndCtrl,
-                                      label: 'End (HH:MM)',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _PctField(
-                                      controller: _nightPctCtrl,
-                                      label: 'Surcharge %',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Last-minute pricing'),
-                      const SizedBox(height: 12),
-                      AdminCard(
-                        child: Column(
-                          children: [
-                            _ToggleRow(
-                              label: 'Enable last-minute surcharge',
-                              value: _lastMinuteEnabled,
-                              onChanged: (v) =>
-                                  setState(() => _lastMinuteEnabled = v),
-                            ),
-                            if (_lastMinuteEnabled) ...[
-                              const SizedBox(height: 12),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _IntField(
-                                      controller: _lastMinuteHoursCtrl,
-                                      label: 'Within hours',
-                                    ),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _PctField(
-                                      controller: _lastMinutePctCtrl,
-                                      label: 'Surcharge %',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Weekend pricing'),
-                      const SizedBox(height: 12),
-                      AdminCard(
-                        child: Column(
-                          children: [
-                            _ToggleRow(
-                              label: 'Enable weekend surcharge',
-                              value: _weekendEnabled,
-                              onChanged: (v) =>
-                                  setState(() => _weekendEnabled = v),
-                            ),
-                            if (_weekendEnabled) ...[
-                              const SizedBox(height: 12),
-                              _PctField(
-                                controller: _weekendPctCtrl,
-                                label: 'Surcharge %',
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Seasonal pricing'),
-                      const SizedBox(height: 12),
-                      AdminCard(
-                        child: Column(
-                          children: [
-                            _ToggleRow(
-                              label: 'Enable seasonal demand pricing',
-                              value: _seasonalEnabled,
-                              onChanged: (v) =>
-                                  setState(() => _seasonalEnabled = v),
-                            ),
-                            if (_seasonalEnabled) ...[
-                              const SizedBox(height: 12),
-                              _PctField(
-                                controller: _seasonalPctCtrl,
-                                label: 'Surcharge %',
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      ElevatedButton(
-                        onPressed: _saving ? null : _save,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.secondary,
-                          foregroundColor: AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                        child: _saving
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  color: AppColors.primary,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Text(
-                                'Save pricing rules',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 15,
-                                ),
-                              ),
-                      ),
-                    ],
-                  ),
-      ),
     );
   }
 }
 
-// ─── Subwidgets ────────────────────────────────────────────────────────────────
+class _PricingEditSheet extends StatefulWidget {
+  final Map<String, dynamic> car;
+  final VoidCallback onSaved;
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader(this.title);
+  const _PricingEditSheet({required this.car, required this.onSaved});
 
   @override
-  Widget build(BuildContext context) {
-    return Text(
-      title.toUpperCase(),
-      style: TextStyle(
-        color: AppColors.textMuted,
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.2,
-      ),
-    );
-  }
+  State<_PricingEditSheet> createState() => _PricingEditSheetState();
 }
 
-class _ToggleRow extends StatelessWidget {
-  final String label;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+class _PricingEditSheetState extends State<_PricingEditSheet> {
+  static const _fields = <(String, String)>[
+    ('initial_fee', 'Initial fee (one-way)'),
+    ('initial_fee_return', 'Initial fee (return)'),
+    ('per_km', 'Per kilometer'),
+    ('per_km_return', 'Per kilometer (return)'),
+    ('per_hour', 'Per hour'),
+    ('per_extra_hour', 'Per extra time (hour)'),
+    ('per_waypoint', 'Per waypoint'),
+    ('per_waypoint_duration_per_min', 'Per waypoint minute'),
+  ];
 
-  const _ToggleRow({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
+  final Map<String, TextEditingController> _ctrls = {};
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final pricing =
+        (widget.car['pricing'] as Map?)?.cast<String, dynamic>() ?? {};
+    for (final (key, _) in _fields) {
+      final value = (pricing[key] as num?)?.toDouble() ?? 0.0;
+      _ctrls[key] = TextEditingController(text: value.toString());
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final c in _ctrls.values) {
+      c.dispose();
+    }
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final pricing = <String, dynamic>{'currency': 'EUR'};
+    for (final (key, label) in _fields) {
+      final parsed = double.tryParse(_ctrls[key]!.text.replaceAll(',', '.'));
+      if (parsed == null || parsed < 0) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Invalid value for "$label"'),
+          backgroundColor: AppColors.danger,
+        ));
+        return;
+      }
+      pricing[key] = parsed;
+    }
+
+    setState(() => _saving = true);
+    try {
+      final carId = widget.car['id']?.toString() ?? '';
+      await TransportApiClient.instance.put('/cars/$carId', {
+        'pricing': pricing,
+        // Keep the legacy sort/display field in sync with the initial fee.
+        'base_price': pricing['initial_fee'],
+      });
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      widget.onSaved();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Save failed: $e'),
+        backgroundColor: AppColors.danger,
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            label,
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + bottomInset),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            widget.car['name']?.toString() ?? 'Vehicle',
             style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
             ),
           ),
-        ),
-        Switch(
-          value: value,
-          activeThumbColor: AppColors.secondary,
-          activeTrackColor: AppColors.secondary.withValues(alpha: 0.4),
-          onChanged: onChanged,
-        ),
-      ],
-    );
-  }
-}
-
-class _IntField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-
-  const _IntField({required this.controller, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
-      decoration: InputDecoration(labelText: label),
-    );
-  }
-}
-
-class _PctField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-
-  const _PctField({required this.controller, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
-      decoration: InputDecoration(labelText: label, suffixText: '%'),
-    );
-  }
-}
-
-class _TimeField extends StatelessWidget {
-  final TextEditingController controller;
-  final String label;
-
-  const _TimeField({required this.controller, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: TextInputType.datetime,
-      style: TextStyle(color: AppColors.textPrimary, fontSize: 15),
-      decoration: InputDecoration(labelText: label),
+          const SizedBox(height: 4),
+          Text(
+            'Pricing parameters (EUR)',
+            style: TextStyle(color: AppColors.textMuted, fontSize: 13),
+          ),
+          const SizedBox(height: 18),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  for (final (key, label) in _fields)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: TextField(
+                        controller: _ctrls[key],
+                        keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[\d.,]')),
+                        ],
+                        style: TextStyle(color: AppColors.textPrimary),
+                        decoration: InputDecoration(
+                          labelText: label,
+                          labelStyle: TextStyle(
+                              color: AppColors.textMuted, fontSize: 13),
+                          filled: true,
+                          fillColor: AppColors.surfaceElevated,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            height: 50,
+            child: ElevatedButton(
+              onPressed: _saving ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.secondary,
+                foregroundColor: const Color(0xFF221A08),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: _saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2.4),
+                    )
+                  : const Text('Save pricing',
+                      style: TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

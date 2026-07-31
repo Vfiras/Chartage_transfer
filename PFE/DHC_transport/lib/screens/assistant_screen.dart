@@ -1,7 +1,6 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:speech_to_text/speech_to_text.dart';
 
 import '../core/services/auth_service.dart';
 import 'assistant/assistant_controller.dart';
@@ -13,14 +12,31 @@ import 'assistant/widgets/user_message_bubble.dart';
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const _bg = Color(0xFF0B0B0D);
 const _surfaceElevated = Color(0xFF1C1C1F);
-const _surfaceSecondary = Color(0xFF141416);
 const _gold = Color(0xFFC8A96B);
 const _onSurface = Color(0xFFE9E1DA);
+const _warmWhite = Color(0xFFF2ECE3);
 const _textSec = Color(0xFFA1A1AA);
-const _outline = Color(0xFF4D463A);
 
+/// The AVA concierge screen — designed as a first-class lounge, not a
+/// support-ticket page.
+///
+/// Two states, one deliberate transition:
+///   LOUNGE       zero messages — the concierge receives you: framed portrait
+///                on a soft gold stage light, a quiet greeting, the invitation
+///                as the hero line, and prepared conversation starters.
+///   CONVERSATION first message onward — the lounge yields entirely; the top
+///                bar gains her small portrait and the chat owns the screen.
+/// The switch is a 250ms ease-out fade — a state change, not a scroll position.
 class AssistantScreen extends StatefulWidget {
-  const AssistantScreen({super.key});
+  /// Supplied when AVA is hosted as a shell tab rather than a pushed route —
+  /// there is nothing to pop, so the back arrow returns to the Home tab.
+  final VoidCallback? onBack;
+
+  /// Sent automatically once the screen mounts (used by the Home AVA widget's
+  /// voice shortcut, which transcribes first and then opens the chat).
+  final String? initialMessage;
+
+  const AssistantScreen({super.key, this.onBack, this.initialMessage});
 
   @override
   State<AssistantScreen> createState() => _AssistantScreenState();
@@ -31,11 +47,22 @@ class _AssistantScreenState extends State<AssistantScreen> {
   final _scrollCtrl = ScrollController();
   late final AssistantController _ctrl;
 
+  /// "Your concierge has arrived" — played once per app session, not once
+  /// per screen open.
+  static bool _sessionEntrancePlayed = false;
+  late final bool _playEntrance;
+
   @override
   void initState() {
     super.initState();
+    _playEntrance = !_sessionEntrancePlayed;
+    _sessionEntrancePlayed = true;
     _ctrl = AssistantController(userFirstName: _firstName)
       ..addListener(_onUpdate);
+    final preset = widget.initialMessage?.trim();
+    if (preset != null && preset.isNotEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _send(preset));
+    }
   }
 
   @override
@@ -74,6 +101,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
     await _ctrl.sendMessage(text);
   }
 
+  bool get _inConversation => _ctrl.messages.isNotEmpty;
+
   // ── Greeting ────────────────────────────────────────────────────────────────
 
   String get _greeting {
@@ -99,55 +128,20 @@ class _AssistantScreenState extends State<AssistantScreen> {
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
-          // ── App bar ──────────────────────────────────────────────────────
-          _TopBar(),
+          // ── App bar: gains the mini portrait once conversing ─────────────
+          _TopBar(compressed: _inConversation, onBack: widget.onBack),
 
-          // ── Scrollable content + chat ────────────────────────────────────
+          // ── Lounge ⇄ conversation ────────────────────────────────────────
           Expanded(
             child: Stack(
               children: [
-                ListView(
-                  controller: _scrollCtrl,
-                  padding: EdgeInsets.fromLTRB(
-                      20, 8, 20, 100 + bottomPadding),
-                  children: [
-                    // ── Hero ───────────────────────────────────────────────
-                    _HeroSection(greeting: _greeting, firstName: _firstName),
-                    const SizedBox(height: 32),
-
-                    // ── Journey card ───────────────────────────────────────
-                    _SectionTitle('Upcoming Journey'),
-                    const SizedBox(height: 14),
-                    const _JourneyCard(),
-                    const SizedBox(height: 32),
-
-                    // ── Quick actions ──────────────────────────────────────
-                    _SectionTitle('Quick Actions', actionLabel: 'View All'),
-                    const SizedBox(height: 14),
-                    _QuickActionsGrid(onAction: _send),
-                    const SizedBox(height: 32),
-
-                    // ── Chat section ───────────────────────────────────────
-                    _SectionTitle('Command Center Chat'),
-                    const SizedBox(height: 16),
-
-                    // Messages
-                    for (final msg in _ctrl.messages)
-                      if (msg.fromUser)
-                        UserMessageBubble(key: ValueKey(msg.id), message: msg)
-                      else
-                        AssistantMessageBubble(
-                          key: ValueKey(msg.id),
-                          message: msg,
-                          // Stream only the first time this message appears
-                          animate: msg.shouldStream &&
-                              !_ctrl.hasStreamed(msg.id),
-                          onTextGrew: _scrollToBottom,
-                          onStreamComplete: () => _ctrl.markStreamed(msg.id),
-                        ),
-
-                    if (_ctrl.isTyping) const TypingIndicator(),
-                  ],
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  switchInCurve: Curves.easeOut,
+                  switchOutCurve: Curves.easeOut,
+                  child: _inConversation
+                      ? _buildConversation(bottomPadding)
+                      : _buildLounge(bottomPadding),
                 ),
 
                 // ── Fixed input bar ────────────────────────────────────────
@@ -168,11 +162,99 @@ class _AssistantScreenState extends State<AssistantScreen> {
       ),
     );
   }
+
+  /// Zero messages: the concierge receives you.
+  Widget _buildLounge(double bottomPadding) {
+    return ListView(
+      key: const ValueKey('lounge'),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, 110 + bottomPadding),
+      children: [
+        const SizedBox(height: 22),
+        _ConciergeLounge(
+          greeting: _greeting,
+          firstName: _firstName,
+          playEntrance: _playEntrance,
+        ),
+        const SizedBox(height: 30),
+        _SuggestionChips(onAction: _send, enabled: _ctrl.canSend),
+        const SizedBox(height: 20),
+        // Quiet hint — inviting without begging.
+        Text(
+          'Ask about your trips, our fleet, or anything else.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.35),
+            fontSize: 12,
+            height: 1.4,
+          ),
+        ),
+        // A send is possible from the lounge (typed message) — show the
+        // typing dots here too so the transition never feels dead.
+        if (_ctrl.isTyping) ...[
+          const SizedBox(height: 24),
+          const TypingIndicator(),
+        ],
+      ],
+    );
+  }
+
+  /// First message onward: the conversation owns the screen.
+  Widget _buildConversation(double bottomPadding) {
+    final messages = _ctrl.messages;
+    return ListView(
+      key: const ValueKey('conversation'),
+      controller: _scrollCtrl,
+      padding: EdgeInsets.fromLTRB(20, 18, 20, 110 + bottomPadding),
+      children: [
+        for (var i = 0; i < messages.length; i++)
+          _bubbleFor(
+            messages[i],
+            // Rhythm: exchanges breathe (20), same-sender runs group (8).
+            bottomSpacing: i == messages.length - 1
+                ? 8
+                : (messages[i + 1].fromUser == messages[i].fromUser ? 8 : 20),
+          ),
+        if (_ctrl.isTyping) const TypingIndicator(),
+      ],
+    );
+  }
+
+  Widget _bubbleFor(dynamic msg, {required double bottomSpacing}) {
+    if (msg.fromUser) {
+      return UserMessageBubble(
+        key: ValueKey(msg.id),
+        message: msg,
+        bottomSpacing: bottomSpacing,
+      );
+    }
+    return AssistantMessageBubble(
+      key: ValueKey(msg.id),
+      message: msg,
+      bottomSpacing: bottomSpacing,
+      // Stream only the first time this message appears
+      animate: msg.shouldStream && !_ctrl.hasStreamed(msg.id),
+      onTextGrew: _scrollToBottom,
+      onStreamComplete: () => _ctrl.markStreamed(msg.id),
+      // Card button/row taps go through the SAME send path
+      // as a typed message; gated by the controller's canSend.
+      onCardAction: _send,
+      cardEnabled: _ctrl.canSend,
+    );
+  }
 }
 
 // ── Top bar ────────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
+  /// In conversation the bar carries the concierge presence: her small
+  /// portrait joins the wordmark, so the lounge can leave the stage.
+  final bool compressed;
+
+  /// Non-null when AVA is a shell tab — pops back to Home instead of the route.
+  final VoidCallback? onBack;
+
+  const _TopBar({required this.compressed, this.onBack});
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -191,23 +273,45 @@ class _TopBar extends StatelessWidget {
         children: [
           _TopBarBtn(
             icon: Icons.arrow_back_rounded,
-            onTap: () => Navigator.of(context).maybePop(),
+            onTap: onBack ?? () => Navigator.of(context).maybePop(),
           ),
           const Spacer(),
-          const Text(
-            'LUMIÈRE',
-            style: TextStyle(
-              color: _gold,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 4,
-            ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 250),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeOut,
+            child: compressed
+                ? Row(
+                    key: const ValueKey('bar-compressed'),
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      AvaAvatar(size: 28, borderWidth: 1),
+                      SizedBox(width: 9),
+                      Text(
+                        'AVA',
+                        style: TextStyle(
+                          color: _gold,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 4,
+                        ),
+                      ),
+                    ],
+                  )
+                : const Text(
+                    'AVA',
+                    key: ValueKey('bar-wordmark'),
+                    style: TextStyle(
+                      color: _gold,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 4,
+                    ),
+                  ),
           ),
           const Spacer(),
-          _TopBarBtn(
-            icon: Icons.notifications_none_rounded,
-            onTap: () {},
-          ),
+          // Balances the back button so the wordmark stays centered.
+          const SizedBox(width: 40),
         ],
       ),
     );
@@ -237,561 +341,283 @@ class _TopBarBtn extends StatelessWidget {
   }
 }
 
-// ── Hero section ───────────────────────────────────────────────────────────────
+// ── The concierge lounge ──────────────────────────────────────────────────────
 
-class _HeroSection extends StatelessWidget {
+/// Framed portrait on a backlit stage light, greeting as context, the
+/// invitation as the hero, credential as a typographic detail.
+///
+/// Entrance (once per session): 200ms fade + 0.96→1.0 scale, and the gold
+/// vignette takes a single quiet breath. Nothing bounces.
+class _ConciergeLounge extends StatefulWidget {
   final String greeting;
   final String firstName;
+  final bool playEntrance;
 
-  const _HeroSection({required this.greeting, required this.firstName});
+  const _ConciergeLounge({
+    required this.greeting,
+    required this.firstName,
+    required this.playEntrance,
+  });
+
+  @override
+  State<_ConciergeLounge> createState() => _ConciergeLoungeState();
+}
+
+class _ConciergeLoungeState extends State<_ConciergeLounge>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+  late final Animation<double> _fade;
+  late final Animation<double> _scale;
+  late final Animation<double> _vignette;
+
+  @override
+  void initState() {
+    super.initState();
+    _anim = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 750));
+
+    // Arrival: fade + gentle settle in the first ~200ms.
+    final entrance = CurvedAnimation(
+        parent: _anim, curve: const Interval(0.0, 0.28, curve: Curves.easeOut));
+    _fade = entrance;
+    _scale = Tween(begin: 0.96, end: 1.0).animate(entrance);
+
+    // One vignette breath: 8% → 14% → 8%, then still forever.
+    _vignette = TweenSequence<double>([
+      TweenSequenceItem(tween: ConstantTween(0.08), weight: 25),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.08, end: 0.14)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 35),
+      TweenSequenceItem(
+          tween: Tween(begin: 0.14, end: 0.08)
+              .chain(CurveTween(curve: Curves.easeOut)),
+          weight: 40),
+    ]).animate(_anim);
+
+    if (widget.playEntrance) {
+      _anim.forward();
+    } else {
+      _anim.value = 1.0; // already arrived this session
+    }
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        const SizedBox(height: 16),
-        // Avatar with LIVE badge
-        Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            const AvaAvatar(size: 108, borderWidth: 2),
-            Positioned(
-              bottom: -2,
-              right: -2,
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _surfaceElevated,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color: _gold.withValues(alpha: 0.30), width: 1),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 7, height: 7,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF22C55E),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'LIVE',
-                      style: TextStyle(
-                        color: _gold,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 20),
-        Text(
-          '$greeting, $firstName',
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: _onSurface,
-            fontSize: 26,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.4,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Your personal travel concierge, AVA, is here to assist.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: _textSec, fontSize: 14, height: 1.5),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: _gold.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(color: _gold.withValues(alpha: 0.20)),
-          ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) => Opacity(
+        opacity: _fade.value,
+        child: Transform.scale(
+          scale: _scale.value,
+          child: Column(
             children: [
-              Icon(Icons.verified_rounded, color: _gold, size: 15),
-              SizedBox(width: 6),
-              Text(
-                'Senior Travel Concierge',
-                style: TextStyle(
-                  color: _gold,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Section title ──────────────────────────────────────────────────────────────
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String? actionLabel;
-
-  const _SectionTitle(this.title, {this.actionLabel});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            color: _onSurface,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        if (actionLabel != null)
-          Text(
-            actionLabel!,
-            style: const TextStyle(
-              color: _gold,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.8,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ── Journey card (boarding pass style) ────────────────────────────────────────
-
-class _JourneyCard extends StatelessWidget {
-  const _JourneyCard();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: _surfaceElevated,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: _gold.withValues(alpha: 0.12)),
-      ),
-      child: Stack(
-        children: [
-          // Gold top accent
-          Positioned(
-            top: 0, left: 0, right: 0,
-            child: Container(
-              height: 2,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [
-                  Colors.transparent,
-                  _gold.withValues(alpha: 0.80),
-                  Colors.transparent,
-                ]),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Status + reference
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // ── Framed portrait on its stage light ──────────────────────
+              SizedBox(
+                width: 168,
+                height: 148,
+                child: Stack(
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
                   children: [
+                    // Backlit stage light — light, not ornament.
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 5),
+                      width: 168,
+                      height: 148,
                       decoration: BoxDecoration(
-                        color: _gold.withValues(alpha: 0.10),
-                        borderRadius: BorderRadius.circular(999),
+                        gradient: RadialGradient(
+                          radius: 0.62,
+                          colors: [
+                            _gold.withValues(alpha: _vignette.value),
+                            _gold.withValues(alpha: 0.0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    // Thin gold ring, quiet.
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         border: Border.all(
-                            color: _gold.withValues(alpha: 0.30)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6, height: 6,
-                            decoration: const BoxDecoration(
-                                color: _gold, shape: BoxShape.circle),
-                          ),
-                          const SizedBox(width: 6),
-                          const Text(
-                            'CONFIRMED',
-                            style: TextStyle(
-                              color: _gold,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
+                            color: _gold.withValues(alpha: 0.30), width: 1),
                       ),
                     ),
-                    const Text(
-                      'Ref: CT-2024-89A',
-                      style: TextStyle(
-                          color: _textSec,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 22),
-
-                // Route row: TUN ──✈── HMT
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _AirportCode(code: 'TUN', city: 'Tunis-Carthage'),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Column(
+                    const AvaAvatar(size: 92, borderWidth: 0.8),
+                    // LIVE — capsule, gold dot, small.
+                    Positioned(
+                      bottom: 18,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xF01C1C1F),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                              color: _gold.withValues(alpha: 0.28)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Dashed line with rotated plane sitting on it
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const Positioned.fill(
-                                  child: Padding(
-                                    padding:
-                                        EdgeInsets.symmetric(horizontal: 4),
-                                    child: CustomPaint(
-                                        painter: _DashedLinePainter()),
-                                  ),
-                                ),
-                                Container(
-                                  color: _surfaceElevated,
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8),
-                                  child: Transform.rotate(
-                                    angle: math.pi / 2,
-                                    child: const Icon(Icons.flight,
-                                        color: _gold, size: 26),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
                             Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: _gold.withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(99),
+                              width: 5,
+                              height: 5,
+                              decoration: const BoxDecoration(
+                                color: _gold,
+                                shape: BoxShape.circle,
                               ),
-                              child: const Text(
-                                '1H 15M EST.',
-                                style: TextStyle(
-                                  color: _gold,
-                                  fontSize: 9,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1,
-                                ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'LIVE',
+                              style: TextStyle(
+                                color: _gold.withValues(alpha: 0.95),
+                                fontSize: 8,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1.4,
                               ),
                             ),
                           ],
                         ),
                       ),
                     ),
-                    _AirportCode(
-                        code: 'HMT',
-                        city: 'Hammamet',
-                        align: CrossAxisAlignment.end),
                   ],
                 ),
+              ),
 
-                const SizedBox(height: 20),
-                Container(
-                    height: 1,
-                    color: Colors.white.withValues(alpha: 0.05)),
-                const SizedBox(height: 18),
+              const SizedBox(height: 10),
 
-                // Date / time
-                const Row(
-                  children: [
-                    Expanded(
-                      child: _DateTimeInfo(
-                          label: 'DATE', value: 'May 29, 2024'),
-                    ),
-                    Expanded(
-                      child:
-                          _DateTimeInfo(label: 'TIME', value: '05:25 AM'),
-                    ),
-                  ],
+              // ── Greeting: context, not the moment ───────────────────────
+              Text(
+                '${widget.greeting}, ${widget.firstName}',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _gold.withValues(alpha: 0.90),
+                  fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                  letterSpacing: 0.2,
                 ),
-                const SizedBox(height: 16),
+              ),
 
-                // Vehicle
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: _surfaceSecondary,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 42, height: 38,
-                        decoration: BoxDecoration(
-                          color: _bg,
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(
-                              color:
-                                  Colors.white.withValues(alpha: 0.05)),
-                        ),
-                        child: const Icon(Icons.directions_car_rounded,
-                            color: _gold, size: 20),
-                      ),
-                      const SizedBox(width: 14),
-                      const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Mercedes S-Class',
-                            style: TextStyle(
-                              color: _onSurface,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            'PREMIUM FLEET',
-                            style: TextStyle(
-                              color: _gold,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.chevron_right_rounded,
-                          color: _textSec, size: 20),
-                    ],
-                  ),
+              const SizedBox(height: 10),
+
+              // ── The hero: the invitation ────────────────────────────────
+              const Text(
+                'How may I assist you today?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _warmWhite,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 0.5,
+                  height: 1.25,
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 20),
+
+              // ── Credential as typography, not a badge ───────────────────
+              Container(
+                width: 34,
+                height: 1,
+                color: _gold.withValues(alpha: 0.45),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'SENIOR TRAVEL CONCIERGE · AVAILABLE 24/7',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: _gold.withValues(alpha: 0.80),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 3,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _AirportCode extends StatelessWidget {
-  final String code;
-  final String city;
-  final CrossAxisAlignment align;
+// ── Suggestion chips — prepared conversation starters ─────────────────────────
 
-  const _AirportCode({
-    required this.code,
-    required this.city,
-    this.align = CrossAxisAlignment.start,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: align,
-      children: [
-        Text(
-          code,
-          style: const TextStyle(
-            color: _onSurface,
-            fontSize: 36,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -1,
-          ),
-        ),
-        Text(
-          city,
-          style: const TextStyle(
-              color: _textSec, fontSize: 11, fontWeight: FontWeight.w500),
-        ),
-      ],
-    );
-  }
-}
-
-class _DateTimeInfo extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DateTimeInfo({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: _textSec,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: _onSurface,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-// ── Quick actions grid ─────────────────────────────────────────────────────────
-
-class _QuickActionsGrid extends StatelessWidget {
+/// Not a menu of features: a row of first messages, written the way a person
+/// would say them. Tapping one sends exactly what it says.
+class _SuggestionChips extends StatelessWidget {
   final void Function(String) onAction;
+  final bool enabled;
 
-  const _QuickActionsGrid({required this.onAction});
+  const _SuggestionChips({required this.onAction, required this.enabled});
 
-  static const _actions = [
-    (Icons.edit_calendar_rounded, 'Modify\nBooking', 'Can I modify my booking?'),
-    (Icons.luggage_rounded, 'Airport\nAssist', 'Tell me about airport assistance'),
-    (Icons.my_location_rounded, 'Track\nRide', 'How do I track my ride?'),
-    (Icons.directions_car_rounded, 'Fleet\nInfo', 'What vehicles are available?'),
+  static const _suggestions = <(IconData, String)>[
+    (Icons.edit_calendar_outlined, 'Change my upcoming trip'),
+    (Icons.near_me_outlined, "Where's my driver?"),
+    (Icons.flight_land_outlined, 'Airport meet-and-greet'),
+    (Icons.star_outline_rounded, 'My rewards & benefits'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 2.2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      children: [
-        for (final (icon, label, prompt) in _actions)
-          _ActionCard(
-            icon: icon,
-            label: label,
-            onTap: () => onAction(prompt),
-          ),
-      ],
-    );
-  }
-}
-
-class _ActionCard extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-
-  const _ActionCard({
-    required this.icon,
-    required this.label,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: _surfaceElevated,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 38, height: 38,
-              decoration: BoxDecoration(
-                color: _surfaceSecondary,
-                shape: BoxShape.circle,
-                border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.05)),
-              ),
-              child: Icon(icon, color: _gold, size: 18),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  color: _onSurface,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  height: 1.35,
+    return SizedBox(
+      height: 42,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        itemCount: _suggestions.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        itemBuilder: (context, i) {
+          final (icon, label) = _suggestions[i];
+          return AnimatedOpacity(
+            duration: const Duration(milliseconds: 150),
+            opacity: enabled ? 1 : 0.5,
+            child: GestureDetector(
+              onTap: enabled ? () => onAction(label) : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: _surfaceElevated.withValues(alpha: 0.75),
+                  borderRadius: BorderRadius.circular(999),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.07)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(icon, color: _gold, size: 15),
+                    const SizedBox(width: 8),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        color: _onSurface,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 }
 
-// ── Dashed line painter (boarding-pass flight route) ──────────────────────────
-
-class _DashedLinePainter extends CustomPainter {
-  const _DashedLinePainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const dashWidth = 4.0;
-    const gap = 4.0;
-    final paint = Paint()
-      ..color = _outline.withValues(alpha: 0.6)
-      ..strokeWidth = 1.5
-      ..strokeCap = StrokeCap.round;
-    final y = size.height / 2;
-    double x = 0;
-    while (x < size.width) {
-      canvas.drawLine(Offset(x, y), Offset(x + dashWidth, y), paint);
-      x += dashWidth + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter oldDelegate) => false;
-}
-
 // ── Input bar ──────────────────────────────────────────────────────────────────
 
-class _InputBar extends StatelessWidget {
+class _InputBar extends StatefulWidget {
   final TextEditingController controller;
   final bool enabled;
   final VoidCallback onSend;
@@ -803,7 +629,60 @@ class _InputBar extends StatelessWidget {
   });
 
   @override
+  State<_InputBar> createState() => _InputBarState();
+}
+
+class _InputBarState extends State<_InputBar> {
+  final _speech = SpeechToText();
+  final _focus = FocusNode();
+  bool _isListening = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focus.addListener(() => setState(() {}));
+  }
+
+  Future<void> _toggleListen() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+    final available = await _speech.initialize(onError: (_) {
+      if (mounted) setState(() => _isListening = false);
+    });
+    if (!available || !mounted) return;
+    setState(() => _isListening = true);
+    HapticFeedback.mediumImpact();
+    await _speech.listen(
+      onResult: (result) {
+        widget.controller.text = result.recognizedWords;
+        widget.controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: widget.controller.text.length),
+        );
+      },
+      listenOptions: SpeechListenOptions(
+        cancelOnError: true,
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 3),
+      ),
+    );
+    if (mounted) setState(() => _isListening = false);
+  }
+
+  @override
+  void dispose() {
+    _speech.stop();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // The field acknowledges attention: gold 20% at rest, 60% in focus.
+    final borderAlpha = _focus.hasFocus ? 0.60 : 0.20;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16, 10, 16,
@@ -811,21 +690,47 @@ class _InputBar extends StatelessWidget {
       ),
       decoration: const BoxDecoration(
         color: _bg,
-        border: Border(
-            top: BorderSide(color: Color(0x14FFFFFF))),
+        border: Border(top: BorderSide(color: Color(0x14FFFFFF))),
       ),
       child: Row(
         children: [
-          // ── Single input pill ──────────────────────────────────────────
-          Expanded(
+          // ── Mic button ─────────────────────────────────────────────────
+          GestureDetector(
+            onTap: widget.enabled ? _toggleListen : null,
             child: Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: _isListening
+                    ? _gold.withValues(alpha: 0.20)
+                    : _surfaceElevated,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: _isListening
+                      ? _gold.withValues(alpha: 0.60)
+                      : Colors.white.withValues(alpha: 0.10),
+                ),
+              ),
+              child: Icon(
+                _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                color: _isListening ? _gold : _textSec,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // ── Input pill ─────────────────────────────────────────────────
+          Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOut,
               height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
                 color: _surfaceElevated,
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.10)),
+                    color: _gold.withValues(alpha: borderAlpha)),
               ),
               child: Row(
                 children: [
@@ -834,20 +739,23 @@ class _InputBar extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: TextField(
-                      controller: controller,
-                      enabled: enabled,
+                      controller: widget.controller,
+                      focusNode: _focus,
+                      enabled: widget.enabled,
                       cursorColor: _gold,
                       style: const TextStyle(
                           color: _onSurface, fontSize: 14),
-                      decoration: const InputDecoration(
+                      decoration: InputDecoration(
                         isCollapsed: true,
-                        hintText: 'Message AVA...',
-                        hintStyle:
-                            TextStyle(color: Color(0xFF6B6460), fontSize: 14),
+                        hintText: _isListening
+                            ? 'Listening...'
+                            : 'Message AVA...',
+                        hintStyle: const TextStyle(
+                            color: Color(0xFF6B6460), fontSize: 14),
                         border: InputBorder.none,
                       ),
                       textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => onSend(),
+                      onSubmitted: (_) => widget.onSend(),
                     ),
                   ),
                 ],
@@ -855,21 +763,32 @@ class _InputBar extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          // ── Send button (no glow) ──────────────────────────────────────
+          // ── Send button ────────────────────────────────────────────────
           GestureDetector(
-            onTap: enabled ? onSend : null,
-            child: Container(
+            onTap: widget.enabled ? widget.onSend : null,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: enabled ? _gold : _gold.withValues(alpha: 0.35),
+                color: widget.enabled ? _gold : _surfaceElevated,
                 shape: BoxShape.circle,
+                border: widget.enabled
+                    ? null
+                    : Border.all(color: _gold.withValues(alpha: 0.22)),
+                boxShadow: widget.enabled
+                    ? [
+                        BoxShadow(
+                          color: _gold.withValues(alpha: 0.32),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : null,
               ),
               child: Icon(
                 Icons.send_rounded,
-                color: enabled
-                    ? const Color(0xFF0B0B0D)
-                    : const Color(0xFF5A5040),
+                color: widget.enabled ? _bg : _textSec,
                 size: 20,
               ),
             ),

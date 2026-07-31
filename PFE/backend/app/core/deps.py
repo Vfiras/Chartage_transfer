@@ -34,6 +34,28 @@ async def get_current_user(
     return user
 
 
+async def get_current_user_optional(
+    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> dict | None:
+    """Resolve the caller when a token is present, else None.
+
+    For routes that stay public (guests must still be able to use them) but
+    behave differently for a signed-in user — e.g. promo validation, which has
+    to reject another user's private tier code.
+    """
+    if not credentials:
+        return None
+    payload = decode_access_token(credentials.credentials)
+    if not payload:
+        return None
+    db = get_database()
+    user = await db.users.find_one({"_id": payload["sub"]})
+    if not user:
+        return None
+    user["_id"] = str(user["_id"])
+    return user
+
+
 async def require_client(user: dict = Depends(get_current_user)) -> dict:
     if user.get("role") not in ("client", "admin"):
         raise HTTPException(

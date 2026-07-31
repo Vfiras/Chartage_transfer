@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/services/transport_api_client.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/services/transport_api_client.dart';
 import '../../destination_guide/data/destination_guide_repository.dart';
 import '../../destination_guide/domain/destination_recommendation.dart';
 import '../../destination_guide/presentation/widgets/recommendation_card.dart';
@@ -45,7 +45,7 @@ class _RecommendationManagementScreenState
 
     setState(() => _busy = true);
     try {
-      await TransportApiClient.instance.post('/recommendations/', payload);
+      await TransportApiClient.instance.post('/destinations/recommendations/', payload);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Guide item added')),
@@ -86,10 +86,8 @@ class _RecommendationManagementScreenState
               FutureBuilder<List<DestinationRecommendation>>(
                 future: _future,
                 builder: (context, snapshot) {
-                  final items = snapshot.data ??
-                      (_selectedCategory == null
-                          ? _repository.all()
-                          : _repository.byCategory(_selectedCategory!));
+                  final items =
+                      snapshot.data ?? const <DestinationRecommendation>[];
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

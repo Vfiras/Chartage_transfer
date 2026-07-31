@@ -92,25 +92,27 @@ class _FleetHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
+        // A back action looks like a back action — the old menu icon lied.
         GestureDetector(
           onTap: onBack,
           child: const Icon(
-            Icons.menu_rounded,
+            Icons.arrow_back_rounded,
             color: PremiumClientPalette.gold,
-            size: 28,
+            size: 26,
           ),
         ),
-        const SizedBox(width: 2),
-        const Expanded(
+        const SizedBox(width: 12),
+        // Quiet wordmark: "Premium Fleet" below is this screen's one hero.
+        Expanded(
           child: Text(
-            'Carthage Transfer',
+            'CARTHAGE TRANSFER',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              color: PremiumClientPalette.gold,
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              height: 1,
+              color: PremiumClientPalette.text.withValues(alpha: 0.62),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2.2,
             ),
           ),
         ),
@@ -243,11 +245,14 @@ class _PremiumFleetCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
+                      // Informational microlabel — gold stays reserved for
+                      // the price on this card.
                       _fleetLabel(item),
-                      style: const TextStyle(
-                        color: PremiumClientPalette.gold,
+                      style: TextStyle(
+                        color:
+                            PremiumClientPalette.text.withValues(alpha: 0.60),
                         fontSize: 12,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w700,
                         letterSpacing: 2,
                       ),
                     ),

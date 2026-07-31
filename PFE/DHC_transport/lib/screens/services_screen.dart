@@ -32,15 +32,15 @@ class ServicesScreen extends StatelessWidget {
                       height: 1.1)),
               const SizedBox(height: 4),
               Text('Tailored transfer solutions for every need.',
-                  style: TextStyle(fontSize: 13, color: Color(0xFF888888))),
+                  style: TextStyle(fontSize: 13, color: AppColors.textMuted)),
               const SizedBox(height: 16),
               ...items.map((item) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(24),
+                    borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: AppColors.softBorder),
                     boxShadow: [
                       BoxShadow(
@@ -58,7 +58,8 @@ class ServicesScreen extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 10, vertical: 4),
                           decoration: BoxDecoration(
-                            color: const Color(0x26FFB400),
+                            // Brand gold, not amber — one gold in this app.
+                            color: AppColors.chipGoldBg,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text('POPULAR',
@@ -76,7 +77,7 @@ class ServicesScreen extends StatelessWidget {
                       const SizedBox(height: 6),
                       Text(item.desc,
                           style: TextStyle(
-                              color: Color(0xFF777777),
+                              color: AppColors.textMuted,
                               fontSize: 12,
                               height: 1.55)),
                       const SizedBox(height: 10),

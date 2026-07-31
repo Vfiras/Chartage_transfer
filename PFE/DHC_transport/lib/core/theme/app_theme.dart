@@ -39,7 +39,7 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: AppColors.secondary,
-          textStyle: TextStyle(fontWeight: FontWeight.w900),
+          textStyle: TextStyle(fontWeight: FontWeight.w800),
         ),
       ),
       datePickerTheme: DatePickerThemeData(

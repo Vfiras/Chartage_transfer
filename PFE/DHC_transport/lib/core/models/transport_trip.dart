@@ -25,6 +25,8 @@ class TransportTrip {
   final String contactPhone;
   final String vehicleClass;
   final double totalPrice;
+  final String paymentMethod; // cash | card
+  final String paymentStatus; // pending_approval | approved | pending_payment
 
   const TransportTrip({
     required this.id,
@@ -53,6 +55,8 @@ class TransportTrip {
     required this.contactPhone,
     required this.vehicleClass,
     required this.totalPrice,
+    this.paymentMethod = 'cash',
+    this.paymentStatus = 'approved',
   });
 
   factory TransportTrip.fromJson(Map<String, dynamic> json) {
@@ -94,8 +98,13 @@ class TransportTrip {
       totalPrice: (json['total_price'] as num?)?.toDouble() ??
           (json['estimated_earnings'] as num?)?.toDouble() ??
           0,
+      paymentMethod: json['payment_method']?.toString() ?? 'cash',
+      // Older bookings predate the payment flow — treat them as approved.
+      paymentStatus: json['payment_status']?.toString() ?? 'approved',
     );
   }
+
+  bool get isPendingApproval => paymentStatus == 'pending_approval';
 
   String get earningsLabel => '\$${estimatedEarnings.toStringAsFixed(2)}';
 }

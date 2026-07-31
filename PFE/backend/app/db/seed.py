@@ -2,6 +2,7 @@ from datetime import datetime, timedelta, timezone
 
 from app.core.database import get_database
 from app.core.security import get_password_hash
+from app.db.fleet_data import REAL_FLEET
 
 
 async def seed_database() -> dict[str, int]:
@@ -37,60 +38,9 @@ async def seed_database() -> dict[str, int]:
         },
     ]
 
-    cars = [
-        {
-            "_id": "car-standard",
-            "name": "Standard",
-            "model": "Comfort sedan",
-            "category": "Standard",
-            "seats": 4,
-            "luggage": 2,
-            "base_price": 18.0,
-            "availability": True,
-            "image_url": "assets/images/fleet/Renault-Express-Minivan-Transfers-Tunisia.webp",
-            "created_at": now,
-            "updated_at": now,
-        },
-        {
-            "_id": "car-vip",
-            "name": "VIP",
-            "model": "Executive sedan",
-            "category": "VIP",
-            "seats": 3,
-            "luggage": 2,
-            "base_price": 28.0,
-            "availability": True,
-            "image_url": "assets/images/fleet/mercedes-e-class-2024-carthage-transfer.webp",
-            "created_at": now,
-            "updated_at": now,
-        },
-        {
-            "_id": "car-luxury",
-            "name": "Luxury",
-            "model": "Premium class",
-            "category": "Luxury",
-            "seats": 3,
-            "luggage": 2,
-            "base_price": 40.0,
-            "availability": True,
-            "image_url": "assets/images/fleet/premium-sedan-2024-carthage-transfer.webp",
-            "created_at": now,
-            "updated_at": now,
-        },
-        {
-            "_id": "car-van",
-            "name": "Van",
-            "model": "Premium group van",
-            "category": "Van",
-            "seats": 7,
-            "luggage": 5,
-            "base_price": 50.0,
-            "availability": True,
-            "image_url": "assets/images/fleet/Mercedes-V-Class-Vip-Transfers-Tunisia.webp",
-            "created_at": now,
-            "updated_at": now,
-        },
-    ]
+    # Real fleet from the live site's Chauffeur Booking System pages, with full
+    # per-vehicle pricing parameters (see db/fleet_data.py).
+    cars = [{**car, "created_at": now, "updated_at": now} for car in REAL_FLEET]
 
     destinations = [
         {
@@ -275,10 +225,15 @@ async def seed_database() -> dict[str, int]:
         },
     ]
 
-    # Clear all collections before re-seeding
+    # Clear all collections before re-seeding. The second row are collections
+    # that accumulate runtime/test cruft (complaints, chat history, AI audit
+    # rows, saved places, pricing-change log) — cleared too so a fresh seed is
+    # a genuinely clean, demo-ready state rather than leaving stale test data
+    # visible in the admin UI.
     for collection in [
         "users", "cars", "bookings", "destinations",
         "promotions", "pricing_rules", "notifications",
+        "complaints", "chat_sessions", "audit_log", "favorites", "pricing_history",
     ]:
         await db[collection].delete_many({})
 

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/services/auth_service.dart';
 import '../core/services/trip_service.dart';
 import '../models/booking_data.dart';
 import '../models/vehicle.dart';
+import '../shared/widgets/common/route_map_view.dart';
 import '../widgets/common/fallback_network_image.dart';
+import '../widgets/common/luxury_cta.dart';
 import 'booking_success_screen.dart';
 
 class BookingConfirmationScreen extends StatefulWidget {
@@ -65,6 +68,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
         'vehicle_class': widget.vehicle.name,
         'total_price': widget.totalPrice,
         'is_guest': isGuest,
+        'payment_method': widget.data.paymentMethod,
       });
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -122,7 +126,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 13,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w800,
                         letterSpacing: 2,
                         color: Color(0xFFC8A96B),
                       ),
@@ -204,7 +208,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                     style: TextStyle(
                                       color: Color(0xFFC8A96B),
                                       fontSize: 10,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w800,
                                       letterSpacing: 2,
                                     ),
                                   ),
@@ -213,7 +217,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                     widget.vehicle.name,
                                     style: const TextStyle(
                                       fontSize: 22,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w800,
                                     ),
                                   ),
                                 ],
@@ -224,12 +228,36 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                       ),
                     ),
 
+                    const SizedBox(height: 14),
+                    // Prefer the exact coordinates resolved during search
+                    // (Places autocomplete); fall back to the curated
+                    // name-lookup for older flows without coords.
+                    data.hasCoordinates
+                        ? RouteMapView(
+                            pickup:
+                                LatLng(data.pickupLat!, data.pickupLng!),
+                            destination: LatLng(data.destinationLat!,
+                                data.destinationLng!),
+                            pickupLabel: data.pickup,
+                            destinationLabel: data.destination,
+                            height: 200,
+                            borderRadius: 20,
+                          )
+                        : RouteMapView.fromStrings(
+                            pickup: data.pickup,
+                            destination: data.destination,
+                            height: 200,
+                            borderRadius: 20,
+                          ),
                     const SizedBox(height: 8),
+                    // Quiet heading — the route map and receipt card are the
+                    // heroes of this screen, not the label.
                     const Text(
                       'Confirm Booking',
                       style: TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.2,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -272,7 +300,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                         style: TextStyle(
                                           color: AppColors.secondary,
                                           fontSize: 11,
-                                          fontWeight: FontWeight.w900,
+                                          fontWeight: FontWeight.w800,
                                           letterSpacing: 0.5,
                                         ),
                                       ),
@@ -323,20 +351,20 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                           _PriceRow(
                             label: 'Subtotal',
                             value:
-                                '${data.subtotalPrice.toStringAsFixed(0)} TND',
+                                '${data.subtotalPrice.toStringAsFixed(0)} ${data.currency}',
                           ),
                           if (data.dynamicSurcharge > 0)
                             _PriceRow(
                               label: 'Adjustments',
                               value:
-                                  '+${data.dynamicSurcharge.toStringAsFixed(0)} TND',
+                                  '+${data.dynamicSurcharge.toStringAsFixed(0)} ${data.currency}',
                               valueColor: AppColors.secondary,
                             ),
                           if (data.promoCode.isNotEmpty)
                             _PriceRow(
                               label: 'Promo (${data.promoCode})',
                               value:
-                                  '-${data.discountAmount.toStringAsFixed(0)} TND',
+                                  '-${data.discountAmount.toStringAsFixed(0)} ${data.currency}',
                               valueColor: AppColors.green,
                             ),
                           Padding(
@@ -349,16 +377,16 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                   style: TextStyle(
                                     color: AppColors.textMuted,
                                     fontSize: 11,
-                                    fontWeight: FontWeight.w900,
+                                    fontWeight: FontWeight.w800,
                                     letterSpacing: 1,
                                   ),
                                 ),
                                 Text(
-                                  '${widget.totalPrice.toStringAsFixed(0)} TND',
+                                  '${widget.totalPrice.toStringAsFixed(0)} ${data.currency}',
                                   style: TextStyle(
                                     color: AppColors.secondary,
                                     fontSize: 24,
-                                    fontWeight: FontWeight.w900,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ],
@@ -408,45 +436,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
 
                     const SizedBox(height: 20),
 
-                    // Confirm button
-                    GestureDetector(
+                    // Confirm button — the one CTA spec (52px / r14 / w800)
+                    LuxuryCta(
+                      text: 'Confirm Booking',
+                      icon: Icons.check_rounded,
+                      loading: _loading,
                       onTap: _loading ? null : _confirm,
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 150),
-                        padding: const EdgeInsets.symmetric(vertical: 17),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: _loading
-                              ? AppColors.secondary.withValues(alpha: 0.6)
-                              : AppColors.secondary,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: _loading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.black,
-                                  strokeWidth: 2.5,
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(Icons.check_rounded,
-                                      color: AppColors.primary, size: 20),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Confirm Booking',
-                                    style: TextStyle(
-                                      color: AppColors.primary,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w900,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                      ),
                     ),
                   ],
                 ),

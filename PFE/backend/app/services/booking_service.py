@@ -21,14 +21,34 @@ async def _push_notification(user_id: str, title: str, message: str, booking_id:
     })
 
 
+async def _notify_admins(title: str, message: str, booking_id: str | None = None) -> None:
+    """Insert one notification per admin account (admins use the same
+    notifications collection, keyed by their user_id)."""
+    db = get_database()
+    async for admin in db.users.find({"role": "admin"}, {"_id": 1}):
+        await _push_notification(str(admin["_id"]), title, message, booking_id)
+
+
 async def create_trip(payload: dict) -> dict:
     db = get_database()
     booking_id = f"booking-{uuid4().hex}"
     payload = {key: value for key, value in payload.items() if value is not None}
     payload.pop("eta_minutes", None)
+
+    # ── Payment method → payment status ──────────────────────────────────────
+    # cash → pending_approval (admin must approve before the booking confirms)
+    # card → approved placeholder (online card payment not implemented yet;
+    #        treated like cash-pending so the booking is never blocked)
+    payment_method = str(payload.get("payment_method", "cash")).lower()
+    if payment_method not in ("cash", "card"):
+        payment_method = "cash"
+    payment_status = "pending_approval" if payment_method == "cash" else "approved"
+
     document = {
         "_id": booking_id,
         **payload,
+        "payment_method": payment_method,
+        "payment_status": payment_status,
         "booking_status": payload.get("status", "pending"),
         "status": payload.get("status", "pending"),
         "created_at": datetime.now(timezone.utc),
@@ -37,12 +57,28 @@ async def create_trip(payload: dict) -> dict:
     await db.bookings.insert_one(document)
     user_id = payload.get("user_id", "")
     destination = payload.get("destination_name", "your destination")
-    await _push_notification(
-        user_id,
-        "Booking received",
-        f"Your transfer to {destination} has been received and is pending confirmation.",
-        booking_id,
-    )
+    if payment_method == "cash":
+        await _push_notification(
+            user_id,
+            "Booking received",
+            f"Your transfer to {destination} has been received. Our team will "
+            "review and confirm it within a few hours.",
+            booking_id,
+        )
+        await _notify_admins(
+            "Cash booking awaiting approval",
+            f"{payload.get('passenger_name', 'A client')} booked a transfer to "
+            f"{destination} (cash on arrival) — approval required.",
+            booking_id,
+        )
+    else:
+        await _push_notification(
+            user_id,
+            "Booking received",
+            f"Your transfer to {destination} has been received and is pending "
+            "confirmation. Card payment will be available soon.",
+            booking_id,
+        )
     return serialize_document(document) or {}
 
 
@@ -105,6 +141,10 @@ async def update_trip_status(trip_id: str, status: str) -> dict | None:
                 {"_id": user_id},
                 {"$inc": {"completed_rides_count": 1}, "$set": {"updated_at": datetime.now(timezone.utc)}},
             )
+            # A referred client's first completed ride pays their referrer.
+            # No-ops for everyone else and after the first payout.
+            from app.services.rewards_service import settle_referral_if_first_ride
+            await settle_referral_if_first_ride(user_id)
         if status in _STATUS_MESSAGES:
             title, message = _STATUS_MESSAGES[status]
             await _push_notification(user_id, title, message, trip_id)
@@ -115,3 +155,16 @@ async def delete_trip(trip_id: str) -> bool:
     db = get_database()
     result = await db.bookings.delete_one({"_id": trip_id})
     return result.deleted_count == 1
+
+
+async def get_pricing_rules() -> dict:
+    """Returns the active pricing rules document; falls back to safe defaults."""
+    db = get_database()
+    doc = await db.pricing_rules.find_one({"_id": "active"})
+    if doc:
+        return serialize_document(doc) or {}
+    return {
+        "minimum_booking_hours": 3,
+        "modification_limit_hours": 24,
+        "cancellation_limit_hours": 24,
+    }

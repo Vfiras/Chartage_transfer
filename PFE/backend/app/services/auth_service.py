@@ -57,5 +57,14 @@ async def register_client(payload: dict) -> dict:
         "created_at": now,
         "updated_at": now,
     }
+    # Referral code is issued at signup so the user can share it immediately.
+    from app.services.rewards_service import (
+        generate_referral_code,
+        grant_welcome_promo,
+    )
+    user["referral_code"] = generate_referral_code(user["full_name"])
+    user["referral_credits"] = 0.0
     await db.users.insert_one(user)
+    # Every new account gets a one-time 10% welcome offer.
+    await grant_welcome_promo(user["_id"])
     return build_token_response(user)

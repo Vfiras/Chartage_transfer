@@ -115,6 +115,8 @@ class PremiumClientNav extends StatelessWidget {
     this.innerPadding = const EdgeInsets.symmetric(horizontal: 10),
   });
 
+  /// Home · Trips · AVA (elevated centre) · Saved · Profile.
+  /// Alerts is no longer a tab — the bell lives in the shared top bar.
   static const defaultItems = [
     PremiumNavItem(
       label: 'Home',
@@ -127,14 +129,14 @@ class PremiumClientNav extends StatelessWidget {
       activeIcon: Icons.auto_graph_rounded,
     ),
     PremiumNavItem(
+      label: 'AVA',
+      icon: Icons.auto_awesome_outlined,
+      activeIcon: Icons.auto_awesome_rounded,
+    ),
+    PremiumNavItem(
       label: 'Saved',
       icon: Icons.bookmark_border_rounded,
       activeIcon: Icons.bookmark_rounded,
-    ),
-    PremiumNavItem(
-      label: 'Alerts',
-      icon: Icons.notifications_none_rounded,
-      activeIcon: Icons.notifications_rounded,
     ),
     PremiumNavItem(
       label: 'Profile',
@@ -203,12 +205,12 @@ class PremiumClientNav extends StatelessWidget {
                           const preferredCompactWidth = 48.0;
                           final activeWidth = (constraints.maxWidth -
                                   preferredCompactWidth * (items.length - 1))
-                              .clamp(96.0, 120.0)
+                              .clamp(88.0, 134.0)
                               .toDouble();
                           final compactWidth =
                               ((constraints.maxWidth - activeWidth) /
                                       (items.length - 1))
-                                  .clamp(44.0, preferredCompactWidth)
+                                  .clamp(40.0, preferredCompactWidth)
                                   .toDouble();
 
                           return Row(
@@ -301,7 +303,7 @@ class _PremiumNavButton extends StatelessWidget {
                   final width = constraints.maxWidth;
                   final iconLeft =
                       selected ? 16.0 : ((width - 22) / 2).clamp(0.0, width);
-                  final labelWidth = (width - 54).clamp(0.0, 72.0).toDouble();
+                  final labelWidth = (width - 54).clamp(0.0, 86.0).toDouble();
 
                   return Stack(
                     children: [

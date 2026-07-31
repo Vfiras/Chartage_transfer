@@ -1,23 +1,16 @@
-import 'dart:async';
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 
+import '../../core/services/assistant_api_service.dart';
 import 'chat_message_model.dart';
-import 'demo_conversation_repository.dart';
 
 class AssistantController extends ChangeNotifier {
   final _messages = <ChatMessage>[];
-  // IDs of assistant messages that have already played their streaming
-  // animation. Once here, the bubble renders full text instantly — so
-  // scrolling away and back never re-triggers the typewriter effect.
   final _streamedIds = <String>{};
   bool _isTyping = false;
   bool _isSending = false;
+  bool _disposed = false;
 
-  AssistantController({String userFirstName = 'there'}) {
-    _seedShowcase(userFirstName);
-  }
+  AssistantController({String userFirstName = 'there'});
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isTyping => _isTyping;
@@ -27,32 +20,14 @@ class AssistantController extends ChangeNotifier {
   bool hasStreamed(String id) => _streamedIds.contains(id);
   void markStreamed(String id) => _streamedIds.add(id);
 
-  // Seeds an elegant pre-existing conversation so the screen looks alive
-  // on first open (matches the Stitch showcase). These are historical and
-  // do not stream.
-  void _seedShowcase(String name) {
-    final base = DateTime.now();
-    _messages.addAll([
-      ChatMessage(
-        role: MessageRole.assistant,
-        timestamp: DateTime(base.year, base.month, base.day, 12, 42),
-        text:
-            "Good afternoon, $name. I noticed your flight into Tunis-Carthage tomorrow arrives 15 minutes early. Would you like me to adjust the chauffeur's arrival time accordingly?",
-      ),
-      ChatMessage(
-        role: MessageRole.user,
-        timestamp: DateTime(base.year, base.month, base.day, 12, 45),
-        text:
-            "Yes, please. That would be perfect. Also, can we ensure there is sparkling water in the car?",
-      ),
-      ChatMessage(
-        role: MessageRole.assistant,
-        timestamp: DateTime(base.year, base.month, base.day, 12, 46),
-        inlineCard: InlineCard.scheduleUpdate,
-        text:
-            "Certainly. I have updated the schedule and noted your refreshment preference. Here is your updated trip brief:",
-      ),
-    ]);
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
   }
 
   Future<void> sendMessage(String text) async {
@@ -60,22 +35,87 @@ class AssistantController extends ChangeNotifier {
     if (trimmed.isEmpty || !canSend) return;
 
     _isSending = true;
-    _messages.add(ChatMessage.user(trimmed));
-    notifyListeners();
-
-    // Typing delay: 1.5–2.1 s  (looks natural, not mechanical)
     _isTyping = true;
-    notifyListeners();
+    _messages.add(ChatMessage.user(trimmed));
+    _notify();
 
-    await Future<void>.delayed(
-      Duration(milliseconds: 1500 + Random().nextInt(600)),
-    );
+    final service = AssistantApiService.instance;
+    final threadId = await service.getOrCreateThreadId();
 
-    _isTyping = false;
-    _isSending = false;
+    // Analytics payload arrives on its own SSE event just before `done`;
+    // stash it so the done-handler can render an AnalyticsCard message.
+    Map<String, dynamic>? pendingAnalytics;
 
-    final reply = DemoConversationRepository.getResponse(trimmed);
-    _messages.add(ChatMessage.assistant(reply, stream: true));
-    notifyListeners();
+    try {
+      await for (final event in service.chat(trimmed, threadId)) {
+        if (_disposed) break;
+        final type = event['type'] as String? ?? '';
+
+        if (type == 'token') {
+          // Keep-alive or node-completion pulse — typing indicator stays on.
+          // Nothing to render; the TypingIndicator widget is already visible.
+        } else if (type == 'analytics') {
+          pendingAnalytics =
+              (event['content'] as Map?)?.cast<String, dynamic>();
+        } else if (type == 'done') {
+          _isTyping = false;
+          _isSending = false;
+          final content = (event['content'] as String? ?? '').trim();
+          if (pendingAnalytics != null) {
+            // Rich analytics response: KPIs + charts + insights card with the
+            // analyst narrative as its text.
+            _messages.add(ChatMessage.analytics(
+              content.isEmpty ? 'Analysis complete.' : content,
+              pendingAnalytics,
+            ));
+            pendingAnalytics = null;
+            _notify();
+            continue;
+          }
+          // Parse into a structured card where the text matches a known pattern;
+          // unrecognized text yields cardType=none → the same plain bubble as before.
+          _messages.add(ChatMessage.assistantParsed(
+            content.isEmpty ? 'No response from AVA.' : content,
+            stream: true,
+          ));
+          _notify();
+        } else if (type == 'error') {
+          _isTyping = false;
+          _isSending = false;
+          final raw = event['content'] as String? ?? '';
+          _messages.add(ChatMessage.error(_friendlyError(raw)));
+          _notify();
+        }
+      }
+    } catch (e) {
+      if (!_disposed) {
+        _isTyping = false;
+        _isSending = false;
+        _messages.add(ChatMessage.error(
+          'Could not reach AVA — check your connection and try again.',
+        ));
+        _notify();
+      }
+    }
+
+    // Safety net: clear loading state if stream ended without done/error.
+    if (_isTyping || _isSending) {
+      _isTyping = false;
+      _isSending = false;
+      _notify();
+    }
+  }
+
+  static String _friendlyError(String raw) {
+    if (raw.contains('GOOGLE_API_KEY') || raw.contains('api key')) {
+      return 'AVA is temporarily unavailable. Please try again in a moment.';
+    }
+    if (raw.startsWith('Connection error:') ||
+        raw.contains('SocketException') ||
+        raw.contains('HandshakeException')) {
+      return 'Could not reach AVA — check your connection and try again.';
+    }
+    // HTTP 401, access denied, etc. — surface as-is; they're readable
+    return raw;
   }
 }

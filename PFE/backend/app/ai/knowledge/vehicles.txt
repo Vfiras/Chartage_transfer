@@ -1,0 +1,123 @@
+CARTHAGE TRANSFER — VEHICLE FLEET GUIDE
+[Source: carthage-transfer.com — live fleet listing, June 2026]
+[The real fleet has 12 vehicle classes, not 4. The app's current Standard/VIP/Luxury/Van
+ categories are a SIMPLIFIED four-bucket model — see compatibility note at the end of this file.]
+
+---
+
+STANDARD SEDAN
+
+Entry-level, comfortable transport for solo travellers and small groups.
+Capacity: 4 passengers | Luggage: 4 bags
+
+---
+
+TOYOTA YARIS
+
+Compact and efficient — suited to solo or two-person transfers with light luggage.
+Capacity: 3 passengers | Luggage: 3 bags
+
+---
+
+RENAULT EXPRESS (MINIVAN)
+
+A practical minivan offering more luggage room than a standard sedan for the same passenger count.
+Capacity: 4 passengers | Luggage: 8 bags
+
+---
+
+MERCEDES E-CLASS — EXECUTIVE ELEGANCE
+
+Premium sedan for the discerning business traveller. Refined interior, advanced climate control,
+and a premium sound system.
+Capacity: 4 passengers | Luggage: 6 bags
+Ideal for: corporate transfers, private journeys, executive airport pickups.
+
+---
+
+MERCEDES S-CLASS — THE ULTIMATE IN LUXURY
+
+The flagship of the fleet. Executive seating with massage function, state-of-the-art infotainment,
+a private rear cabin feel, and enhanced noise isolation.
+Capacity: 3 passengers | Luggage: 6 bags
+Ideal for: VIP clients, airport transfers, corporate meetings, special events.
+
+---
+
+VW MULTIVAN
+
+Spacious premium van for groups needing both passenger room and significant luggage capacity.
+Capacity: 7 passengers | Luggage: 14 bags
+
+---
+
+MERCEDES V-CLASS — LUXURY AND SPACE COMBINED
+
+Generous seating for up to 7 passengers (rounded to 6 in current listing), adjustable seating
+configurations, and premium interior materials.
+Capacity: 6 passengers | Luggage: 12 bags
+Ideal for: families, group transfers, corporate shuttles, family tours.
+
+---
+
+TOYOTA PRADO
+
+A robust SUV option offering comfort and capability, including for less conventional terrain or
+larger families.
+Capacity: 6 passengers | Luggage: 6 bags
+
+---
+
+TOYOTA HIACE
+
+Compact, reliable minibus — the entry point into the group-transport fleet.
+Capacity: 12 passengers | Luggage: 16 bags
+Ideal for: family trips and small group transfers.
+
+---
+
+TOYOTA COASTER
+
+Mid-size coach balancing comfort and practicality for medium-sized groups.
+Capacity: 20 passengers | Luggage: 20 bags
+Ideal for: medium groups, excursions.
+
+---
+
+OTOKAR
+
+Large coach for sizeable groups and long-distance travel.
+Capacity: 30 passengers | Luggage: 30 bags
+Ideal for: long-distance travel, organized tours.
+
+---
+
+MAN A51 — PREMIUM LARGE COACH
+
+The largest vehicle in the fleet, offering maximum comfort for delegations and large tour groups.
+Capacity: 52 passengers | Luggage: 70 bags
+Ideal for: delegations, conferences, tour operators.
+
+---
+
+CHOOSING THE RIGHT VEHICLE
+
+As a quick guide based on the real fleet:
+- 1 passenger, light luggage → Toyota Yaris or Standard Sedan
+- 2–4 passengers, professional context → Mercedes E-Class
+- 2–3 passengers, premium/special occasion → Mercedes S-Class
+- Family of up to 6–7 with luggage → Mercedes V-Class or VW Multivan
+- 12+ passengers → Toyota Hiace, Toyota Coaster, Otokar, or MAN A51 depending on group size
+
+---
+
+COMPATIBILITY NOTE FOR APP DEVELOPMENT — READ BEFORE WIRING TO recommend_vehicle TOOL
+
+The app's current `cars` collection and `recommend_vehicle` tool use a 4-category simplified model:
+Standard, VIP, Luxury, Van. The real published fleet has 12 distinct vehicle models across those
+broad categories (e.g. "VIP" in the app likely maps to Mercedes E-Class or S-Class on the real
+fleet; "Van" likely maps to several different real vehicles from VW Multivan up to the MAN A51).
+This is a deliberate simplification in the app, not an error — but if the app's seeded `cars`
+documents are ever updated to match real fleet data, this mapping should be made explicit (e.g. a
+`real_model` field) so AVA's vehicle descriptions stay consistent with both the app's internal
+category and the actual vehicle a client would receive.

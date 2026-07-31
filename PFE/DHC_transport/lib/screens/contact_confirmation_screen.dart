@@ -4,7 +4,8 @@ import '../core/constants/app_colors.dart';
 import '../core/services/auth_service.dart';
 import '../models/booking_data.dart';
 import '../models/vehicle.dart';
-import 'booking_confirmation_screen.dart';
+import '../widgets/common/luxury_cta.dart';
+import 'payment_method_screen.dart';
 
 class ContactConfirmationScreen extends StatefulWidget {
   final BookingData data;
@@ -47,12 +48,13 @@ class _ContactConfirmationScreenState extends State<ContactConfirmationScreen> {
     widget.data
       ..contactEmail = _email.text.trim()
       ..contactPhone = _phone.text.trim();
+    // Payment method selection sits between contact details and the final
+    // confirmation (cash = real path, card = coming-soon placeholder).
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => BookingConfirmationScreen(
+        builder: (_) => PaymentMethodScreen(
           data: widget.data,
           vehicle: widget.vehicle,
-          totalPrice: widget.data.totalPrice,
         ),
       ),
     );
@@ -93,7 +95,7 @@ class _ContactConfirmationScreenState extends State<ContactConfirmationScreen> {
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 18,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
@@ -219,34 +221,11 @@ class _ContactConfirmationScreenState extends State<ContactConfirmationScreen> {
                             ),
                             const SizedBox(height: 24),
 
-                            // Continue button
-                            GestureDetector(
+                            // Continue button — the one CTA spec
+                            LuxuryCta(
+                              text: 'Continue to Confirmation',
+                              icon: Icons.arrow_forward_rounded,
                               onTap: _continue,
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 16),
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: AppColors.secondary,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Continue to Confirmation',
-                                      style: TextStyle(
-                                        color: AppColors.primary,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Icon(Icons.arrow_forward_rounded,
-                                        color: AppColors.primary, size: 18),
-                                  ],
-                                ),
-                              ),
                             ),
                           ],
                         ),

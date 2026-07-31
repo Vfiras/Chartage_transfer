@@ -1,0 +1,102 @@
+CARTHAGE TRANSFER — LOYALTY, PROMO CODES & REFERRAL PROGRAM
+[Source: Carthage Privilege programme rules, July 2026]
+
+---
+
+EARNING POINTS
+
+Q: How do I earn loyalty points?
+A: You earn 10 points for every completed transfer. Points are calculated automatically from your
+completed bookings — there is nothing to claim or activate. Cancelled and pending bookings do not
+earn points.
+
+Q: Where can I see my points?
+A: Your points, tier and progress to the next tier appear on the "Carthage Privilege" membership
+card on your Profile tab in the app.
+
+---
+
+MEMBERSHIP TIERS
+
+There are four tiers, based on your total points:
+
+| Tier   | Points required |
+|--------|-----------------|
+| Bronze | 0 – 29          |
+| Silver | 30 – 99         |
+| Gold   | 100 – 199       |
+| Black  | 200 and above   |
+
+Since each completed transfer is worth 10 points: Silver is reached after 3 rides, Gold after 10
+rides, and Black after 20 rides.
+
+Q: Do points expire?
+A: No. Points are derived from your completed booking history, so your tier never decays.
+
+---
+
+TIER PROMO CODES
+
+Every member automatically receives a personal promo code matching their tier. The code appears on
+the Rewards screen and can be copied with one tap.
+
+| Tier   | Discount | Uses per code | New code issued |
+|--------|----------|---------------|-----------------|
+| Bronze | 5%       | 3 uses        | Every 3 months  |
+| Silver | 10%      | 3 uses        | Every 3 months  |
+| Gold   | 15%      | 5 uses        | Every 2 months  |
+| Black  | 20%      | Unlimited     | Every month     |
+
+Q: What does a tier promo code look like?
+A: The format is TIER + year/cycle + a short random suffix, for example BRONZE2623-A3K9.
+
+Q: Can I share my tier promo code with a friend?
+A: No. Tier codes are personal — they are tied to your account and will be rejected if anyone else
+tries to use them. To reward a friend, share your referral code instead.
+
+Q: What happens when I use up all the uses on my code?
+A: The code stops working and disappears from your available promos. A new code is issued
+automatically at the start of your tier's next refresh cycle.
+
+Q: What happens to my code when I reach a new tier?
+A: You receive a new code for the higher tier with the better discount the next time you open your
+rewards.
+
+---
+
+WELCOME OFFER
+
+Q: Is there a discount for new customers?
+A: Yes. Every new account automatically receives a one-time WELCOME10 code for 10% off. It is valid
+for a single booking, and it disappears from your promo list once used.
+
+---
+
+REFERRAL PROGRAM
+
+Q: How does the referral programme work?
+A: Every member has a personal referral code in the format CT-NAME-XXXX (for example CT-FIRA-8K2M),
+shown on the Rewards screen. Share it with a friend. When your friend enters your code on their
+account and then completes their first ride, you earn 5 EUR in referral credit.
+
+Q: When is the referral credit paid?
+A: After the referred friend's first booking is completed — not when they sign up, and not when
+they book. This protects the programme against unused sign-ups.
+
+Q: Can I use my own referral code?
+A: No. Self-referral is rejected.
+
+Q: How many friends can I refer?
+A: There is no limit on how many people you refer, but each new account can only ever apply one
+referral code, and only before their first completed ride.
+
+Q: Where do I see my referral earnings?
+A: Your total referral credit is displayed on the Rewards screen beneath your referral code.
+
+---
+
+COMBINING DISCOUNTS
+
+Q: Can I use a promo code and referral credit at the same time?
+A: One promo code applies per booking. Referral credit is a separate balance on your account and is
+not a promo code.

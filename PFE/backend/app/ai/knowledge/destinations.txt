@@ -1,0 +1,68 @@
+CARTHAGE TRANSFER — DESTINATION & SERVICE AREA GUIDE
+[Source: carthage-transfer.com — compiled from published route pricing and service-area mentions,
+ June 2026]
+[The real site does not publish a narrative destination guide with specific transfer-time estimates
+ like the previous placeholder did. This file lists only what is genuinely published: which cities
+ are served and from which airports. Do not state specific minute-by-minute transfer times as fact
+ unless they come from the live booking engine at the time of the request.]
+
+---
+
+AIRPORTS SERVED
+
+- Tunis-Carthage International Airport (TUN) — primary hub, also Carthage Transfer's registered
+  office address (Bloc 61, Carthage International Airport, Tunis 1080).
+- Enfidha-Hammamet International Airport — second major hub served, particularly for Hammamet,
+  Sousse, and Monastir arrivals.
+- Monastir Habib Bourguiba International Airport — explicitly mentioned as covered for bus rental
+  and group airport transfers.
+- Djerba–Zarzis International Airport — explicitly mentioned as covered for bus rental and group
+  airport transfers.
+
+---
+
+CITIES AND DESTINATIONS WITH PUBLISHED ROUTE PRICING (from Tunis-Carthage or Enfidha)
+
+- Tunis city
+- Hammamet
+- Bizerte
+- Sousse
+- Monastir
+- Sfax
+
+(See pricing_policy.txt for the specific starting-from EUR prices for each of these routes.)
+
+---
+
+ADDITIONAL DESTINATIONS MENTIONED FOR NATIONWIDE / INTERCITY SERVICE
+
+The nationwide transportation service explicitly lists: Tunis, Sousse, Hammamet, Sfax, Djerba,
+Tozeur, "and more." Customized routes beyond this list can be arranged on request — Carthage
+Transfer does not limit nationwide service to a fixed city list.
+
+---
+
+DESTINATIONS MENTIONED FOR ACCESSIBLE (WHEELCHAIR) EXCURSIONS
+
+The accessible-tourism service specifically organizes excursions to: Carthage (archaeological
+site), Sidi Bou Saïd, Tunis Medina, La Marsa, Bardo Museum, Hammamet, Nabeul, and Sousse Medina,
+among other attractions. Drivers for this service are trained on accessible routes, ramps, and
+wheelchair-friendly entrances at these specific locations.
+
+---
+
+EXPERIENTIAL TOUR THEMES MENTIONED (no fixed itinerary list published)
+
+The experiential tours service describes flexible, tailor-made itineraries — examples mentioned
+include the medina of Tunis, the ruins of Carthage, traditional dining in a Berber village, and
+sunrise excursions to the Sahara dunes. These are illustrative examples from marketing copy, not a
+fixed catalog — actual itineraries are built around client interests and travel dates.
+
+---
+
+GENERAL NOTES
+
+- Long-distance / inter-city bookings should be arranged with reasonable advance notice (the FAQ
+  recommends at least 24 hours for intercity transfers).
+- For any destination not explicitly listed above, AVA should not invent a transfer time or price —
+  offer to check with the booking engine or connect the client with support instead.

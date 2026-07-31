@@ -1,5 +1,6 @@
 class Vehicle {
   final int id;
+  final String backendId; // Mongo _id (e.g. "car-comfort-sedan") for API calls
   final String name;
   final String model;
   final String capacity;
@@ -14,6 +15,7 @@ class Vehicle {
 
   const Vehicle({
     required this.id,
+    this.backendId = '',
     required this.name,
     required this.model,
     required this.capacity,
@@ -34,11 +36,16 @@ class Vehicle {
     final luggage = (json['luggage'] as num?)?.toInt() ??
         (json['bags'] as num?)?.toInt() ??
         0;
-    final price = (json['base_price'] as num?)?.toInt() ??
-        (json['price'] as num?)?.toInt() ??
+    // Round, don't truncate: 90.86 must display as 91, never 90.
+    final price = (json['base_price'] as num?)?.round() ??
+        (json['price'] as num?)?.round() ??
         0;
     return Vehicle(
       id: (json['id'] as num?)?.toInt() ?? fallbackId,
+      // The API serializes Mongo docs with the raw `_id` key (NOT `id`).
+      // This is the join key for real price quotes — reading the wrong key
+      // silently discarded every quote and forced the TND fallback.
+      backendId: (json['_id'] ?? json['id'])?.toString() ?? '',
       name: name,
       model: json['model']?.toString() ?? category,
       capacity: seats > 0 ? '$seats seats' : 'Premium capacity',

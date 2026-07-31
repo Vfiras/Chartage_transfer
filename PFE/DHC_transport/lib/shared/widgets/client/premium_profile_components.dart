@@ -436,8 +436,16 @@ class PremiumProfileGhostButton extends StatelessWidget {
   }
 }
 
-String premiumProfileRoleBadge(UserModel user) {
+/// Badge under the profile name.
+///
+/// [loyaltyTier] comes from `GET /rewards/me`. Before the loyalty system was
+/// real this returned a hardcoded "Black Tier" for every client, which now
+/// contradicts the membership card directly below it — so the real tier is
+/// used whenever it has loaded.
+String premiumProfileRoleBadge(UserModel user, {String? loyaltyTier}) {
   if (user.isGuest) return 'Guest Access';
   if (user.role == 'admin') return 'Admin Access';
-  return 'Black Tier';
+  final tier = loyaltyTier?.trim();
+  if (tier != null && tier.isNotEmpty) return '$tier Tier';
+  return 'Member';
 }

@@ -225,7 +225,7 @@ class _PromoCard extends StatelessWidget {
                   style: TextStyle(
                     color: AppColors.secondary,
                     fontSize: 14,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: 1.2,
                   ),
                 ),

@@ -2,23 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../core/constants/app_colors.dart';
-import '../../core/services/auth_service.dart';
 import '../../core/services/language_service.dart';
-import '../../widgets/common/fallback_network_image.dart';
 import 'notification_controller.dart';
 import 'notification_model.dart';
 import 'widgets/empty_notifications_widget.dart';
 import 'widgets/notification_card.dart';
 import 'widgets/notification_section.dart';
 
+/// Pushed from the bell in [ClientTopBar] — it used to be the 5th shell tab,
+/// which is why it still reports its unread count upward for the badge.
 class NotificationsScreen extends StatefulWidget {
   final ValueChanged<int> onUnreadCountChanged;
-  final VoidCallback? onNavigateToProfile;
 
   const NotificationsScreen({
     super.key,
     required this.onUnreadCountChanged,
-    this.onNavigateToProfile,
   });
 
   @override
@@ -105,7 +103,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
     final l = LanguageService.instance;
-    final user = AuthService.instance.currentUser;
     final inSelectionMode = _ctrl.isSelectionMode;
 
     return Scaffold(
@@ -134,10 +131,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     )
                   : _DefaultAppBar(
                       key: const ValueKey('default'),
-                      user: user,
                       hasUnread: _ctrl.hasUnread,
                       onMarkAllRead: _ctrl.markAllRead,
-                      onNavigateToProfile: widget.onNavigateToProfile,
                     ),
             ),
 
@@ -205,81 +200,64 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 // ── Default app bar ─────────────────────────────────────────────────────────────
 
 class _DefaultAppBar extends StatelessWidget {
-  final dynamic user;
   final bool hasUnread;
   final VoidCallback onMarkAllRead;
-  final VoidCallback? onNavigateToProfile;
 
   const _DefaultAppBar({
     super.key,
-    required this.user,
     required this.hasUnread,
     required this.onMarkAllRead,
-    this.onNavigateToProfile,
   });
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
     return SizedBox(
       height: 56,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 22),
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
-            Icon(Icons.menu_rounded, color: AppColors.secondary, size: 24),
+            // Back arrow: this is a pushed screen now, not a tab.
+            IconButton(
+              icon: Icon(Icons.arrow_back_rounded,
+                  color: AppColors.textPrimary, size: 22),
+              onPressed: () => Navigator.of(context).maybePop(),
+              splashRadius: 22,
+            ),
             Expanded(
               child: Text(
-                'CARTHAGE TRANSFER',
-                textAlign: TextAlign.center,
+                l.t('notifications'),
                 style: TextStyle(
-                  color: AppColors.secondary,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 1.5,
+                  color: AppColors.textPrimary,
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
             ),
-            if (hasUnread) ...[
-              GestureDetector(
-                onTap: onMarkAllRead,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(
-                        color: AppColors.secondary.withValues(alpha: 0.25),
-                        width: 1),
-                  ),
-                  child: Icon(
-                    Icons.done_all_rounded,
-                    color: AppColors.secondary,
-                    size: 16,
+            if (hasUnread)
+              Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: GestureDetector(
+                  onTap: onMarkAllRead,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                          color: AppColors.secondary.withValues(alpha: 0.25),
+                          width: 1),
+                    ),
+                    child: Icon(
+                      Icons.done_all_rounded,
+                      color: AppColors.secondary,
+                      size: 16,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
-            ],
-            GestureDetector(
-              onTap: onNavigateToProfile,
-              child: SizedBox(
-                width: 32,
-                height: 32,
-                child: ClipOval(
-                  child: (user?.avatarUrl == null ||
-                          (user?.avatarUrl as String?)?.isEmpty == true)
-                      ? Container(
-                          color: AppColors.surfaceElevated,
-                          alignment: Alignment.center,
-                          child: Icon(Icons.person_rounded,
-                              color: AppColors.secondary, size: 18),
-                        )
-                      : FallbackNetworkImage(
-                          url: user!.avatarUrl as String, fit: BoxFit.cover),
-                ),
-              ),
-            ),
           ],
         ),
       ),

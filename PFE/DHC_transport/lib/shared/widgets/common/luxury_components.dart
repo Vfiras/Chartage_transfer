@@ -137,7 +137,7 @@ class LuxuryHeader extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 26,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w800,
                   height: 1.05,
                 ),
               ),
@@ -284,7 +284,7 @@ class LuxuryButton extends StatelessWidget {
           child: DefaultTextStyle(
             style: TextStyle(
               color: primary ? AppColors.primary : AppColors.accentText,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w800,
               fontSize: 15,
             ),
             child: Row(
@@ -407,7 +407,7 @@ class LuxurySectionHeader extends StatelessWidget {
                 style: TextStyle(
                   color: AppColors.textPrimary,
                   fontSize: 19,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               if (subtitle != null)
@@ -545,7 +545,7 @@ class LuxuryBottomNav extends StatelessWidget {
                               : AppColors.textMuted,
                           fontSize: 10.5,
                           fontWeight:
-                              active ? FontWeight.w900 : FontWeight.w700,
+                              active ? FontWeight.w800 : FontWeight.w700,
                         ),
                       ),
                     ],
@@ -603,7 +603,7 @@ class VehicleSelectionCard extends StatelessWidget {
               children: [
                 Text(name,
                     style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.w900)),
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 3),
                 Text(subtitle,
                     style: TextStyle(color: AppColors.textMuted, fontSize: 12)),
@@ -633,7 +633,7 @@ class VehicleSelectionCard extends StatelessWidget {
             children: [
               Text('${price.toStringAsFixed(0)} TND',
                   style: TextStyle(
-                      color: AppColors.secondary, fontWeight: FontWeight.w900)),
+                      color: AppColors.secondary, fontWeight: FontWeight.w800)),
               const SizedBox(height: 14),
               Icon(
                 selected
@@ -718,7 +718,7 @@ class LuxuryStatusChip extends StatelessWidget {
       child: Text(
         label,
         style:
-            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w900),
+            TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w800),
       ),
     );
   }

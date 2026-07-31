@@ -62,6 +62,9 @@ class TripCreate(BaseModel):
     vehicle_class: str | None = None
     total_price: float | None = None
     is_guest: bool = False
+    # "cash" (requires admin approval) | "card" (placeholder — coming soon).
+    # Defaults to cash so AVA's create_booking tool keeps working unchanged.
+    payment_method: str = "cash"
 
 
 class TripUpdate(BaseModel):
@@ -204,6 +207,19 @@ class SupplierStatusUpdate(BaseModel):
 
 # ─── Car schemas ───────────────────────────────────────────────────────────────
 
+class VehiclePricing(BaseModel):
+    """Per-vehicle pricing parameters (Chauffeur Booking System model)."""
+    currency: str = "EUR"
+    initial_fee: float = 0.0
+    initial_fee_return: float = 0.0
+    per_km: float = 0.0
+    per_km_return: float = 0.0
+    per_hour: float = 0.0
+    per_extra_hour: float = 0.0
+    per_waypoint: float = 0.0
+    per_waypoint_duration_per_min: float = 0.0
+
+
 class CarCreate(BaseModel):
     name: str
     model: str
@@ -213,6 +229,8 @@ class CarCreate(BaseModel):
     base_price: float
     availability: bool = True
     image_url: str | None = None
+    pricing: VehiclePricing | None = None
+    features: list[str] | None = None
 
 
 class CarUpdate(BaseModel):
@@ -224,6 +242,19 @@ class CarUpdate(BaseModel):
     base_price: float | None = None
     availability: bool | None = None
     image_url: str | None = None
+    pricing: VehiclePricing | None = None
+    features: list[str] | None = None
+
+
+class PriceEstimateRequest(BaseModel):
+    """Input for POST /bookings/price-estimate."""
+    vehicle_id: str | None = None  # omit → estimates for ALL available vehicles
+    pickup_lat: float
+    pickup_lng: float
+    destination_lat: float
+    destination_lng: float
+    trip_type: str = "one_way"  # one_way | return
+    waypoints: list[dict] = []  # [{"lat":..,"lng":..,"duration_mins":..}]
 
 
 # ─── Promotion schemas ─────────────────────────────────────────────────────────
@@ -279,3 +310,12 @@ class PricingRulesUpdate(BaseModel):
     last_minute_pricing: LastMinutePricingConfig | None = None
     weekend_pricing: WeekendPricingConfig | None = None
     seasonal_pricing: SeasonalPricingConfig | None = None
+
+
+class ComplaintCreate(BaseModel):
+    booking_id: str | None = None
+    message: str
+
+
+class ComplaintStatusUpdate(BaseModel):
+    status: str  # open | in_review | resolved

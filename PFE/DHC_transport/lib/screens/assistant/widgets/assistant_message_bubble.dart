@@ -2,8 +2,13 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../ava_card_data.dart';
 import '../chat_message_model.dart';
 import 'ava_avatar.dart';
+import 'ava_card_tokens.dart';
+import 'confirmation_card.dart';
+import 'result_card.dart';
+import 'selection_card.dart';
 
 const _gold = Color(0xFFC8A96B);
 const _bg = Color(0xFF0B0B0D);
@@ -14,12 +19,26 @@ const _textSec = Color(0xFFA1A1AA);
 
 class AssistantMessageBubble extends StatefulWidget {
   final ChatMessage message;
+
   /// Whether to play the typewriter stream. False = render full text instantly.
   final bool animate;
+
   /// Called periodically while text is streaming so the parent can scroll.
   final VoidCallback? onTextGrew;
+
   /// Called once when the stream finishes (lets the parent remember it).
   final VoidCallback? onStreamComplete;
+
+  /// Sends text through the SAME path a typed message uses, when a card button
+  /// or row is tapped. Null disables card interaction.
+  final void Function(String text)? onCardAction;
+
+  /// Mirrors the controller's canSend — gates card taps while a send is busy.
+  final bool cardEnabled;
+
+  /// Space beneath this bubble. The client chat passes 20 between exchange
+  /// pairs and 8 within same-sender runs; default preserves other callers.
+  final double bottomSpacing;
 
   const AssistantMessageBubble({
     super.key,
@@ -27,11 +46,13 @@ class AssistantMessageBubble extends StatefulWidget {
     this.animate = false,
     this.onTextGrew,
     this.onStreamComplete,
+    this.onCardAction,
+    this.cardEnabled = true,
+    this.bottomSpacing = 18,
   });
 
   @override
-  State<AssistantMessageBubble> createState() =>
-      _AssistantMessageBubbleState();
+  State<AssistantMessageBubble> createState() => _AssistantMessageBubbleState();
 }
 
 class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
@@ -43,10 +64,23 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
   int _displayedChars = 0;
   Timer? _streamTimer;
 
-  // Keep the bubble alive so scrolling away & back never rebuilds it
-  // (which would otherwise replay the stream/fade).
   @override
   bool get wantKeepAlive => true;
+
+  // ── Card classification ────────────────────────────────────────────────────
+  bool get _isStructuredCard {
+    final t = widget.message.cardType;
+    return t == AvaCardType.confirmation ||
+        t == AvaCardType.selection ||
+        t == AvaCardType.result;
+  }
+
+  /// Strip ** markers from the streaming source so they never flash on screen
+  /// for any text-bubble message. Once streaming is complete, the build method
+  /// re-renders with avaBoldSpans to produce real bold spans.
+  String get _streamSource => _isStructuredCard
+      ? widget.message.text
+      : widget.message.text.replaceAll('**', '');
 
   @override
   void initState() {
@@ -59,10 +93,15 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
     _fade = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
     _fadeCtrl.forward();
 
-    if (widget.animate) {
+    // Structured cards never typewriter — their own entrance handles the appear.
+    if (widget.animate && !_isStructuredCard) {
       _startStreaming();
     } else {
-      _displayedChars = widget.message.text.length;
+      _displayedChars = _streamSource.length;
+      if (widget.animate) {
+        WidgetsBinding.instance
+            .addPostFrameCallback((_) => widget.onStreamComplete?.call());
+      }
     }
   }
 
@@ -80,7 +119,7 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
         t.cancel();
         return;
       }
-      if (_displayedChars >= widget.message.text.length) {
+      if (_displayedChars >= _streamSource.length) {
         t.cancel();
         widget.onStreamComplete?.call();
         return;
@@ -88,7 +127,7 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
       final step = (_displayedChars % 7 == 0) ? 2 : 1;
       setState(() {
         _displayedChars =
-            (_displayedChars + step).clamp(0, widget.message.text.length);
+            (_displayedChars + step).clamp(0, _streamSource.length);
       });
       widget.onTextGrew?.call();
     });
@@ -97,15 +136,103 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
   @override
   Widget build(BuildContext context) {
     super.build(context); // required by AutomaticKeepAliveClientMixin
-    final displayText = widget.message.text.substring(0, _displayedChars);
-    final isComplete = _displayedChars >= widget.message.text.length;
-    final showCard = widget.message.inlineCard == InlineCard.scheduleUpdate &&
-        isComplete;
+    final isError = widget.message.isError;
 
+    // ── Structured card: render in place of the text bubble ────────────────
+    if (_isStructuredCard) {
+      return _frame(
+        child: SizedBox(width: double.infinity, child: _buildCard()),
+      );
+    }
+
+    // ── Text bubble (plain, info-bold, or error) ───────────────────────────
+    final displayText = _streamSource.substring(0, _displayedChars);
+    final isComplete = _displayedChars >= _streamSource.length;
+    final showScheduleCard =
+        widget.message.inlineCard == InlineCard.scheduleUpdate && isComplete;
+
+    final bubbleBg = isError ? const Color(0xFF1E0A0A) : _surface;
+    final bubbleBorder = isError
+        ? const Color(0xFFE53935).withValues(alpha: 0.28)
+        : Colors.white.withValues(alpha: 0.06);
+    final textStyle = TextStyle(
+      color: isError ? const Color(0xFFE07070) : _textColor,
+      fontSize: 14,
+      height: 1.55,
+      fontWeight: FontWeight.w400,
+    );
+
+    return _frame(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Concierge voice: AVA's answers carry a slim gold accent along
+          // their left edge (kept OUTSIDE the rounded bubble — a rounded
+          // border with one gold side is a Flutter paint assertion).
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (!isError)
+                  Container(
+                    width: 2.5,
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _gold.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                if (!isError) const SizedBox(width: 8),
+                Flexible(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 13),
+                    decoration: BoxDecoration(
+                      color: bubbleBg,
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(4),
+                        topRight: Radius.circular(18),
+                        bottomLeft: Radius.circular(18),
+                        bottomRight: Radius.circular(18),
+                      ),
+                      border: Border.all(color: bubbleBorder),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (isError) _errorHeader(),
+                        if (!isError && isComplete)
+                          RichText(
+                            text: TextSpan(
+                              children: avaBoldSpans(
+                                  widget.message.text, textStyle),
+                            ),
+                          )
+                        else
+                          Text(displayText, style: textStyle),
+                        if (!isComplete && !isError) const _BlinkingCursor(),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (showScheduleCard) ...[
+            const SizedBox(height: 8),
+            const _ScheduleUpdateCard(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Avatar + content + timestamp frame shared by text bubbles and cards.
+  Widget _frame({required Widget child}) {
     return FadeTransition(
       opacity: _fade,
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 18, right: 32),
+        padding: EdgeInsets.only(bottom: widget.bottomSpacing, right: 32),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -118,50 +245,15 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 13),
-                    decoration: BoxDecoration(
-                      color: _surface,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(4),
-                        topRight: Radius.circular(18),
-                        bottomLeft: Radius.circular(18),
-                        bottomRight: Radius.circular(18),
-                      ),
-                      border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.06)),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          displayText,
-                          style: const TextStyle(
-                            color: _textColor,
-                            fontSize: 14,
-                            height: 1.55,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        if (!isComplete) const _BlinkingCursor(),
-                      ],
-                    ),
-                  ),
-
-                  // Inline rich card (Schedule Updated)
-                  if (showCard) ...[
-                    const SizedBox(height: 8),
-                    const _ScheduleUpdateCard(),
-                  ],
-
+                  child,
                   const SizedBox(height: 4),
                   Padding(
                     padding: const EdgeInsets.only(left: 4),
                     child: Text(
                       widget.message.timeLabel,
-                      style: const TextStyle(
-                        color: _textSec,
+                      // Recedes into a supporting role.
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.40),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -173,6 +265,55 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
           ],
         ),
       ),
+    );
+  }
+
+  Widget _errorHeader() => Padding(
+        padding: const EdgeInsets.only(bottom: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.warning_amber_rounded,
+                color: Color(0xFFE07070), size: 14),
+            const SizedBox(width: 5),
+            Text(
+              'AVA encountered an issue',
+              style: TextStyle(
+                color: const Color(0xFFE07070).withValues(alpha: 0.75),
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      );
+
+  /// Returns the right card widget; degrades to plain text if the payload type
+  /// somehow doesn't match (defensive — the parser keeps them in sync).
+  Widget _buildCard() {
+    final m = widget.message;
+    final d = m.cardData;
+    if (m.cardType == AvaCardType.confirmation && d is ConfirmationCardData) {
+      return ConfirmationCard(
+        data: d,
+        enabled: widget.cardEnabled,
+        onRespond: (t) => widget.onCardAction?.call(t),
+      );
+    }
+    if (m.cardType == AvaCardType.selection && d is SelectionCardData) {
+      return SelectionCard(
+        data: d,
+        enabled: widget.cardEnabled,
+        onSelect: (t) => widget.onCardAction?.call(t),
+      );
+    }
+    if (m.cardType == AvaCardType.result && d is ResultCardData) {
+      return ResultCard(data: d);
+    }
+    return Text(
+      m.text,
+      style: const TextStyle(color: _textColor, fontSize: 14, height: 1.55),
     );
   }
 }
@@ -215,7 +356,6 @@ class _ScheduleUpdateCard extends StatelessWidget {
           const _CardRow(
               label: 'Vehicle Amenities', value: 'Sparkling Water added'),
           const SizedBox(height: 16),
-          // View Full Details button
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 13),

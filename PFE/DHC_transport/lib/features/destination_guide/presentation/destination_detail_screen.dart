@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/constants/app_colors.dart';
-import '../../../shared/widgets/common/map_placeholder.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/tn_locations.dart';
+import '../../../shared/widgets/common/route_map_view.dart';
 import '../domain/destination_recommendation.dart';
 import 'widgets/recommendation_card.dart';
 
@@ -27,10 +28,10 @@ class DestinationDetailScreen extends StatelessWidget {
         children: [
           RecommendationCard(item: item),
           const SizedBox(height: 16),
-          MapPlaceholder(
-            title: 'Map-ready guide point',
-            subtitle: '${item.city}, ${item.region}',
-            etaLabel: '12 min',
+          RouteMapView(
+            destination: TnLocations.resolve('${item.city}, ${item.region}'),
+            destinationLabel: item.name,
+            height: 300,
           ),
           const SizedBox(height: 16),
           _InfoPanel(item: item),

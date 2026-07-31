@@ -67,4 +67,15 @@ class TripService {
   Future<void> deleteBooking(String bookingId) async {
     await TransportApiClient.instance.delete('/bookings/$bookingId');
   }
+
+  /// Admin: approve a cash booking's payment — confirms the booking and
+  /// notifies the client (PATCH /admin/bookings/{id}/approve-payment).
+  Future<TransportTrip> approvePayment(String bookingId) async {
+    final response = await TransportApiClient.instance.patch(
+      '/admin/bookings/$bookingId/approve-payment',
+      {},
+    );
+    return TransportTrip.fromJson(
+        (response['booking'] as Map).cast<String, dynamic>());
+  }
 }

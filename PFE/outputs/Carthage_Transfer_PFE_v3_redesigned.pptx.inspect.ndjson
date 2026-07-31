@@ -1,0 +1,341 @@
+{"kind":"deck","id":"pr/ufxooy","name":"Deck"}
+{"kind":"layout","layoutId":"5c312fbb-6f55-43f1-9221-c174b9bd7580","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"62abedd9-b03e-482b-8410-e7c2be37f059","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/hswkht","slide":1,"title":"FINAL YEAR PROJECT","textShapes":7}
+{"kind":"shape","id":"sh/n2pg72ls","slide":1,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/o3ih072d","slide":1,"bbox":[0,0,430,720]}
+{"kind":"shape","id":"sh/p4ry9c3y","slide":1,"bbox":[430,0,12,720]}
+{"kind":"textbox","id":"sh/a50z2hkj","slide":1,"text":"FINAL YEAR PROJECT","textPreview":"FINAL YEAR PROJECT","textChars":18,"textLines":1,"bbox":[76,76,260,28]}
+{"kind":"textbox","id":"sh/b69gbml4","slide":1,"text":"Luxury Transportation Platform","textPreview":"Luxury Transportation Platform","textChars":30,"textLines":1,"bbox":[76,190,710,110]}
+{"kind":"textbox","id":"sh/c7ih4r29","slide":1,"text":"with Intelligent Booking Management","textPreview":"with Intelligent Booking Management","textChars":35,"textLines":1,"bbox":[76,310,680,54]}
+{"kind":"shape","id":"sh/x8ridw3u","slide":1,"bbox":[76,402,140,5]}
+{"kind":"textbox","id":"sh/69wfqdkz","slide":1,"text":"Carthage Transfer mobile application","textPreview":"Carthage Transfer mobile application","textChars":36,"textLines":1,"bbox":[76,444,520,34]}
+{"kind":"textbox","id":"sh/ra5gzilk","slide":1,"text":"Presented by Guesmi Firas\nEsprit - PFE 2026","textPreview":"Presented by Guesmi Firas | Esprit - PFE 2026","textChars":43,"textLines":2,"bbox":[76,560,360,70]}
+{"kind":"shape","id":"sh/jmtgze1w","slide":1,"bbox":[790,176,310,110]}
+{"kind":"shape","id":"sh/il0zq9kb","slide":1,"bbox":[790,176,6,110]}
+{"kind":"textbox","id":"sh/5oby1oj2","slide":1,"text":"University Supervisor","textPreview":"University Supervisor","textChars":21,"textLines":1,"bbox":[812,194,266,32]}
+{"kind":"shape","id":"sh/4n2hsj2h","slide":1,"bbox":[812,234,266,40]}
+{"kind":"shape","id":"sh/vi9gve10","slide":1,"bbox":[790,320,310,110]}
+{"kind":"shape","id":"sh/ah0fm9kf","slide":1,"bbox":[790,320,6,110]}
+{"kind":"textbox","id":"sh/hkryx4j6","slide":1,"text":"Professional Supervisor","textPreview":"Professional Supervisor","textChars":23,"textLines":1,"bbox":[812,338,266,32]}
+{"kind":"shape","id":"sh/wjihoz2l","slide":1,"bbox":[812,378,266,40]}
+{"kind":"notes","id":"nt/hswkht","slide":1,"text":""}
+{"kind":"slide","id":"sl/8wh2v6","slide":2,"title":"ROADMAP","textShapes":23}
+{"kind":"textbox","id":"sh/nylwzatg","slide":2,"text":"ROADMAP","textPreview":"ROADMAP","textChars":7,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/ozux8fa1","slide":2,"text":"A defense story in ten focused steps","textPreview":"A defense story in ten focused steps","textChars":36,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/p03e1kbm","slide":2,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/a1cfaps7","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"textbox","id":"sh/b2lw3uts","slide":2,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[140,204,52,34]}
+{"kind":"textbox","id":"sh/c3uxcfax","slide":2,"text":"Introduction & Company","textPreview":"Introduction & Company","textChars":22,"textLines":1,"bbox":[218,207,330,30]}
+{"kind":"shape","id":"sh/x4ne5kbi","slide":2,"bbox":[218,246,300,1]}
+{"kind":"textbox","id":"sh/q5svylcn","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[140,276,52,34]}
+{"kind":"textbox","id":"sh/r61wrqt8","slide":2,"text":"Problematic","textPreview":"Problematic","textChars":11,"textLines":1,"bbox":[218,279,330,30]}
+{"kind":"shape","id":"sh/7m14jup4","slide":2,"bbox":[218,318,300,1]}
+{"kind":"textbox","id":"sh/6l83apoj","slide":2,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[140,348,52,34]}
+{"kind":"textbox","id":"sh/t8jml47a","slide":2,"text":"Existing Solutions","textPreview":"Existing Solutions","textChars":18,"textLines":1,"bbox":[218,351,330,30]}
+{"kind":"shape","id":"sh/snalcz6p","slide":2,"bbox":[218,390,300,1]}
+{"kind":"textbox","id":"sh/jihkfups","slide":2,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[140,420,52,34]}
+{"kind":"textbox","id":"sh/ih836pon","slide":2,"text":"Our Solution","textPreview":"Our Solution","textChars":12,"textLines":1,"bbox":[218,423,330,30]}
+{"kind":"shape","id":"sh/5kz2hk7y","slide":2,"bbox":[218,462,300,1]}
+{"kind":"textbox","id":"sh/kjql8f6d","slide":2,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[140,492,52,34]}
+{"kind":"textbox","id":"sh/vexkbapw","slide":2,"text":"Methodology","textPreview":"Methodology","textChars":11,"textLines":1,"bbox":[218,495,330,30]}
+{"kind":"shape","id":"sh/ado325ob","slide":2,"bbox":[218,534,300,1]}
+{"kind":"textbox","id":"sh/epo3u583","slide":2,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[640,204,52,34]}
+{"kind":"textbox","id":"sh/zax4na9o","slide":2,"text":"Architecture","textPreview":"Architecture","textChars":12,"textLines":1,"bbox":[718,207,330,30]}
+{"kind":"shape","id":"sh/0b6lwfq9","slide":2,"bbox":[718,246,300,1]}
+{"kind":"textbox","id":"sh/lcfmpkru","slide":2,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[640,276,52,34]}
+{"kind":"textbox","id":"sh/mdonyp8f","slide":2,"text":"Requirements","textPreview":"Requirements","textChars":12,"textLines":1,"bbox":[718,279,330,30]}
+{"kind":"shape","id":"sh/nex4ra90","slide":2,"bbox":[718,318,300,1]}
+{"kind":"textbox","id":"sh/8fq50fql","slide":2,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[640,348,52,34]}
+{"kind":"textbox","id":"sh/9gzmtkrq","slide":2,"text":"AVA Architecture","textPreview":"AVA Architecture","textChars":16,"textLines":1,"bbox":[718,351,330,30]}
+{"kind":"shape","id":"sh/ah8n2p8b","slide":2,"bbox":[718,390,300,1]}
+{"kind":"textbox","id":"sh/vih4vu9w","slide":2,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[640,420,52,34]}
+{"kind":"textbox","id":"sh/5o3yhsfa","slide":2,"text":"Demo","textPreview":"Demo","textChars":4,"textLines":1,"bbox":[718,423,330,30]}
+{"kind":"shape","id":"sh/4nux8nep","slide":2,"bbox":[718,462,300,1]}
+{"kind":"textbox","id":"sh/jmlgfix4","slide":2,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[640,492,52,34]}
+{"kind":"textbox","id":"sh/ilcf6dgz","slide":2,"text":"Conclusion","textPreview":"Conclusion","textChars":10,"textLines":1,"bbox":[718,495,330,30]}
+{"kind":"shape","id":"sh/tcnylsfm","slide":2,"bbox":[718,534,300,1]}
+{"kind":"notes","id":"nt/8wh2v6","slide":2,"text":""}
+{"kind":"slide","id":"sl/ihv14m","slide":3,"title":"INTRODUCTION","textShapes":16}
+{"kind":"textbox","id":"sh/vmdcnmto","slide":3,"text":"INTRODUCTION","textPreview":"INTRODUCTION","textChars":12,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/gnmdwra9","slide":3,"text":"Carthage Transfer has the service; mobile adds the missing layer","textPreview":"Carthage Transfer has the service; mobile adds the missing layer","textChars":64,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/hovupwbu","slide":3,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/2povy1sf","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/3qxcr690","slide":3,"bbox":[70,205,382,330]}
+{"kind":"textbox","id":"sh/4r6d0bal","slide":3,"text":"Carthage Transfer","textPreview":"Carthage Transfer","textChars":17,"textLines":1,"bbox":[104,244,300,48]}
+{"kind":"textbox","id":"sh/psfutgrq","slide":3,"text":"Luxury transport company based around Tunis Carthage Airport, serving airport transfers, tours, corporate travel, and events.","textPreview":"Luxury transport company based around Tunis Carthage Airport, serving airport transfers, tours, corporate travel, and events.","textChars":125,"textLines":1,"bbox":[104,312,292,128]}
+{"kind":"shape","id":"sh/qtov21sb","slide":3,"bbox":[104,468,126,34]}
+{"kind":"textbox","id":"sh/rexcv69w","slide":3,"text":"Since 2012","textPreview":"Since 2012","textChars":10,"textLines":1,"bbox":[118,475,98,20]}
+{"kind":"shape","id":"sh/v2pgra54","slide":3,"bbox":[244,468,138,34]}
+{"kind":"textbox","id":"sh/a1gzi54j","slide":3,"text":"12+ vehicles","textPreview":"12+ vehicles","textChars":12,"textLines":1,"bbox":[258,475,110,20]}
+{"kind":"shape","id":"sh/x4ryt0na","slide":3,"bbox":[500,205,300,128]}
+{"kind":"shape","id":"sh/w3ihkfmp","slide":3,"bbox":[500,205,6,128]}
+{"kind":"textbox","id":"sh/nypgnq5s","slide":3,"text":"Existing strength","textPreview":"Existing strength","textChars":17,"textLines":1,"bbox":[522,223,256,32]}
+{"kind":"textbox","id":"sh/mdgfel47","slide":3,"text":"A working web booking platform with transparent EUR pricing.","textPreview":"A working web booking platform with transparent EUR pricing.","textChars":60,"textLines":1,"bbox":[522,263,256,58]}
+{"kind":"shape","id":"sh/907yp0ny","slide":3,"bbox":[840,205,300,128]}
+{"kind":"shape","id":"sh/8zyxgvmd","slide":3,"bbox":[840,205,6,128]}
+{"kind":"textbox","id":"sh/7u9gzu5c","slide":3,"text":"Mobile opportunity","textPreview":"Mobile opportunity","textChars":18,"textLines":1,"bbox":[862,223,256,32]}
+{"kind":"textbox","id":"sh/690zqp4r","slide":3,"text":"Faster booking for travelers already holding a phone at the airport.","textPreview":"Faster booking for travelers already holding a phone at the airport.","textChars":68,"textLines":1,"bbox":[862,263,256,58]}
+{"kind":"shape","id":"sh/2p4jytoz","slide":3,"bbox":[500,372,300,128]}
+{"kind":"shape","id":"sh/3qdkrypk","slide":3,"bbox":[500,372,6,128]}
+{"kind":"textbox","id":"sh/4rm10j65","slide":3,"text":"Customer value","textPreview":"Customer value","textChars":14,"textLines":1,"bbox":[522,390,256,32]}
+{"kind":"textbox","id":"sh/psv2to7a","slide":3,"text":"Quicker re-booking, trip management, loyalty, and bilingual access.","textPreview":"Quicker re-booking, trip management, loyalty, and bilingual access.","textChars":67,"textLines":1,"bbox":[522,430,256,58]}
+{"kind":"shape","id":"sh/qt4j2tov","slide":3,"bbox":[840,372,300,128]}
+{"kind":"shape","id":"sh/buxkvypg","slide":3,"bbox":[840,372,6,128]}
+{"kind":"textbox","id":"sh/cv614361","slide":3,"text":"Innovation value","textPreview":"Innovation value","textChars":16,"textLines":1,"bbox":[862,390,256,32]}
+{"kind":"textbox","id":"sh/dwf2x8nm","slide":3,"text":"Voice-enabled AI assistance and smarter operator workflows.","textPreview":"Voice-enabled AI assistance and smarter operator workflows.","textChars":59,"textLines":1,"bbox":[862,430,256,58]}
+{"kind":"textbox","id":"sh/6xkjq9or","slide":3,"text":"The project extends the existing service into a faster, smarter, mobile-first experience.","textPreview":"The project extends the existing service into a faster, smarter, mobile-first experience.","textChars":89,"textLines":1,"bbox":[500,548,640,52]}
+{"kind":"notes","id":"nt/ihv14m","slide":3,"text":""}
+{"kind":"slide","id":"sl/94b4gi","slide":4,"title":"PROBLEMATIC","textShapes":8}
+{"kind":"textbox","id":"sh/bex87254","slide":4,"text":"PROBLEMATIC","textPreview":"PROBLEMATIC","textChars":11,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/cf69g7mp","slide":4,"text":"The challenge is not booking alone, but control, speed, and intelligence","textPreview":"The challenge is not booking alone, but control, speed, and intelligence","textChars":72,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/xgfa9cna","slide":4,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/y1orih4v","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"textbox","id":"sh/z2xsbm50","slide":4,"text":"How can a mobile app extend an existing luxury transport service with distance-based pricing, fleet management, and conversational AI?","textPreview":"How can a mobile app extend an existing luxury transport service with distance-based pricing, fleet management, and conversational AI?","textChars":134,"textLines":1,"bbox":[110,226,780,136]}
+{"kind":"shape","id":"sh/k369krml","slide":4,"bbox":[110,404,125,5]}
+{"kind":"shape","id":"sh/l4fadwn6","slide":4,"bbox":[110,460,9,9]}
+{"kind":"textbox","id":"sh/m58rmh4r","slide":4,"text":"Capture last-minute airport travelers","textPreview":"Capture last-minute airport travelers","textChars":37,"textLines":1,"bbox":[134,452,676,32]}
+{"kind":"shape","id":"sh/76hsfm5c","slide":4,"bbox":[110,508,9,9]}
+{"kind":"textbox","id":"sh/7axov21o","slide":4,"text":"Let clients manage trips without calling","textPreview":"Let clients manage trips without calling","textChars":40,"textLines":1,"bbox":[134,500,676,32]}
+{"kind":"shape","id":"sh/m9o7mxkj","slide":4,"bbox":[110,556,9,9]}
+{"kind":"textbox","id":"sh/9wf6xsju","slide":4,"text":"Give operators visibility over pricing, fleet, and complaints","textPreview":"Give operators visibility over pricing, fleet, and complaints","textChars":61,"textLines":1,"bbox":[134,548,676,32]}
+{"kind":"shape","id":"sh/8b6po729","slide":4,"bbox":[910,228,240,250]}
+{"kind":"textbox","id":"sh/z6xori1s","slide":4,"text":"Mobile app\n+\nAVA agent\n+\nDashboard","textPreview":"Mobile app | + | AVA agent | + | Dashboard","textChars":34,"textLines":5,"bbox":[952,296,156,120]}
+{"kind":"notes","id":"nt/94b4gi","slide":4,"text":""}
+{"kind":"slide","id":"sl/54xnly","slide":5,"title":"EXISTING SOLUTIONS","textShapes":22}
+{"kind":"textbox","id":"sh/yp0fyhkz","slide":5,"text":"EXISTING SOLUTIONS","textPreview":"EXISTING SOLUTIONS","textChars":18,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/lsry9wjq","slide":5,"text":"Each option solves part of the journey, but none covers the full operation","textPreview":"Each option solves part of the journey, but none covers the full operation","textChars":74,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/krix0r25","slide":5,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/7u9gb61w","slide":5,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"textbox","id":"sh/mt0f21kb","slide":5,"text":"Solution","textPreview":"Solution","textChars":8,"textLines":1,"bbox":[90,190,220,30]}
+{"kind":"textbox","id":"sh/9gbydwj2","slide":5,"text":"Strength","textPreview":"Strength","textChars":8,"textLines":1,"bbox":[370,190,250,30]}
+{"kind":"textbox","id":"sh/8f2x4r2h","slide":5,"text":"Limit","textPreview":"Limit","textChars":5,"textLines":1,"bbox":[700,190,400,30]}
+{"kind":"shape","id":"sh/nypwz2lc","slide":5,"bbox":[80,218,1080,1]}
+{"kind":"textbox","id":"sh/2xgfqxk7","slide":5,"text":"Phone Booking","textPreview":"Phone Booking","textChars":13,"textLines":1,"bbox":[90,228,230,28]}
+{"kind":"textbox","id":"sh/w7u9cri5","slide":5,"text":"Direct and familiar","textPreview":"Direct and familiar","textChars":19,"textLines":1,"bbox":[370,228,270,30]}
+{"kind":"textbox","id":"sh/x83a5wjq","slide":5,"text":"Manual, no history, hard to scale","textPreview":"Manual, no history, hard to scale","textChars":33,"textLines":1,"bbox":[700,228,410,30]}
+{"kind":"shape","id":"sh/a5crah0z","slide":5,"bbox":[80,280,1080,1]}
+{"kind":"textbox","id":"sh/v6l83m1k","slide":5,"text":"Uber / Bolt","textPreview":"Uber / Bolt","textChars":11,"textLines":1,"bbox":[90,290,230,28]}
+{"kind":"textbox","id":"sh/4ve9gbi1","slide":5,"text":"Online and GPS-based","textPreview":"Online and GPS-based","textChars":20,"textLines":1,"bbox":[370,290,270,30]}
+{"kind":"textbox","id":"sh/5wna9wjm","slide":5,"text":"Limited local fit, no luxury fleet control","textPreview":"Limited local fit, no luxury fleet control","textChars":42,"textLines":1,"bbox":[700,290,410,30]}
+{"kind":"shape","id":"sh/i9cre10v","slide":5,"bbox":[80,342,1080,1]}
+{"kind":"textbox","id":"sh/ju5s761g","slide":5,"text":"WhatsApp / Facebook","textPreview":"WhatsApp / Facebook","textChars":19,"textLines":1,"bbox":[90,352,230,28]}
+{"kind":"textbox","id":"sh/0za947ix","slide":5,"text":"Simple and widely used","textPreview":"Simple and widely used","textChars":22,"textLines":1,"bbox":[370,352,270,30]}
+{"kind":"textbox","id":"sh/l0jqxcji","slide":5,"text":"No pricing engine or analytics","textPreview":"No pricing engine or analytics","textChars":30,"textLines":1,"bbox":[700,352,410,30]}
+{"kind":"shape","id":"sh/1kryl47u","slide":5,"bbox":[80,404,1080,1]}
+{"kind":"textbox","id":"sh/gjixczq9","slide":5,"text":"Transfer Platforms","textPreview":"Transfer Platforms","textChars":18,"textLines":1,"bbox":[90,414,230,28]}
+{"kind":"textbox","id":"sh/fi9gjupo","slide":5,"text":"Specialized booking","textPreview":"Specialized booking","textChars":19,"textLines":1,"bbox":[370,414,270,30]}
+{"kind":"textbox","id":"sh/eh0fap8j","slide":5,"text":"Commission-heavy, less operator control","textPreview":"Commission-heavy, less operator control","textChars":39,"textLines":1,"bbox":[700,414,410,30]}
+{"kind":"shape","id":"sh/pobypo76","slide":5,"bbox":[80,466,1080,1]}
+{"kind":"textbox","id":"sh/on2xgj6l","slide":5,"text":"Current CT Website","textPreview":"Current CT Website","textChars":18,"textLines":1,"bbox":[90,476,230,28]}
+{"kind":"textbox","id":"sh/3mtgnep0","slide":5,"text":"Own brand and EUR pricing","textPreview":"Own brand and EUR pricing","textChars":25,"textLines":1,"bbox":[370,476,270,30]}
+{"kind":"textbox","id":"sh/2lkfe98f","slide":5,"text":"Desktop-first, no AI or loyalty","textPreview":"Desktop-first, no AI or loyalty","textChars":31,"textLines":1,"bbox":[700,476,410,30]}
+{"kind":"shape","id":"sh/dcbyto72","slide":5,"bbox":[90,565,1030,56]}
+{"kind":"textbox","id":"sh/cr2hkj6h","slide":5,"text":"Key gap: mobile-native booking, dynamic pricing, AI support, loyalty, and operator analytics in one platform.","textPreview":"Key gap: mobile-native booking, dynamic pricing, AI support, loyalty, and operator analytics in one platform.","textChars":109,"textLines":1,"bbox":[122,580,960,30]}
+{"kind":"notes","id":"nt/54xnly","slide":5,"text":""}
+{"kind":"slide","id":"sl/rhsae4","slide":6,"title":"OUR SOLUTION","textShapes":19}
+{"kind":"textbox","id":"sh/ni1kzmx8","slide":6,"text":"OUR SOLUTION","textPreview":"OUR SOLUTION","textChars":12,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/8ju18ryt","slide":6,"text":"One mobile platform connects clients, pricing, AI, and operations","textPreview":"One mobile platform connects clients, pricing, AI, and operations","textChars":65,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/9k321wfy","slide":6,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/alcja1gj","slide":6,"text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/vmlk36x4","slide":6,"bbox":[82,220,190,250]}
+{"kind":"shape","id":"sh/wnu1cbyp","slide":6,"bbox":[82,220,6,250]}
+{"kind":"textbox","id":"sh/xo325wfa","slide":6,"text":"Client App","textPreview":"Client App","textChars":10,"textLines":1,"bbox":[104,238,146,32]}
+{"kind":"textbox","id":"sh/ipc3e1gv","slide":6,"text":"Google Maps booking\nReal fleet quotes in EUR\nCash approval flow","textPreview":"Google Maps booking | Real fleet quotes in EUR | Cash approval flow","textChars":63,"textLines":3,"bbox":[104,278,146,180]}
+{"kind":"textbox","id":"sh/jalk76xg","slide":6,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[104,485,54,34]}
+{"kind":"shape","id":"sh/fixcvadk","slide":6,"bbox":[308,220,190,250]}
+{"kind":"shape","id":"sh/uhovm5wz","slide":6,"bbox":[308,220,6,250]}
+{"kind":"textbox","id":"sh/hkfuxkvq","slide":6,"text":"Pricing Engine","textPreview":"Pricing Engine","textChars":14,"textLines":1,"bbox":[330,238,146,32]}
+{"kind":"textbox","id":"sh/gj6dofe5","slide":6,"text":"Directions distance\nPer-vehicle rate cards\nSurcharges","textPreview":"Directions distance | Per-vehicle rate cards | Surcharges","textChars":53,"textLines":3,"bbox":[330,278,146,180]}
+{"kind":"textbox","id":"sh/7excrqdo","slide":6,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[330,485,54,34]}
+{"kind":"shape","id":"sh/6d4vi5w3","slide":6,"bbox":[534,220,190,250]}
+{"kind":"shape","id":"sh/tgfut0vu","slide":6,"bbox":[534,220,6,250]}
+{"kind":"textbox","id":"sh/sf6dkve9","slide":6,"text":"Admin Dashboard","textPreview":"Admin Dashboard","textChars":15,"textLines":1,"bbox":[556,238,146,32]}
+{"kind":"textbox","id":"sh/bahw3uds","slide":6,"text":"Fleet and pricing editor\nComplaints and approvals\nRevenue analytics","textPreview":"Fleet and pricing editor | Complaints and approvals | Revenue analytics","textChars":67,"textLines":3,"bbox":[556,278,146,180]}
+{"kind":"textbox","id":"sh/q98vupw7","slide":6,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[556,485,54,34]}
+{"kind":"shape","id":"sh/mhc7ixkr","slide":6,"bbox":[760,220,190,250]}
+{"kind":"shape","id":"sh/7i5obi1c","slide":6,"bbox":[760,220,6,250]}
+{"kind":"textbox","id":"sh/8jepkn2x","slide":6,"text":"AVA AI Agent","textPreview":"AVA AI Agent","textChars":12,"textLines":1,"bbox":[782,238,146,32]}
+{"kind":"textbox","id":"sh/9kn6dsji","slide":6,"text":"RAG support\nBooking actions\nAdmin BI insights","textPreview":"RAG support | Booking actions | Admin BI insights","textChars":45,"textLines":3,"bbox":[782,278,146,180]}
+{"kind":"textbox","id":"sh/ulw7mxkn","slide":6,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[782,485,54,34]}
+{"kind":"shape","id":"sh/v658f218","slide":6,"bbox":[986,220,190,250]}
+{"kind":"shape","id":"sh/w7epo72t","slide":6,"bbox":[986,220,6,250]}
+{"kind":"textbox","id":"sh/h8nqhcje","slide":6,"text":"Loyalty & UX","textPreview":"Loyalty & UX","textChars":12,"textLines":1,"bbox":[1008,238,146,32]}
+{"kind":"textbox","id":"sh/aps7adkj","slide":6,"text":"4-tier rewards\nBilingual experience\nDestination guide","textPreview":"4-tier rewards | Bilingual experience | Destination guide","textChars":53,"textLines":3,"bbox":[1008,278,146,180]}
+{"kind":"textbox","id":"sh/bq1o3y14","slide":6,"text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1008,485,54,34]}
+{"kind":"textbox","id":"sh/t4ra9g3m","slide":6,"text":"The result is a complete booking and management experience, not just a mobile form.","textPreview":"The result is a complete booking and management experience, not just a mobile form.","textChars":83,"textLines":1,"bbox":[170,565,900,40]}
+{"kind":"notes","id":"nt/rhsae4","slide":6,"text":""}
+{"kind":"slide","id":"sl/an5waa","slide":7,"title":"METHODOLOGY","textShapes":14}
+{"kind":"textbox","id":"sh/90jyx4bi","slide":7,"text":"METHODOLOGY","textPreview":"METHODOLOGY","textChars":11,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/mx8fm9c7","slide":7,"text":"Scrum helped deliver working features sprint by sprint","textPreview":"Scrum helped deliver working features sprint by sprint","textChars":54,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/7y1gvetc","slide":7,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/wnaxsju9","slide":7,"text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/hojy1obu","slide":7,"bbox":[108,244,220,260]}
+{"kind":"shape","id":"sh/u1sfq9c3","slide":7,"bbox":[108,244,220,10]}
+{"kind":"textbox","id":"sh/vm1gzeto","slide":7,"text":"Sprint 0","textPreview":"Sprint 0","textChars":8,"textLines":1,"bbox":[134,282,168,36]}
+{"kind":"textbox","id":"sh/crqxgzup","slide":7,"text":"Setup\nArchitecture\nDB design\nUI mockups","textPreview":"Setup | Architecture | DB design | UI mockups","textChars":39,"textLines":4,"bbox":[143,348,150,104]}
+{"kind":"textbox","id":"sh/xszepkva","slide":7,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[344,350,34,32]}
+{"kind":"shape","id":"sh/pkrydgfa","slide":7,"bbox":[384,244,220,260]}
+{"kind":"shape","id":"sh/ojih4byp","slide":7,"bbox":[384,244,220,10]}
+{"kind":"textbox","id":"sh/ny9gbqx4","slide":7,"text":"Sprint 1","textPreview":"Sprint 1","textChars":8,"textLines":1,"bbox":[410,282,168,36]}
+{"kind":"textbox","id":"sh/2x0z2lgz","slide":7,"text":"JWT auth\nProfiles\nVehicle CRUD\nSuppliers","textPreview":"JWT auth | Profiles | Vehicle CRUD | Suppliers","textChars":40,"textLines":4,"bbox":[419,348,150,104]}
+{"kind":"textbox","id":"sh/xobyh0fm","slide":7,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[620,350,34,32]}
+{"kind":"shape","id":"sh/cn2h8vy1","slide":7,"bbox":[660,244,220,260]}
+{"kind":"shape","id":"sh/bmtgfqxg","slide":7,"bbox":[660,244,220,10]}
+{"kind":"textbox","id":"sh/al0z6lgv","slide":7,"text":"Sprint 2","textPreview":"Sprint 2","textChars":8,"textLines":1,"bbox":[686,282,168,36]}
+{"kind":"textbox","id":"sh/lsbil0fi","slide":7,"text":"Booking flow\nPricing engine\nPromotions\nLoyalty","textPreview":"Booking flow | Pricing engine | Promotions | Loyalty","textChars":46,"textLines":4,"bbox":[695,348,150,104]}
+{"kind":"textbox","id":"sh/kr2hcvyx","slide":7,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[896,350,34,32]}
+{"kind":"shape","id":"sh/4va18j69","slide":7,"bbox":[936,244,220,260]}
+{"kind":"shape","id":"sh/5wj2honu","slide":7,"bbox":[936,244,220,10]}
+{"kind":"textbox","id":"sh/itsj69o3","slide":7,"text":"Sprint 3","textPreview":"Sprint 3","textChars":8,"textLines":1,"bbox":[962,282,168,36]}
+{"kind":"textbox","id":"sh/ju10fe5o","slide":7,"text":"Admin dashboard\nAVA agent\nComplaints\nTesting & deploy","textPreview":"Admin dashboard | AVA agent | Complaints | Testing & deploy","textChars":53,"textLines":4,"bbox":[971,348,150,104]}
+{"kind":"notes","id":"nt/an5waa","slide":7,"text":""}
+{"kind":"slide","id":"sl/dp5zqe","slide":8,"title":"ARCHITECTURE","textShapes":12}
+{"kind":"textbox","id":"sh/lk7ytw72","slide":8,"text":"ARCHITECTURE","textPreview":"ARCHITECTURE","textChars":12,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/yhwfi18r","slide":8,"text":"The platform is split into mobile, API/AI, and data infrastructure","textPreview":"The platform is split into mobile, API/AI, and data infrastructure","textChars":66,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/zi5grmpc","slide":8,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/cfexgrql","slide":8,"text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/xgnypw76","slide":8,"bbox":[110,230,280,260]}
+{"kind":"textbox","id":"sh/adwfeh8f","slide":8,"text":"Frontend","textPreview":"Frontend","textChars":8,"textLines":1,"bbox":[136,268,228,38]}
+{"kind":"textbox","id":"sh/be5gnmp0","slide":8,"text":"Flutter 3.3+ / Dart\nMaterial Design 3\nGoogle Maps\nfl_chart\nspeech_to_text","textPreview":"Flutter 3.3+ / Dart | Material Design 3 | Google Maps | fl_chart | speech_to_text","textChars":73,"textLines":5,"bbox":[142,334,216,120]}
+{"kind":"textbox","id":"sh/obuxc7qp","slide":8,"text":"<->","textPreview":"<->","textChars":3,"textLines":1,"bbox":[413,340,54,34]}
+{"kind":"shape","id":"sh/pc3elc7a","slide":8,"bbox":[470,230,280,260]}
+{"kind":"textbox","id":"sh/tc32ts7u","slide":8,"text":"Backend + AI","textPreview":"Backend + AI","textChars":12,"textLines":1,"bbox":[496,268,228,38]}
+{"kind":"textbox","id":"sh/sbal0n69","slide":8,"text":"FastAPI / Python 3.11\nJWT + RBAC\nMotor async MongoDB\nLangChain + LangGraph\nGemini 2.5 Flash","textPreview":"FastAPI / Python 3.11 | JWT + RBAC | Motor async MongoDB | LangChain + LangGraph | Gemini 2.5 Flash","textChars":91,"textLines":5,"bbox":[502,334,216,120]}
+{"kind":"textbox","id":"sh/7a1kripo","slide":8,"text":"<->","textPreview":"<->","textChars":3,"textLines":1,"bbox":[773,340,54,34]}
+{"kind":"shape","id":"sh/69s3ydo3","slide":8,"bbox":[830,230,280,260]}
+{"kind":"textbox","id":"sh/58j2p87i","slide":8,"text":"Data & Infra","textPreview":"Data & Infra","textChars":12,"textLines":1,"bbox":[856,268,228,38]}
+{"kind":"textbox","id":"sh/k7alw36x","slide":8,"text":"MongoDB 7\nChromaDB vectors\nGoogle Directions API\nGoogle Places API\nDocker Compose","textPreview":"MongoDB 7 | ChromaDB vectors | Google Directions API | Google Places API | Docker Compose","textChars":81,"textLines":5,"bbox":[862,334,216,120]}
+{"kind":"textbox","id":"sh/j61knypc","slide":8,"text":"Design principle: keep the mobile app responsive while heavy data, pricing, and AI workflows stay server-side.","textPreview":"Design principle: keep the mobile app responsive while heavy data, pricing, and AI workflows stay server-side.","textChars":110,"textLines":1,"bbox":[160,560,880,42]}
+{"kind":"notes","id":"nt/dp5zqe","slide":8,"text":""}
+{"kind":"slide","id":"sl/zl3mdw","slide":9,"title":"REQUIREMENTS","textShapes":15}
+{"kind":"textbox","id":"sh/zm1k7yxo","slide":9,"text":"REQUIREMENTS","textPreview":"REQUIREMENTS","textChars":12,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/kna103e9","slide":9,"text":"The project balances client features with production constraints","textPreview":"The project balances client features with production constraints","textChars":64,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/loj298fu","slide":9,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/ah8jutg7","slide":9,"text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/bihk3yxs","slide":9,"bbox":[85,205,510,370]}
+{"kind":"shape","id":"sh/cjq1w3ex","slide":9,"bbox":[685,205,510,370]}
+{"kind":"textbox","id":"sh/xkj258fi","slide":9,"text":"Functional","textPreview":"Functional","textChars":10,"textLines":1,"bbox":[125,240,420,36]}
+{"kind":"shape","id":"sh/2d8jq9gv","slide":9,"bbox":[125,310,9,9]}
+{"kind":"textbox","id":"sh/neh0zexg","slide":9,"text":"Authentication, profile, and booking history","textPreview":"Authentication, profile, and booking history","textChars":44,"textLines":1,"bbox":[149,302,396,32]}
+{"kind":"shape","id":"sh/72tkbidk","slide":9,"bbox":[125,354,9,9]}
+{"kind":"textbox","id":"sh/m1kjidwz","slide":9,"text":"Search, vehicle selection, and trip confirmation","textPreview":"Search, vehicle selection, and trip confirmation","textChars":48,"textLines":1,"bbox":[149,346,396,32]}
+{"kind":"shape","id":"sh/94b2dsva","slide":9,"bbox":[125,398,9,9]}
+{"kind":"textbox","id":"sh/8321knup","slide":9,"text":"Dynamic pricing from distance and rate cards","textPreview":"Dynamic pricing from distance and rate cards","textChars":44,"textLines":1,"bbox":[149,390,396,32]}
+{"kind":"shape","id":"sh/vqdkfidg","slide":9,"bbox":[125,442,9,9]}
+{"kind":"textbox","id":"sh/up43mxcv","slide":9,"text":"Admin fleet, promotions, complaints, and analytics","textPreview":"Admin fleet, promotions, complaints, and analytics","textChars":50,"textLines":1,"bbox":[149,434,396,32]}
+{"kind":"shape","id":"sh/hsv2hsvm","slide":9,"bbox":[125,486,9,9]}
+{"kind":"textbox","id":"sh/wrmlonu1","slide":9,"text":"AVA assistant, notifications, loyalty, destination guide","textPreview":"AVA assistant, notifications, loyalty, destination guide","textChars":56,"textLines":1,"bbox":[149,478,396,32]}
+{"kind":"textbox","id":"sh/bu9k3ydc","slide":9,"text":"Non-functional","textPreview":"Non-functional","textChars":14,"textLines":1,"bbox":[725,240,420,36]}
+{"kind":"shape","id":"sh/qt0jatwr","slide":9,"bbox":[725,310,9,9]}
+{"kind":"textbox","id":"sh/ep8ni1wf","slide":9,"text":"Performance through async FastAPI and batched pricing","textPreview":"Performance through async FastAPI and batched pricing","textChars":53,"textLines":1,"bbox":[749,302,396,32]}
+{"kind":"shape","id":"sh/fqh4b6xk","slide":9,"bbox":[725,354,9,9]}
+{"kind":"textbox","id":"sh/grq5kbe5","slide":9,"text":"Security with JWT, bcrypt, RBAC, and audit logging","textPreview":"Security with JWT, bcrypt, RBAC, and audit logging","textChars":50,"textLines":1,"bbox":[749,346,396,32]}
+{"kind":"shape","id":"sh/1sz6dgfq","slide":9,"bbox":[725,398,9,9]}
+{"kind":"textbox","id":"sh/6lonehw3","slide":9,"text":"Scalability with stateless API, Docker, and MongoDB","textPreview":"Scalability with stateless API, Docker, and MongoDB","textChars":51,"textLines":1,"bbox":[749,390,396,32]}
+{"kind":"shape","id":"sh/rmx47mxo","slide":9,"bbox":[725,442,9,9]}
+{"kind":"textbox","id":"sh/sn65gre9","slide":9,"text":"Reliability through graceful AI and distance fallbacks","textPreview":"Reliability through graceful AI and distance fallbacks","textChars":54,"textLines":1,"bbox":[749,434,396,32]}
+{"kind":"shape","id":"sh/tofm9wfu","slide":9,"bbox":[725,486,9,9]}
+{"kind":"textbox","id":"sh/ixonahg7","slide":9,"text":"Usability with bilingual, dark/light, and voice support","textPreview":"Usability with bilingual, dark/light, and voice support","textChars":55,"textLines":1,"bbox":[749,478,396,32]}
+{"kind":"notes","id":"nt/zl3mdw","slide":9,"text":""}
+{"kind":"slide","id":"sl/e12o21","slide":10,"title":"AVA ARCHITECTURE","textShapes":27}
+{"kind":"textbox","id":"sh/ih0ry5kn","slide":10,"text":"AVA ARCHITECTURE","textPreview":"AVA ARCHITECTURE","textChars":16,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/5kra9kje","slide":10,"text":"The assistant is designed as a supervised multi-agent workflow","textPreview":"The assistant is designed as a supervised multi-agent workflow","textChars":62,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/kji90f2t","slide":10,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/vup83q1w","slide":10,"text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"shape","id":"sh/atgrulkb","slide":10,"bbox":[92,206,132,54]}
+{"kind":"textbox","id":"sh/xw7a50j2","slide":10,"text":"Message","textPreview":"Message","textChars":7,"textLines":1,"bbox":[104,222,108,22]}
+{"kind":"textbox","id":"sh/wvy9wv2h","slide":10,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[232,222,30,24]}
+{"kind":"shape","id":"sh/nqp8zq10","slide":10,"bbox":[274,206,132,54]}
+{"kind":"textbox","id":"sh/mpgrqlkf","slide":10,"text":"Classify","textPreview":"Classify","textChars":8,"textLines":1,"bbox":[286,222,108,22]}
+{"kind":"textbox","id":"sh/83u1ozeh","slide":10,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[414,222,30,24]}
+{"kind":"shape","id":"sh/9onih4v2","slide":10,"bbox":[456,206,132,54]}
+{"kind":"textbox","id":"sh/m1cjm9wr","slide":10,"text":"Role Gate","textPreview":"Role Gate","textChars":9,"textLines":1,"bbox":[468,222,108,22]}
+{"kind":"textbox","id":"sh/n2l0fudw","slide":10,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[596,222,30,24]}
+{"kind":"shape","id":"sh/0zu1kzel","slide":10,"bbox":[638,206,132,54]}
+{"kind":"textbox","id":"sh/l03id4v6","slide":10,"text":"Dispatch","textPreview":"Dispatch","textChars":8,"textLines":1,"bbox":[650,222,108,22]}
+{"kind":"textbox","id":"sh/yxcjipwf","slide":10,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[778,222,30,24]}
+{"kind":"shape","id":"sh/zyl0bud0","slide":10,"bbox":[820,206,132,54]}
+{"kind":"textbox","id":"sh/kvy1wjep","slide":10,"text":"Safety","textPreview":"Safety","textChars":6,"textLines":1,"bbox":[832,222,108,22]}
+{"kind":"textbox","id":"sh/5w72pova","slide":10,"text":"->","textPreview":"->","textChars":2,"textLines":1,"bbox":[960,222,30,24]}
+{"kind":"shape","id":"sh/tc3i9one","slide":10,"bbox":[1002,206,132,54]}
+{"kind":"textbox","id":"sh/sbu1gj6t","slide":10,"text":"Response","textPreview":"Response","textChars":8,"textLines":1,"bbox":[1014,222,108,22]}
+{"kind":"shape","id":"sh/ral07e58","slide":10,"bbox":[100,330,290,72]}
+{"kind":"textbox","id":"sh/69sje9o3","slide":10,"text":"Booking","textPreview":"Booking","textChars":7,"textLines":1,"bbox":[122,342,120,26]}
+{"kind":"textbox","id":"sh/58ji5oni","slide":10,"text":"Create, modify, cancel","textPreview":"Create, modify, cancel","textChars":22,"textLines":1,"bbox":[122,372,220,22]}
+{"kind":"shape","id":"sh/4na1cj6x","slide":10,"bbox":[460,330,290,72]}
+{"kind":"textbox","id":"sh/jm103e5c","slide":10,"text":"Support","textPreview":"Support","textChars":7,"textLines":1,"bbox":[482,342,120,26]}
+{"kind":"textbox","id":"sh/ilsja9or","slide":10,"text":"RAG answers","textPreview":"RAG answers","textChars":11,"textLines":1,"bbox":[482,372,220,22]}
+{"kind":"shape","id":"sh/hkji14n6","slide":10,"bbox":[820,330,290,72]}
+{"kind":"textbox","id":"sh/wja18z6l","slide":10,"text":"Loyalty","textPreview":"Loyalty","textChars":7,"textLines":1,"bbox":[842,342,120,26]}
+{"kind":"textbox","id":"sh/mpof254j","slide":10,"text":"Points and promos","textPreview":"Points and promos","textChars":17,"textLines":1,"bbox":[842,372,220,22]}
+{"kind":"shape","id":"sh/7qxgbal4","slide":10,"bbox":[100,430,290,72]}
+{"kind":"textbox","id":"sh/8rqx4fmp","slide":10,"text":"Feedback","textPreview":"Feedback","textChars":8,"textLines":1,"bbox":[122,442,120,26]}
+{"kind":"textbox","id":"sh/9szydk3a","slide":10,"text":"Complaints","textPreview":"Complaints","textChars":10,"textLines":1,"bbox":[122,472,220,22]}
+{"kind":"shape","id":"sh/ylofyl4n","slide":10,"bbox":[460,430,290,72]}
+{"kind":"textbox","id":"sh/zmxg7ql8","slide":10,"text":"Operations","textPreview":"Operations","textChars":10,"textLines":1,"bbox":[482,442,120,26]}
+{"kind":"textbox","id":"sh/kn6x0vmd","slide":10,"text":"Admin actions","textPreview":"Admin actions","textChars":13,"textLines":1,"bbox":[482,472,220,22]}
+{"kind":"shape","id":"sh/lofy903y","slide":10,"bbox":[820,430,290,72]}
+{"kind":"textbox","id":"sh/ax4ful4b","slide":10,"text":"Insights","textPreview":"Insights","textChars":8,"textLines":1,"bbox":[842,442,120,26]}
+{"kind":"textbox","id":"sh/bidg3qlw","slide":10,"text":"BI analytics","textPreview":"BI analytics","textChars":12,"textLines":1,"bbox":[842,472,220,22]}
+{"kind":"textbox","id":"sh/3axcfmps","slide":10,"text":"Safety gates: role isolation, confirmation before writes, audit logging, and friendly error handling.","textPreview":"Safety gates: role isolation, confirmation before writes, audit logging, and friendly error handling.","textChars":101,"textLines":1,"bbox":[132,562,930,40]}
+{"kind":"notes","id":"nt/e12o21","slide":10,"text":""}
+{"kind":"slide","id":"sl/3fzeqb","slide":11,"title":"APPLICATION DEMO","textShapes":16}
+{"kind":"textbox","id":"sh/j6hkzatk","slide":11,"text":"APPLICATION DEMO","textPreview":"APPLICATION DEMO","textChars":16,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/47ql8fa5","slide":11,"text":"The demo proves the full journey, from booking to operator control","textPreview":"The demo proves the full journey, from booking to operator control","textChars":66,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/58z21kbq","slide":11,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/u1oj25s3","slide":11,"text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"textbox","id":"sh/v2xkvato","slide":11,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[118,208,44,40]}
+{"kind":"shape","id":"sh/w3q14fa9","slide":11,"bbox":[190,229,820,1.4]}
+{"kind":"textbox","id":"sh/h4z2xkbu","slide":11,"text":"Client booking flow","textPreview":"Client booking flow","textChars":19,"textLines":1,"bbox":[210,205,300,34]}
+{"kind":"textbox","id":"sh/mdojyls7","slide":11,"text":"Search destination, choose vehicle, confirm trip","textPreview":"Search destination, choose vehicle, confirm trip","textChars":48,"textLines":1,"bbox":[535,209,520,30]}
+{"kind":"textbox","id":"sh/7yxkrqts","slide":11,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[118,300,44,40]}
+{"kind":"shape","id":"sh/36d8fatw","slide":11,"bbox":[190,321,820,1.4]}
+{"kind":"textbox","id":"sh/i547mpsb","slide":11,"text":"Dynamic pricing","textPreview":"Dynamic pricing","textChars":15,"textLines":1,"bbox":[210,297,300,34]}
+{"kind":"textbox","id":"sh/58fqhkb2","slide":11,"text":"Distance-based EUR quote with fleet-specific rates","textPreview":"Distance-based EUR quote with fleet-specific rates","textChars":50,"textLines":1,"bbox":[535,301,520,30]}
+{"kind":"textbox","id":"sh/47mpofah","slide":11,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[118,392,44,40]}
+{"kind":"shape","id":"sh/rax8jut8","slide":11,"bbox":[190,413,820,1.4]}
+{"kind":"textbox","id":"sh/q9o7qpsn","slide":11,"text":"Admin dashboard","textPreview":"Admin dashboard","textChars":15,"textLines":1,"bbox":[210,389,300,34]}
+{"kind":"textbox","id":"sh/dcfql4by","slide":11,"text":"Approvals, complaints, analytics, fleet and pricing","textPreview":"Approvals, complaints, analytics, fleet and pricing","textChars":51,"textLines":1,"bbox":[535,393,520,30]}
+{"kind":"textbox","id":"sh/cb6pszat","slide":11,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[118,484,44,40]}
+{"kind":"shape","id":"sh/7eto7qto","slide":11,"bbox":[190,505,820,1.4]}
+{"kind":"textbox","id":"sh/6dk7elcj","slide":11,"text":"AVA interactions","textPreview":"AVA interactions","textChars":16,"textLines":1,"bbox":[210,481,300,34]}
+{"kind":"textbox","id":"sh/atsbmtcr","slide":11,"text":"Customer support, booking actions, and BI insights","textPreview":"Customer support, booking actions, and BI insights","textChars":50,"textLines":1,"bbox":[535,485,520,30]}
+{"kind":"textbox","id":"sh/bu1svydc","slide":11,"text":"Use this slide as the transition into the live walkthrough.","textPreview":"Use this slide as the transition into the live walkthrough.","textChars":59,"textLines":1,"bbox":[210,594,720,30]}
+{"kind":"notes","id":"nt/3fzeqb","slide":11,"text":""}
+{"kind":"slide","id":"sl/783vt4","slide":12,"title":"PROGRESS & CONCLUSION","textShapes":15}
+{"kind":"textbox","id":"sh/snitcvm5","slide":12,"text":"PROGRESS & CONCLUSION","textPreview":"PROGRESS & CONCLUSION","textChars":21,"textLines":1,"bbox":[70,46,260,26]}
+{"kind":"textbox","id":"sh/rm9cjq50","slide":12,"text":"The core platform is complete, with clear next steps for production","textPreview":"The core platform is complete, with clear next steps for production","textChars":67,"textLines":1,"bbox":[70,82,850,90]}
+{"kind":"shape","id":"sh/610bal4f","slide":12,"bbox":[70,658,1080,1.5]}
+{"kind":"textbox","id":"sh/1sru90n2","slide":12,"text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1168,642,44,28]}
+{"kind":"textbox","id":"sh/gritgvmh","slide":12,"text":"Completed","textPreview":"Completed","textChars":9,"textLines":1,"bbox":[90,208,400,36]}
+{"kind":"shape","id":"sh/fq9c7q5w","slide":12,"bbox":[94,278,9,9]}
+{"kind":"textbox","id":"sh/ep0bel4b","slide":12,"text":"Full booking flow with Google Maps and EUR pricing","textPreview":"Full booking flow with Google Maps and EUR pricing","textChars":50,"textLines":1,"bbox":[118,270,476,32]}
+{"kind":"shape","id":"sh/pwbud0ny","slide":12,"bbox":[94,321,9,9]}
+{"kind":"textbox","id":"sh/ov2tkfmd","slide":12,"text":"8-vehicle fleet and real rate-card logic","textPreview":"8-vehicle fleet and real rate-card logic","textChars":40,"textLines":1,"bbox":[118,313,476,32]}
+{"kind":"shape","id":"sh/6543el8j","slide":12,"bbox":[94,364,9,9]}
+{"kind":"textbox","id":"sh/76dknq94","slide":12,"text":"Cash approval workflow and admin dashboard","textPreview":"Cash approval workflow and admin dashboard","textChars":42,"textLines":1,"bbox":[118,356,476,32]}
+{"kind":"shape","id":"sh/87mlgvqp","slide":12,"bbox":[94,407,9,9]}
+{"kind":"textbox","id":"sh/t8vmpgra","slide":12,"text":"AVA with 6 sub-agents, RAG, and BI analytics","textPreview":"AVA with 6 sub-agents, RAG, and BI analytics","textChars":44,"textLines":1,"bbox":[118,399,476,32]}
+{"kind":"shape","id":"sh/u943il8v","slide":12,"bbox":[94,450,9,9]}
+{"kind":"textbox","id":"sh/vad4rq9g","slide":12,"text":"Complaints, loyalty, notifications, bilingual UI, Docker","textPreview":"Complaints, loyalty, notifications, bilingual UI, Docker","textChars":56,"textLines":1,"bbox":[118,442,476,32]}
+{"kind":"textbox","id":"sh/gb6lkvql","slide":12,"text":"Future work","textPreview":"Future work","textChars":11,"textLines":1,"bbox":[720,208,360,36]}
+{"kind":"shape","id":"sh/hcfmt0r6","slide":12,"bbox":[724,278,9,9]}
+{"kind":"textbox","id":"sh/adk3618b","slide":12,"text":"Stripe or PayPal payment gateway","textPreview":"Stripe or PayPal payment gateway","textChars":32,"textLines":1,"bbox":[748,270,396,32]}
+{"kind":"shape","id":"sh/betkf69w","slide":12,"bbox":[724,326,9,9]}
+{"kind":"textbox","id":"sh/zip0n2po","slide":12,"text":"Firebase push notifications","textPreview":"Firebase push notifications","textChars":27,"textLines":1,"bbox":[748,318,396,32]}
+{"kind":"shape","id":"sh/ehgzexo3","slide":12,"bbox":[724,374,9,9]}
+{"kind":"textbox","id":"sh/1kripc7u","slide":12,"text":"Real-time GPS driver tracking","textPreview":"Real-time GPS driver tracking","textChars":29,"textLines":1,"bbox":[748,366,396,32]}
+{"kind":"shape","id":"sh/0jyhg769","slide":12,"bbox":[724,422,9,9]}
+{"kind":"textbox","id":"sh/rup0jips","slide":12,"text":"Driver-side mobile app","textPreview":"Driver-side mobile app","textChars":22,"textLines":1,"bbox":[748,414,396,32]}
+{"kind":"shape","id":"sh/qtgzado7","slide":12,"bbox":[175,540,930,66]}
+{"kind":"textbox","id":"sh/dg7ils7y","slide":12,"text":"Key achievement: real pricing, operator control, and production-grade AI in a mobile-first platform.","textPreview":"Key achievement: real pricing, operator control, and production-grade AI in a mobile-first platform.","textChars":100,"textLines":1,"bbox":[210,558,860,30]}
+{"kind":"notes","id":"nt/783vt4","slide":12,"text":""}
+{"kind":"slide","id":"sl/t5o5c7","slide":13,"title":"Thank you for your attention.","textShapes":3}
+{"kind":"shape","id":"sh/x0jq503a","slide":13,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/adsra54j","slide":13,"bbox":[0,0,1280,18]}
+{"kind":"textbox","id":"sh/by183ql4","slide":13,"text":"Thank you for your attention.","textPreview":"Thank you for your attention.","textChars":29,"textLines":1,"bbox":[130,238,820,90]}
+{"kind":"textbox","id":"sh/k3a9gfml","slide":13,"text":"Questions?","textPreview":"Questions?","textChars":10,"textLines":1,"bbox":[130,352,420,54]}
+{"kind":"shape","id":"sh/l4ja9k36","slide":13,"bbox":[130,452,150,5]}
+{"kind":"textbox","id":"sh/y1sre54f","slide":13,"text":"Guesmi Firas | Esprit - PFE 2026","textPreview":"Guesmi Firas | Esprit - PFE 2026","textChars":32,"textLines":1,"bbox":[130,540,430,30]}
+{"kind":"notes","id":"nt/t5o5c7","slide":13,"text":""}

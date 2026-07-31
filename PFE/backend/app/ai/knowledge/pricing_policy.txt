@@ -1,0 +1,97 @@
+CARTHAGE TRANSFER — PRICING POLICY
+[Source: carthage-transfer.com — live pricing samples and published Terms & Conditions, June 2026]
+[IMPORTANT: see compatibility note at the end of this file before using these figures for app logic]
+
+---
+
+CURRENCY
+
+All prices on the public Carthage Transfer website are quoted in EUR (euros), not TND. Confirm
+with the client whether they expect EUR or local-currency pricing if there is any ambiguity.
+
+---
+
+SAMPLE ROUTE PRICING (starting-from prices, published on the website)
+
+From Tunis-Carthage Airport:
+- To Tunis city: from 16.53 EUR
+- To Hammamet: from 30.95 EUR
+- To Bizerte: from 29.65 EUR
+- To Monastir: from 79.07 EUR
+- To Sousse: from 49.21 EUR
+- To Sfax: from 114.61 EUR
+
+From Enfidha Airport:
+- To Sousse: from 25.71 EUR
+- To Hammamet: from 27.63 EUR
+- To Tunis: from 38.99 EUR
+- To Monastir: from 41.31 EUR
+- To Bizerte: from 54.42 EUR
+- To Sfax: from 76.84 EUR
+
+These are "starting from" prices and vary by exact vehicle category selected at booking.
+
+---
+
+FLEET CATEGORIES AND CAPACITY (used to determine price tier)
+
+| Vehicle              | Passengers | Bags |
+|----------------------|------------|------|
+| Standard Sedan        | 4          | 4    |
+| Toyota Yaris           | 3          | 3    |
+| Renault Express        | 4          | 8    |
+| Mercedes E-Class        | 4          | 6    |
+| Mercedes S-Class        | 3          | 6    |
+| VW Multivan             | 7          | 14   |
+| Mercedes V-Class        | 6          | 12   |
+| Toyota Prado            | 6          | 6    |
+| Toyota Hiace            | 12         | 16   |
+| Toyota Coaster          | 20         | 20   |
+| Otokar                  | 30         | 30   |
+| MAN A51 (large coach)   | 52         | 70   |
+
+---
+
+WAITING TIME POLICY
+
+- 1 hour of free waiting time is included after the flight has landed.
+- Waiting time only starts counting after landing — delays before landing are never charged.
+- Beyond the free hour, additional waiting is charged at 5 EUR per 30 minutes (approx. 10 EUR/hour).
+- No charge applies for the flight delay itself, only for waiting beyond the free allowance after
+  landing.
+
+---
+
+CANCELLATION & MODIFICATION
+
+- Free cancellation with full refund if cancelled at least 24 hours before scheduled pickup.
+- Cancellations made less than 24 hours before pickup may incur charges (the published Terms &
+  Conditions do not specify an exact percentage — described only as "may be subject to charges").
+- Booking changes should be made via WhatsApp contact with the team.
+
+---
+
+PAYMENT
+
+- Payments can be made securely online, by bank transfer, or in person, depending on client
+  preference. No tipping is included in any quoted fare.
+
+---
+
+COMPATIBILITY NOTE FOR APP DEVELOPMENT — READ BEFORE WIRING TO PRICING LOGIC
+
+The Carthage Transfer mobile app's existing pricing engine (night/weekend/last-minute/seasonal
+surcharges, TND base fares of 80/120/180/150 for Standard/VIP/Luxury/Van, and a points-based loyalty
+tier system) does NOT currently match what is published on the live website. The live site:
+  - Prices in EUR, not TND
+  - Uses flat "starting from" route pricing rather than a percentage-surcharge formula
+  - Does not publish a loyalty/rewards programme
+  - States cancellation penalties only vaguely ("may be subject to charges"), with no specific
+    50%/100% tiers
+This is a deliberate placeholder-vs-reality gap that needs an explicit decision: either (a) treat the
+app's surcharge/loyalty system as an internal business rule layered on top of the base EUR pricing
+shown here, and have AVA explain it as "your effective price, after applicable surcharges," or
+(b) update the app's pricing engine to match the real published structure before going live. AVA's
+RAG answers should not silently assume one or the other — when asked specifics about loyalty points
+or surcharge percentages, the safer answer is to describe what the app currently calculates, while
+being clear that public marketing pricing is shown in EUR and may differ from the app's quoted total.

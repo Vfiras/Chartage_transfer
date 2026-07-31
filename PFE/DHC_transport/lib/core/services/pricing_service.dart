@@ -92,8 +92,154 @@ class PriceEstimate {
   });
 }
 
+/// Real per-vehicle quote from POST /bookings/price-estimate — computed
+/// server-side from the vehicle's pricing parameters and the Google
+/// Directions distance for the actual route.
+class RealVehicleEstimate {
+  final String vehicleId; // backend Mongo id, e.g. "car-comfort-sedan"
+  final String vehicleName;
+  final double totalEur;
+  final double distanceKm;
+  final double durationHours;
+  final String currency;
+  final double initialFee;
+  final double distanceCost;
+
+  const RealVehicleEstimate({
+    required this.vehicleId,
+    required this.vehicleName,
+    required this.totalEur,
+    required this.distanceKm,
+    required this.durationHours,
+    required this.currency,
+    required this.initialFee,
+    required this.distanceCost,
+  });
+
+  factory RealVehicleEstimate.fromJson(
+      Map<String, dynamic> json, double distanceKm, double durationHours) {
+    final breakdown =
+        (json['breakdown'] as Map?)?.cast<String, dynamic>() ?? {};
+    return RealVehicleEstimate(
+      vehicleId: json['vehicle_id']?.toString() ?? '',
+      vehicleName: json['vehicle_name']?.toString() ?? '',
+      totalEur: (json['total_eur'] as num?)?.toDouble() ?? 0,
+      distanceKm: distanceKm,
+      durationHours: durationHours,
+      currency: json['currency']?.toString() ?? 'EUR',
+      initialFee: (breakdown['initial_fee'] as num?)?.toDouble() ?? 0,
+      distanceCost: (breakdown['distance_cost'] as num?)?.toDouble() ?? 0,
+    );
+  }
+}
+
+/// Result of one batch price-estimate call: route metrics + per-vehicle quotes.
+class RealEstimateResult {
+  final double distanceKm;
+  final double durationHours;
+  final Map<String, RealVehicleEstimate> byVehicleId;
+
+  const RealEstimateResult({
+    required this.distanceKm,
+    required this.durationHours,
+    required this.byVehicleId,
+  });
+}
+
 class PricingService {
   const PricingService();
+
+  /// Batch real quote for every available vehicle on the given route.
+  /// One Directions call server-side; returns null when the request fails so
+  /// callers can fall back to the local rules-based estimate.
+  Future<RealEstimateResult?> realEstimates({
+    required BookingData data,
+    String? tripTypeOverride,
+  }) async {
+    if (!data.hasCoordinates) return null;
+    try {
+      final response = await TransportApiClient.instance.post(
+        '/bookings/price-estimate',
+        {
+          'pickup_lat': data.pickupLat,
+          'pickup_lng': data.pickupLng,
+          'destination_lat': data.destinationLat,
+          'destination_lng': data.destinationLng,
+          'trip_type': (tripTypeOverride ?? data.tripType) == 'round-trip'
+              ? 'return'
+              : 'one_way',
+        },
+      );
+      final distanceKm = (response['distance_km'] as num?)?.toDouble() ?? 0;
+      final durationHours =
+          (response['duration_hours'] as num?)?.toDouble() ?? 0;
+      final estimates = <String, RealVehicleEstimate>{};
+      for (final raw in (response['estimates'] as List? ?? const [])) {
+        final est = RealVehicleEstimate.fromJson(
+          (raw as Map).cast<String, dynamic>(),
+          distanceKm,
+          durationHours,
+        );
+        if (est.vehicleId.isNotEmpty) estimates[est.vehicleId] = est;
+      }
+      if (estimates.isEmpty) return null;
+      return RealEstimateResult(
+        distanceKm: distanceKm,
+        durationHours: durationHours,
+        byVehicleId: estimates,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Apply the configurable surcharge rules (night/weekend/last-minute/seasonal)
+  /// and promo discount on top of a REAL distance-based base price.
+  PriceEstimate estimateFromBase({
+    required double base,
+    required BookingData data,
+    required PricingRules rules,
+    double promoDiscount = 0,
+  }) {
+    final applied = <String>[];
+    if (data.isRoundTrip) applied.add('Round trip');
+    final departure = departureDateTime(data);
+    var surcharge = 0.0;
+    if (departure != null) {
+      if (_isNight(departure.hour, rules)) {
+        surcharge += base * (rules.nightPercentage / 100);
+        applied
+            .add('Night pricing +${rules.nightPercentage.toStringAsFixed(0)}%');
+      }
+      if (rules.weekendEnabled &&
+          (departure.weekday == DateTime.saturday ||
+              departure.weekday == DateTime.sunday)) {
+        surcharge += base * (rules.weekendPercentage / 100);
+        applied.add('Weekend +${rules.weekendPercentage.toStringAsFixed(0)}%');
+      }
+      if (rules.lastMinuteEnabled &&
+          departure.difference(DateTime.now()).inHours <
+              rules.lastMinuteWithinHours) {
+        surcharge += base * (rules.lastMinutePercentage / 100);
+        applied.add(
+            'Last minute +${rules.lastMinutePercentage.toStringAsFixed(0)}%');
+      }
+      if (rules.seasonalEnabled) {
+        surcharge += base * (rules.seasonalPercentage / 100);
+        applied
+            .add('Seasonal +${rules.seasonalPercentage.toStringAsFixed(0)}%');
+      }
+    }
+    final subtotal = base + surcharge;
+    final discount = promoDiscount.clamp(0, subtotal).toDouble();
+    return PriceEstimate(
+      basePrice: base,
+      dynamicSurcharge: surcharge,
+      discount: discount,
+      total: subtotal - discount,
+      appliedRules: applied,
+    );
+  }
 
   Future<PricingRules> rules() async {
     try {

@@ -173,7 +173,7 @@ class _BookingCardState extends State<BookingCard> {
                   children: [
                     Text(l.t('book_transfer'),
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w900)),
+                            fontSize: 20, fontWeight: FontWeight.w800)),
                     SizedBox(height: 2),
                     Text(l.t('premium_rides'),
                         style: TextStyle(
@@ -321,7 +321,7 @@ class _LocationField extends StatelessWidget {
                     style: TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 10,
-                        fontWeight: FontWeight.w900)),
+                        fontWeight: FontWeight.w800)),
                 TextField(
                   controller: controller,
                   style: TextStyle(
@@ -392,7 +392,7 @@ class _TripToggle extends StatelessWidget {
             label,
             style: TextStyle(
               color: active ? AppColors.primary : AppColors.textSecondary,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.w800,
             ),
           ),
         ),
@@ -439,7 +439,7 @@ class _PickerTile extends StatelessWidget {
                       style: TextStyle(
                           color: AppColors.textSecondary,
                           fontSize: 10,
-                          fontWeight: FontWeight.w900)),
+                          fontWeight: FontWeight.w800)),
                   const SizedBox(height: 3),
                   Text(value,
                       maxLines: 1,
@@ -448,7 +448,7 @@ class _PickerTile extends StatelessWidget {
                         color: waiting
                             ? AppColors.secondary
                             : AppColors.textPrimary,
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w800,
                         fontSize: 13,
                       )),
                 ],
@@ -491,14 +491,14 @@ class _PassengerStepper extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
               child:
-                  Text(label, style: TextStyle(fontWeight: FontWeight.w900))),
+                  Text(label, style: TextStyle(fontWeight: FontWeight.w800))),
           IconButton(
             onPressed: value <= 1 ? null : () => onChanged(value - 1),
             icon: Icon(Icons.remove_circle_outline_rounded),
             color: AppColors.textSecondary,
           ),
           Text('$value',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           IconButton(
             onPressed: () => onChanged(value + 1),
             icon: Icon(Icons.add_circle_outline_rounded),

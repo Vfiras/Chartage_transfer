@@ -4,10 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.database import get_database
 from app.core.deps import require_admin, require_client
-from app.schemas.dtos import TripCreate, TripStatusUpdate, TripUpdate
+from app.schemas.dtos import PriceEstimateRequest, TripCreate, TripStatusUpdate, TripUpdate
+from app.services.pricing_calculator import calculate_price, get_route_metrics
 from app.services.booking_service import (
     create_trip,
     delete_trip,
+    get_pricing_rules,
     get_trip_history,
     list_trips,
     update_trip,
@@ -46,15 +48,45 @@ def _check_time_rule(booking: dict, limit_hours: int, action: str) -> None:
         )
 
 
-async def _get_pricing_rules() -> dict:
-    db = get_database()
-    doc = await db.pricing_rules.find_one({"_id": "active"})
-    if doc:
-        return doc
-    return {"modification_limit_hours": 24, "cancellation_limit_hours": 24}
-
 
 # ─── Client endpoints ──────────────────────────────────────────────────────────
+
+@router.post("/price-estimate")
+async def price_estimate(
+    payload: PriceEstimateRequest,
+    _: dict = Depends(require_client),
+) -> dict:
+    """Real price quote from the per-vehicle pricing parameters.
+
+    Distance/duration via Google Directions (haversine fallback). With
+    vehicle_id → single estimate; without → one estimate per available vehicle
+    (single Directions call either way, so the fleet quote costs one request).
+    """
+    metrics = await get_route_metrics(
+        payload.pickup_lat, payload.pickup_lng,
+        payload.destination_lat, payload.destination_lng,
+        waypoints=payload.waypoints,
+    )
+
+    db = get_database()
+    if payload.vehicle_id:
+        vehicle = await db.cars.find_one({"_id": payload.vehicle_id})
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Vehicle not found")
+        estimate = calculate_price(
+            vehicle, metrics["distance_km"], metrics["duration_hours"],
+            payload.trip_type, payload.waypoints,
+        )
+        return {**metrics, **estimate}
+
+    estimates: list[dict] = []
+    async for vehicle in db.cars.find({"availability": True}).sort([("order", 1), ("base_price", 1)]):
+        estimates.append(calculate_price(
+            vehicle, metrics["distance_km"], metrics["duration_hours"],
+            payload.trip_type, payload.waypoints,
+        ))
+    return {**metrics, "trip_type": payload.trip_type, "estimates": estimates}
+
 
 @router.get("/")
 async def list_bookings(
@@ -146,7 +178,7 @@ async def modify_booking(
 
     # Only enforce the modification time-window for clients, not admins
     if current_user.get("role") != "admin":
-        rules = await _get_pricing_rules()
+        rules = await get_pricing_rules()
         _check_time_rule(booking, rules["modification_limit_hours"], "Modification")
 
     # Validate status when provided
@@ -189,7 +221,7 @@ async def cancel_booking(
     if booking.get("status") in ("completed", "cancelled"):
         raise HTTPException(status_code=400, detail="Booking is already completed or cancelled")
 
-    rules = await _get_pricing_rules()
+    rules = await get_pricing_rules()
     _check_time_rule(booking, rules["cancellation_limit_hours"], "Cancellation")
 
     # update_trip_status emits the single "Booking cancelled" notification.

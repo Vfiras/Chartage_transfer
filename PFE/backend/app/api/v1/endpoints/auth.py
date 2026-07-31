@@ -99,10 +99,37 @@ async def upload_avatar(
 
 @router.post("/forgot-password")
 async def forgot_password(email: str) -> dict:
-    # In production: generate a reset token, send email
-    # For PFE: return success without revealing if email exists
+    import secrets
+    import smtplib
+    from datetime import timedelta
+    from email.mime.text import MIMEText
+
+    from app.core.config import settings
+
     db = get_database()
-    _ = await db.users.find_one({"email": email.strip().lower()})
+    user = await db.users.find_one({"email": email.strip().lower()})
+    if user:
+        token = secrets.token_urlsafe(32)
+        expiry = datetime.now(timezone.utc) + timedelta(hours=1)
+        await db.password_resets.delete_many({"user_id": str(user["_id"])})
+        await db.password_resets.insert_one(
+            {"token": token, "user_id": str(user["_id"]), "expires_at": expiry}
+        )
+        reset_url = f"{settings.app_base_url}/reset-password?token={token}"
+        if settings.smtp_host and settings.smtp_user:
+            try:
+                msg = MIMEText(
+                    f"Click the link below to reset your Carthage Transfer password:\n\n{reset_url}\n\nThis link expires in 1 hour."
+                )
+                msg["Subject"] = "Carthage Transfer — Password Reset"
+                msg["From"] = settings.from_email or settings.smtp_user
+                msg["To"] = email.strip().lower()
+                with smtplib.SMTP(settings.smtp_host, settings.smtp_port) as server:
+                    server.starttls()
+                    server.login(settings.smtp_user, settings.smtp_pass)
+                    server.sendmail(msg["From"], [msg["To"]], msg.as_string())
+            except Exception:
+                pass  # Email delivery is best-effort; token is always stored
     return {"message": "If an account exists for this email, a reset link has been sent."}
 
 

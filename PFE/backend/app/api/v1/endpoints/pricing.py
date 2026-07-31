@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends
 
 from app.core.database import get_database
-from app.core.deps import require_admin
+from app.core.deps import get_current_user_optional, require_admin
 from app.schemas.dtos import PricingRulesUpdate, PromoValidationRequest
 
 router = APIRouter()
@@ -74,13 +74,28 @@ async def config() -> dict:
 
 
 @router.post("/promo/validate")
-async def validate_promo(payload: PromoValidationRequest) -> dict:
+async def validate_promo(
+    payload: PromoValidationRequest,
+    current_user: dict | None = Depends(get_current_user_optional),
+) -> dict:
     code = payload.code.strip().upper()
     db = get_database()
     promo = await db.promotions.find_one({"code": code})
     if not promo:
         promo = DEFAULT_PROMOS.get(code)
     if not promo or not promo.get("active", True):
+        return {
+            "valid": False,
+            "code": code,
+            "discount": 0,
+            "message": "Promo code is not valid.",
+        }
+
+    # Tier and welcome codes are minted per user and carry `owner_user_id`.
+    # Anyone else presenting one — including a guest — is refused, otherwise a
+    # shared code would let a Bronze client spend a Black client's 20% off.
+    owner_id = promo.get("owner_user_id")
+    if owner_id and (current_user or {}).get("_id") != owner_id:
         return {
             "valid": False,
             "code": code,

@@ -16,6 +16,17 @@ class Settings(BaseSettings):
     allowed_origins: str = "http://localhost:3000,http://localhost:8080"
     media_root: str = str(Path(__file__).resolve().parents[2] / "uploads")
     media_url_prefix: str = "/media"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_pass: str = ""
+    from_email: str = ""
+    app_base_url: str = "http://localhost:8000"
+    openai_api_key: str = ""
+    google_api_key: str = ""
+    # Declared so the backend's strict Settings (extra=forbid) accepts the key the
+    # Flutter app uses for Google Maps. The backend itself does not consume it.
+    maps_api_key: str = ""
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

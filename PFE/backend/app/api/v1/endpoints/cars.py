@@ -5,69 +5,21 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from app.core.database import get_database
 from app.core.deps import require_admin
+from app.db.fleet_data import REAL_FLEET, VALID_CATEGORIES
 from app.schemas.dtos import CarCreate, CarUpdate
 from app.services.utils import serialize_document
 
 router = APIRouter()
 
-DEFAULT_CARS = [
-    {
-        "_id": "car-standard",
-        "name": "Standard",
-        "model": "Comfort sedan",
-        "category": "Standard",
-        "seats": 4,
-        "luggage": 2,
-        "base_price": 18,
-        "availability": True,
-        "image_url": "assets/images/fleet/Renault-Express-Minivan-Transfers-Tunisia.webp",
-    },
-    {
-        "_id": "car-vip",
-        "name": "VIP",
-        "model": "Executive sedan",
-        "category": "VIP",
-        "seats": 3,
-        "luggage": 2,
-        "base_price": 28,
-        "availability": True,
-        "image_url": "assets/images/fleet/mercedes-e-class-2024-carthage-transfer.webp",
-    },
-    {
-        "_id": "car-luxury",
-        "name": "Luxury",
-        "model": "Premium class",
-        "category": "Luxury",
-        "seats": 3,
-        "luggage": 2,
-        "base_price": 40,
-        "availability": True,
-        "image_url": "assets/images/fleet/premium-sedan-2024-carthage-transfer.webp",
-    },
-    {
-        "_id": "car-van",
-        "name": "Van",
-        "model": "Premium group van",
-        "category": "Van",
-        "seats": 7,
-        "luggage": 5,
-        "base_price": 50,
-        "availability": True,
-        "image_url": "assets/images/fleet/Mercedes-V-Class-Vip-Transfers-Tunisia.webp",
-    },
-]
-
-VALID_CATEGORIES = {"Standard", "VIP", "Van", "Luxury"}
-
 
 async def _ensure_default_cars() -> None:
+    """Bootstrap an empty cars collection with the real fleet (db/fleet_data.py)."""
     db = get_database()
     count = await db.cars.count_documents({})
     if count == 0:
-        for car in DEFAULT_CARS:
-            car["created_at"] = datetime.now(timezone.utc)
-            car["updated_at"] = datetime.now(timezone.utc)
-            await db.cars.insert_one(dict(car))
+        now = datetime.now(timezone.utc)
+        for car in REAL_FLEET:
+            await db.cars.insert_one({**car, "created_at": now, "updated_at": now})
 
 
 # ─── Public ────────────────────────────────────────────────────────────────────
@@ -125,10 +77,31 @@ async def update_car(
         raise HTTPException(status_code=400, detail="No fields to update")
     if "category" in update and update["category"] not in VALID_CATEGORIES:
         raise HTTPException(status_code=400, detail=f"Category must be one of: {', '.join(VALID_CATEGORIES)}")
-    update["updated_at"] = datetime.now(timezone.utc)
-    result = await db.cars.update_one({"_id": car_id}, {"$set": update})
-    if result.matched_count == 0:
+
+    existing = await db.cars.find_one({"_id": car_id})
+    if not existing:
         raise HTTPException(status_code=404, detail="Car not found")
+
+    now = datetime.now(timezone.utc)
+    # Record pricing changes so analytics can correlate them with booking
+    # volume (analytics_service.get_pricing_impact_analysis).
+    if "pricing" in update:
+        old_pricing = existing.get("pricing") or {}
+        new_pricing = update["pricing"] or {}
+        if old_pricing != new_pricing:
+            await db.pricing_history.insert_one({
+                "_id": f"pricehist-{uuid4().hex}",
+                "car_id": car_id,
+                "vehicle_name": existing.get("name", car_id),
+                "old_initial_fee": old_pricing.get("initial_fee"),
+                "new_initial_fee": new_pricing.get("initial_fee"),
+                "old_pricing": old_pricing,
+                "new_pricing": new_pricing,
+                "changed_at": now,
+            })
+
+    update["updated_at"] = now
+    await db.cars.update_one({"_id": car_id}, {"$set": update})
     car = await db.cars.find_one({"_id": car_id})
     return {"car": serialize_document(car)}
 

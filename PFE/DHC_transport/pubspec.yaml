@@ -17,7 +17,13 @@ dependencies:
   http: ^1.2.2
   image_picker: ^1.0.7
   intl: ^0.20.2
+  # Favourite "Memories" photos are copied out of the picker's cache into the
+  # app documents directory so the OS cannot evict them.
+  path_provider: ^2.1.5
   shared_preferences: ^2.3.0
+  speech_to_text: ^7.0.0
+  google_maps_flutter: ^2.9.0
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_test:
