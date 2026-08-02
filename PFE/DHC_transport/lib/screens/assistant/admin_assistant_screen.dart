@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../core/services/language_service.dart';
 import 'assistant_controller.dart';
 import 'widgets/analytics_card.dart';
 import 'widgets/assistant_message_bubble.dart';
@@ -80,6 +81,17 @@ class _AdminAssistantScreenState extends State<AdminAssistantScreen> {
     await _ctrl.sendMessage(text);
   }
 
+  /// Analysis mode of the LAST message, when that message is an analytics
+  /// card — drives which follow-up chips are offered. Null otherwise, so the
+  /// chips disappear as soon as the conversation moves on.
+  String? get _lastAnalysisMode {
+    if (_ctrl.messages.isEmpty) return null;
+    final last = _ctrl.messages.last;
+    if (!last.isAnalytics) return null;
+    final data = last.analyticsData ?? const {};
+    return (data['mode'] ?? data['analysis_type'])?.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
@@ -121,6 +133,10 @@ class _AdminAssistantScreenState extends State<AdminAssistantScreen> {
                           cardEnabled: _ctrl.canSend,
                         ),
                     if (_ctrl.isTyping) const TypingIndicator(),
+                    // Contextual next steps, only under the newest analysis
+                    // and only once the turn has finished.
+                    if (!_ctrl.isTyping && _lastAnalysisMode != null)
+                      _FollowUps(mode: _lastAnalysisMode!, onAction: _send),
                   ],
                 ),
                 Positioned(
@@ -253,58 +269,181 @@ class _QuickActions extends StatelessWidget {
   final void Function(String) onAction;
   const _QuickActions({required this.onAction});
 
-  /// BI-focused prompts. The first four hit the `run_business_analysis`
-  /// pipeline (chart + KPI payload); the last two are read-only list queries.
-  /// The prompt text must keep the phrasing the supervisor's Guard 0 detects,
-  /// so these are sent verbatim rather than translated.
+  /// One chip per analysis mode, plus two read-only list queries. The prompt
+  /// text must keep the phrasing the supervisor's Guard 0 detects (see
+  /// backend `analysis_triggers.py`), so prompts are sent verbatim rather than
+  /// translated — only the visible label is localised.
   static const _actions = [
-    (Icons.insights_rounded, 'Business review', 'Give me a full business review'),
-    (Icons.pie_chart_rounded, 'Revenue split',
-        'Revenue by vehicle category'),
-    (Icons.price_change_rounded, 'Pricing impact',
-        'How did our pricing changes affect bookings?'),
-    (Icons.calendar_month_rounded, 'Seasonal trends',
-        'Show seasonal booking trends'),
-    (Icons.pending_actions_rounded, 'Pending',
+    (Icons.insights_rounded, 'ava_chip_full_review',
+        'Give me a full business review'),
+    (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
+    (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+    (Icons.price_change_rounded, 'ava_chip_pricing',
+        'How did pricing changes affect bookings?'),
+    (Icons.calendar_month_rounded, 'ava_chip_seasonal',
+        'What are our seasonal patterns?'),
+    (Icons.directions_car_rounded, 'ava_chip_vehicles',
+        'Show me fleet performance by vehicle'),
+    (Icons.feedback_rounded, 'ava_chip_complaints', 'Show me open complaints'),
+    (Icons.pending_actions_rounded, 'ava_chip_pending',
         'List all pending bookings'),
-    (Icons.feedback_rounded, 'Complaints', 'Show me open complaints'),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
     return Wrap(
       spacing: 10,
       runSpacing: 10,
       children: [
-        for (final (icon, label, prompt) in _actions)
-          GestureDetector(
-            onTap: () => onAction(prompt),
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: _surfaceElevated,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(icon, color: _gold, size: 16),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: _onSurface,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+        for (final (icon, key, prompt) in _actions)
+          AvaChip(icon: icon, label: l.t(key), onTap: () => onAction(prompt)),
+      ],
+    );
+  }
+}
+
+/// Pill used by both the lounge quick actions and the post-analysis follow-ups.
+class AvaChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+  final bool subtle;
+
+  const AvaChip({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.subtle = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(
+            horizontal: subtle ? 12 : 14, vertical: subtle ? 8 : 10),
+        decoration: BoxDecoration(
+          color: subtle ? Colors.transparent : _surfaceElevated,
+          borderRadius: BorderRadius.circular(subtle ? 999 : 14),
+          border: Border.all(
+            color: subtle
+                ? _gold.withValues(alpha: 0.35)
+                : Colors.white.withValues(alpha: 0.06),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: _gold, size: subtle ? 14 : 16),
+            SizedBox(width: subtle ? 6 : 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: subtle ? _gold : _onSurface,
+                fontSize: subtle ? 11.5 : 12,
+                fontWeight: FontWeight.w600,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Follow-up chips ───────────────────────────────────────────────────────────
+
+/// Contextual next steps shown under the most recent analytics card. They point
+/// at the OTHER analysis modes so the admin explores the data instead of
+/// re-asking the same question.
+class _FollowUps extends StatelessWidget {
+  final String mode;
+  final void Function(String) onAction;
+
+  const _FollowUps({required this.mode, required this.onAction});
+
+  /// (label key, prompt) triples per mode. Prompts must match the backend
+  /// triggers verbatim.
+  static const _byMode = <String, List<(IconData, String, String)>>{
+    'full_review': [
+      (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
+      (Icons.directions_car_rounded, 'ava_chip_vehicles',
+          'Show me fleet performance by vehicle'),
+      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
+          'What are our seasonal patterns?'),
+    ],
+    'revenue': [
+      (Icons.directions_car_rounded, 'ava_follow_by_vehicle',
+          'Break revenue down by vehicle category'),
+      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
+          'What are our seasonal patterns?'),
+    ],
+    'bookings': [
+      (Icons.payments_rounded, 'ava_follow_revenue_side',
+          'How is our revenue doing?'),
+      (Icons.price_change_rounded, 'ava_chip_pricing',
+          'How did pricing changes affect bookings?'),
+      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
+          'What are our seasonal patterns?'),
+    ],
+    'pricing': [
+      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
+      (Icons.directions_car_rounded, 'ava_chip_vehicles',
+          'Show me fleet performance by vehicle'),
+    ],
+    'seasonal': [
+      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
+      (Icons.insights_rounded, 'ava_chip_full_review',
+          'Give me a full business review'),
+    ],
+    'vehicles': [
+      (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
+      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (Icons.insights_rounded, 'ava_chip_full_review',
+          'Give me a full business review'),
+    ],
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final items = _byMode[mode] ?? _byMode['full_review']!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.t('ava_explore_next'),
+            style: const TextStyle(
+              color: _textSec,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.2,
+            ),
           ),
-      ],
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final (icon, key, prompt) in items)
+                AvaChip(
+                  icon: icon,
+                  label: l.t(key),
+                  subtle: true,
+                  onTap: () => onAction(prompt),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

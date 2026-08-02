@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/language_service.dart';
 import '../../../core/services/transport_api_client.dart';
 import '../../../shared/widgets/admin/admin_card.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 
 class AdminPromotionsScreen extends StatefulWidget {
   const AdminPromotionsScreen({super.key});
@@ -106,15 +108,24 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: RefreshIndicator(
-        color: AppColors.secondary,
-        backgroundColor: AppColors.surface,
-        onRefresh: _load,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
-          children: [
+    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          AdminTopBar(
+            title: LanguageService.instance.t('admin_qa_promotions'),
+            showBack: true,
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              color: AppColors.secondary,
+              backgroundColor: AppColors.surface,
+              onRefresh: _load,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 40),
+                children: [
             Row(
               children: [
                 Expanded(
@@ -173,8 +184,11 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
                 ),
                 const SizedBox(height: 12),
               ],
-          ],
-        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

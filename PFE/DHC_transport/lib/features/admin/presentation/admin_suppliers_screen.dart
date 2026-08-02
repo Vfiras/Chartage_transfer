@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/supplier_model.dart';
+import '../../../core/services/language_service.dart';
 import '../../../core/services/supplier_service.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../shared/widgets/admin/supplier_card.dart';
 
 class AdminSuppliersScreen extends StatefulWidget {
@@ -63,23 +65,23 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Stack(
+    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: Column(
+        children: [
+          AdminTopBar(
+            title: LanguageService.instance.t('admin_qa_suppliers'),
+            showBack: true,
+          ),
+          Expanded(
+            child: Stack(
         children: [
           RefreshIndicator(
             onRefresh: () async => _reload(),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
+              padding: const EdgeInsets.fromLTRB(20, 14, 20, 40),
               children: [
-                Text(
-                  'Suppliers',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 8),
                 Text(
                   'Edit, suspend, or reactivate supplier partners from MongoDB.',
                   style: TextStyle(
@@ -126,6 +128,9 @@ class _AdminSuppliersScreenState extends State<AdminSuppliersScreen> {
                 child: Center(child: CircularProgressIndicator()),
               ),
             ),
+        ],
+            ),
+          ),
         ],
       ),
     );

@@ -7,12 +7,20 @@ import '../../../core/services/auth_service.dart';
 import '../../../core/services/language_service.dart';
 import '../../../core/services/theme_service.dart';
 import '../../../screens/assistant/admin_assistant_screen.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../widgets/common/fallback_network_image.dart';
 import 'admin_pricing_screen.dart';
 import 'admin_promotions_screen.dart';
 
 class AdminProfileScreen extends StatelessWidget {
-  const AdminProfileScreen({super.key});
+  final int unreadCount;
+  final VoidCallback? onOpenNotifications;
+
+  const AdminProfileScreen({
+    super.key,
+    this.unreadCount = 0,
+    this.onOpenNotifications,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -26,10 +34,17 @@ class AdminProfileScreen extends StatelessWidget {
           role: 'admin',
         );
 
-    return SafeArea(
-      child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 130),
-        children: [
+    return Column(
+      children: [
+        AdminTopBar(
+          title: l.t('profile'),
+          unreadCount: unreadCount,
+          onNotificationTap: onOpenNotifications,
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 24, 20, 130),
+            children: [
           // ── Identity header ────────────────────────────────────────────
           Center(child: _AdminAvatar(user: user)),
           const SizedBox(height: 18),
@@ -232,8 +247,10 @@ class AdminProfileScreen extends StatelessWidget {
               ),
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 

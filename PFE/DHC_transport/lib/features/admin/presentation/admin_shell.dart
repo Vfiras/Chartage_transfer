@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/routing/app_routes.dart';
-import '../../../shared/widgets/client/premium_client_components.dart';
+import '../../../core/services/auth_service.dart';
+import '../../../core/services/notification_service.dart';
+import '../../../features/notifications/notifications_screen.dart';
+import '../../../shared/widgets/admin/admin_nav_bar.dart';
 import 'admin_bookings_screen.dart';
 import 'admin_cars_screen.dart';
 import 'admin_complaints_screen.dart';
@@ -21,8 +24,46 @@ class AdminShell extends StatefulWidget {
 
 class _AdminShellState extends State<AdminShell> {
   int _index = 0;
+  int _unreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUnread();
+  }
+
+  /// Admins receive real notifications (a cash booking fans out to every admin),
+  /// so the shell owns the count and hands it to each tab's [AdminTopBar].
+  Future<void> _loadUnread() async {
+    if (!AuthService.instance.isAuthenticated) return;
+    try {
+      final items = await const NotificationService().listNotifications();
+      final count = items.where((n) => n['read'] != true).length;
+      if (mounted && count != _unreadCount) {
+        setState(() => _unreadCount = count);
+      }
+    } catch (_) {
+      // Badge is cosmetic — a failed fetch must never break the shell.
+    }
+  }
 
   void _setIndex(int value) => setState(() => _index = value);
+
+  void _openNotifications() {
+    Navigator.of(context)
+        .push(
+          MaterialPageRoute(
+            builder: (_) => NotificationsScreen(
+              onUnreadCountChanged: (count) {
+                if (mounted && count != _unreadCount) {
+                  setState(() => _unreadCount = count);
+                }
+              },
+            ),
+          ),
+        )
+        .then((_) => _loadUnread());
+  }
 
   void _pushPromotions() {
     Navigator.of(context).push(
@@ -54,8 +95,12 @@ class _AdminShellState extends State<AdminShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Each tab renders its own AdminTopBar (the design puts the page title in
+    // the screen, not the shell), so the shell only passes the bell wiring.
     final tabs = [
       AdminDashboardScreen(
+        unreadCount: _unreadCount,
+        onOpenNotifications: _openNotifications,
         onOpenBookings: () => _setIndex(1),
         onOpenFleet: () => _setIndex(2),
         onOpenPromotions: _pushPromotions,
@@ -64,9 +109,18 @@ class _AdminShellState extends State<AdminShell> {
         onOpenSuppliers: _pushSuppliers,
         onOpenRecommendations: _pushRecommendations,
       ),
-      const AdminBookingsScreen(),
-      const AdminCarsScreen(),
-      const AdminProfileScreen(),
+      AdminBookingsScreen(
+        unreadCount: _unreadCount,
+        onOpenNotifications: _openNotifications,
+      ),
+      AdminCarsScreen(
+        unreadCount: _unreadCount,
+        onOpenNotifications: _openNotifications,
+      ),
+      AdminProfileScreen(
+        unreadCount: _unreadCount,
+        onOpenNotifications: _openNotifications,
+      ),
     ];
 
     return Theme(
@@ -79,35 +133,11 @@ class _AdminShellState extends State<AdminShell> {
         // the client shell's treatment of the same nav.
         extendBody: true,
         body: IndexedStack(index: _index, children: tabs),
-        // Same glassmorphic pill as the client app — PremiumClientNav already
-        // takes its items as a parameter, so admin reuses it as-is instead of
-        // keeping a second, visually weaker nav implementation.
-        bottomNavigationBar: PremiumClientNav(
+        // No nav badge: unread lives on the bell in AdminTopBar, so duplicating
+        // it on a tab would point the admin at the wrong control.
+        bottomNavigationBar: AdminNavBar(
           index: _index,
           onChanged: _setIndex,
-          margin: const EdgeInsets.fromLTRB(24, 0, 24, 22),
-          items: const [
-            PremiumNavItem(
-              label: 'Dashboard',
-              icon: Icons.dashboard_outlined,
-              activeIcon: Icons.dashboard_rounded,
-            ),
-            PremiumNavItem(
-              label: 'Bookings',
-              icon: Icons.calendar_today_outlined,
-              activeIcon: Icons.calendar_today_rounded,
-            ),
-            PremiumNavItem(
-              label: 'Fleet',
-              icon: Icons.directions_car_outlined,
-              activeIcon: Icons.directions_car_rounded,
-            ),
-            PremiumNavItem(
-              label: 'Profile',
-              icon: Icons.person_outline_rounded,
-              activeIcon: Icons.person_rounded,
-            ),
-          ],
         ),
       ),
     );

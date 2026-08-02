@@ -1,33 +1,30 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../../../core/services/language_service.dart';
+import '../../../shared/widgets/admin/admin_charts.dart';
 import '../chat_message_model.dart';
 
 /// Rich business-intelligence bubble for the admin AVA chat.
 ///
 /// Renders the payload of the backend's "analytics" SSE event:
-///   KPI row (horizontal metric tiles) → narrative → charts (fl_chart:
-///   line/area/bar/pie from spec dicts) → insight bullets.
+///   KPI tiles → structured narrative → charts → insight bullets.
 ///
-/// Visually distinct from text bubbles: darker surface, subtle gold top
-/// border — signalling "data response".
+/// The backend sends only the charts its analysis mode produced (a revenue
+/// answer carries two, a full review five), so nothing here is hardcoded to a
+/// chart count — whatever arrives is laid out in order.
+///
+/// Charts come from `shared/widgets/admin/admin_charts.dart`, the same
+/// primitives the admin dashboard uses, so styling stays identical.
+
 const _gold = Color(0xFFC8A96B);
-const _goldDeep = Color(0xFF8E7745);
-const _surface = Color(0xFF121110);
-const _surfaceTile = Color(0xFF1B1916);
+const _surface = Color(0xFF1B1B1B); // AppColors.surfaceElevated
+const _surfaceTile = Color(0xFF151515);
+const _chartSurface = Color(0xFF141313);
+const _hairline = Color(0x14FFFFFF);
 const _text = Color(0xFFE9E1DA);
 const _textMuted = Color(0xFF998F81);
-const _green = Color(0xFF27AE60);
+const _green = Color(0xFF00A896);
 const _red = Color(0xFFE05B4B);
-
-const _mixedPalette = <Color>[
-  _gold,
-  Color(0xFF4A90D9),
-  Color(0xFF00A896),
-  Color(0xFF7B5EA7),
-  Color(0xFFD9534F),
-  Color(0xFF27AE60),
-];
 
 class AnalyticsCard extends StatelessWidget {
   final ChatMessage message;
@@ -44,26 +41,55 @@ class AnalyticsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final kpis = _listOf('kpis');
+    final charts = _listOf('charts');
+    final insights = ((_data['insights'] as List?) ?? const [])
+        .map((e) => e.toString())
+        .toList(growable: false);
+    final narrative = _Narrative.parse(message.text);
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 18, right: 12),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _surface,
-          borderRadius: BorderRadius.circular(18),
-          // Uniform border only — a rounded border with a differently
-          // coloured top side is a Flutter paint assertion. The gold
-          // "data response" accent is the clipped bar below instead.
-          border: Border.all(color: const Color(0x22C8A96B)),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(18),
+      padding: const EdgeInsets.only(bottom: 18, right: 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: _surface,
+            // Uniform border only — a rounded border with a differently
+            // coloured top side is a Flutter paint assertion. The gold
+            // accent is the 3px sliver below instead.
+            border: Border.all(color: const Color(0x22C8A96B)),
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Container(height: 2.5, color: _gold), // gold top accent
+              Container(height: 3, color: _gold), // gold top accent
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 18),
-                child: _body(),
+                padding: const EdgeInsets.fromLTRB(14, 12, 14, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _header(),
+                    if (kpis.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _kpiRow(kpis),
+                    ],
+                    if (!narrative.isEmpty) ...[
+                      const SizedBox(height: 14),
+                      _narrativeBlock(l, narrative),
+                    ],
+                    for (final chart in charts) ...[
+                      const SizedBox(height: 12),
+                      _ChartBlock(spec: chart),
+                    ],
+                    if (insights.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      _insightsBlock(l, insights),
+                    ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -72,127 +98,291 @@ class AnalyticsCard extends StatelessWidget {
     );
   }
 
-  Widget _body() {
-    final kpis = _listOf('kpis');
-    final charts = _listOf('charts');
-    final insights = ((_data['insights'] as List?) ?? const [])
-        .map((e) => e.toString())
-        .toList(growable: false);
-
-    return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header
-            Row(
-              children: [
-                const Icon(Icons.insights_rounded, color: _gold, size: 18),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    _titleFor(_data['analysis_type']?.toString()),
-                    style: const TextStyle(
-                      color: _gold,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.1,
-                    ),
+  // ── Header: ✦ TITLE … time ─────────────────────────────────────────────────
+  Widget _header() {
+    final title = (_data['title']?.toString().toUpperCase() ??
+        _titleFor(_data['mode']?.toString() ?? _data['analysis_type']?.toString()));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: _gold, size: 16),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: _gold,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.4,
                   ),
                 ),
-                Text(
-                  message.timeLabel,
-                  style: const TextStyle(color: _textMuted, fontSize: 10),
-                ),
-              ],
-            ),
-
-            // KPI row
-            if (kpis.isNotEmpty) ...[
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 74,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: kpis.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (_, i) => _KpiTile(kpi: kpis[i]),
-                ),
               ),
+              Text(message.timeLabel,
+                  style: const TextStyle(color: _textMuted, fontSize: 10)),
             ],
-
-            // Narrative
-            if (message.text.trim().isNotEmpty) ...[
-              const SizedBox(height: 14),
-              Text(
-                message.text.trim(),
-                style: const TextStyle(
-                  color: _text,
-                  fontSize: 13.5,
-                  height: 1.55,
-                ),
-              ),
-            ],
-
-            // Charts
-            for (final chart in charts) ...[
-              const SizedBox(height: 18),
-              _ChartBlock(spec: chart),
-            ],
-
-            // Insights
-            if (insights.isNotEmpty) ...[
-              const SizedBox(height: 18),
-              const Text(
-                'KEY INSIGHTS',
-                style: TextStyle(
-                  color: _textMuted,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.4,
-                ),
-              ),
-              const SizedBox(height: 8),
-              for (final insight in insights)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 7),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        margin: const EdgeInsets.only(top: 6),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _gold,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          insight,
-                          style: const TextStyle(
-                            color: _text,
-                            fontSize: 12.5,
-                            height: 1.45,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ],
-        );
+          ),
+          const SizedBox(height: 10),
+          const Divider(height: 1, thickness: 1, color: _hairline),
+        ],
+      ),
+    );
   }
 
-  static String _titleFor(String? type) => switch (type) {
+  // ── KPI tiles (horizontal scroll when they overflow) ──────────────────────
+  Widget _kpiRow(List<Map<String, dynamic>> kpis) => SizedBox(
+        height: 68,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: EdgeInsets.zero,
+          itemCount: kpis.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
+          itemBuilder: (_, i) => _KpiTile(kpi: kpis[i]),
+        ),
+      );
+
+  // ── Narrative: Summary / Key findings / Recommendation ────────────────────
+  Widget _narrativeBlock(LanguageService l, _Narrative n) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (n.summary.isNotEmpty)
+            Text(
+              n.summary,
+              style: const TextStyle(
+                color: _gold,
+                fontSize: 13.5,
+                height: 1.45,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          if (n.findings.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              l.t('ava_key_findings'),
+              style: const TextStyle(
+                color: _textMuted,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+              ),
+            ),
+            const SizedBox(height: 7),
+            for (final f in n.findings) _bullet(f, dense: true),
+          ],
+          if (n.recommendation.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(11),
+              decoration: BoxDecoration(
+                color: _gold.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: RichText(
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '${l.t('ava_recommendation')} ',
+                      style: const TextStyle(
+                        color: _gold,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.4,
+                      ),
+                    ),
+                    TextSpan(
+                      text: n.recommendation,
+                      style: TextStyle(
+                        color: _text.withValues(alpha: 0.80),
+                        fontSize: 12.5,
+                        height: 1.45,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          // Prose that didn't follow the structured format still renders.
+          if (n.body.isNotEmpty)
+            Text(
+              n.body,
+              style: const TextStyle(color: _text, fontSize: 13, height: 1.5),
+            ),
+        ],
+      );
+
+  Widget _insightsBlock(LanguageService l, List<String> insights) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(12, 11, 12, 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1A1A),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: _hairline),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              l.t('ava_key_insights'),
+              style: const TextStyle(
+                color: _gold,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.4,
+              ),
+            ),
+            const SizedBox(height: 9),
+            for (final i in insights.take(5)) _bullet(i),
+          ],
+        ),
+      );
+
+  static Widget _bullet(String text, {bool dense = false}) => Padding(
+        padding: EdgeInsets.only(bottom: dense ? 6 : 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              margin: const EdgeInsets.only(top: 6),
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: _gold,
+              ),
+            ),
+            const SizedBox(width: 9),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: _text.withValues(alpha: 0.92),
+                  fontSize: dense ? 13 : 12,
+                  height: 1.45,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+
+  static String _titleFor(String? mode) => switch (mode) {
         'revenue' => 'REVENUE ANALYSIS',
-        'seasonal' => 'SEASONAL ANALYSIS',
-        'pricing_impact' => 'PRICING IMPACT ANALYSIS',
-        'vehicles' => 'VEHICLE PERFORMANCE',
+        'bookings' => 'BOOKING TRENDS',
+        'seasonal' => 'SEASONAL PATTERNS',
+        // 'pricing_impact' is the pre-mode name; still sent by older sessions.
+        'pricing' || 'pricing_impact' => 'PRICING IMPACT',
+        'vehicles' => 'FLEET PERFORMANCE',
         _ => 'BUSINESS REVIEW',
       };
 }
+
+// ─── Narrative parsing ──────────────────────────────────────────────────────
+
+/// Splits the backend's "Summary: … / Key findings: • … / Recommendation: …"
+/// narrative into its parts. Anything that doesn't match the shape (an older
+/// session, or a model that ignored the format) lands in [body] and still
+/// renders as plain prose — the card never drops text.
+class _Narrative {
+  final String summary;
+  final List<String> findings;
+  final String recommendation;
+  final String body;
+
+  const _Narrative({
+    this.summary = '',
+    this.findings = const [],
+    this.recommendation = '',
+    this.body = '',
+  });
+
+  bool get isEmpty =>
+      summary.isEmpty &&
+      findings.isEmpty &&
+      recommendation.isEmpty &&
+      body.isEmpty;
+
+  static final _summaryRe =
+      RegExp(r'^\s*summary\s*:\s*(.+)$', caseSensitive: false);
+  static final _findingsRe =
+      RegExp(r'^\s*key findings\s*:\s*(.*)$', caseSensitive: false);
+  static final _recRe =
+      RegExp(r'^\s*recommendations?\s*:\s*(.+)$', caseSensitive: false);
+  static final _bulletRe = RegExp(r'^\s*[•\-\*]\s*(.+)$');
+
+  static _Narrative parse(String raw) {
+    final text = raw.trim();
+    if (text.isEmpty) return const _Narrative();
+
+    var summary = '';
+    var recommendation = '';
+    final findings = <String>[];
+    final leftovers = <String>[];
+    var section = _Section.none;
+
+    for (final line in text.split('\n')) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty) continue;
+
+      final s = _summaryRe.firstMatch(trimmed);
+      if (s != null) {
+        summary = _clean(s.group(1)!);
+        section = _Section.summary;
+        continue;
+      }
+      final f = _findingsRe.firstMatch(trimmed);
+      if (f != null) {
+        final inline = _clean(f.group(1)!);
+        if (inline.isNotEmpty) findings.add(inline);
+        section = _Section.findings;
+        continue;
+      }
+      final r = _recRe.firstMatch(trimmed);
+      if (r != null) {
+        recommendation = _clean(r.group(1)!);
+        section = _Section.recommendation;
+        continue;
+      }
+
+      final b = _bulletRe.firstMatch(trimmed);
+      if (b != null) {
+        findings.add(_clean(b.group(1)!));
+        continue;
+      }
+
+      // Continuation of whichever section we're in.
+      switch (section) {
+        case _Section.summary:
+          summary = '$summary ${_clean(trimmed)}'.trim();
+        case _Section.recommendation:
+          recommendation = '$recommendation ${_clean(trimmed)}'.trim();
+        case _Section.findings:
+          findings.add(_clean(trimmed));
+        case _Section.none:
+          leftovers.add(_clean(trimmed));
+      }
+    }
+
+    return _Narrative(
+      summary: summary,
+      findings: findings.where((f) => f.isNotEmpty).toList(growable: false),
+      recommendation: recommendation,
+      body: leftovers.join('\n\n'),
+    );
+  }
+
+  /// Drops markdown emphasis the model occasionally emits despite the format
+  /// instruction, so it never shows as literal asterisks.
+  static String _clean(String s) =>
+      s.replaceAll('**', '').replaceAll('##', '').trim();
+}
+
+enum _Section { none, summary, findings, recommendation }
 
 // ─── KPI tile ───────────────────────────────────────────────────────────────
 
@@ -205,12 +395,15 @@ class _KpiTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final trend = kpi['trend']?.toString();
     final positive = kpi['positive'] != false;
+    final hasTrend = trend != null && trend.isNotEmpty;
+
     return Container(
-      width: 118,
-      padding: const EdgeInsets.all(10),
+      width: 112,
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
       decoration: BoxDecoration(
         color: _surfaceTile,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _hairline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,39 +416,43 @@ class _KpiTile extends StatelessWidget {
             style: const TextStyle(
               color: _textMuted,
               fontSize: 9,
-              fontWeight: FontWeight.w800,
+              fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 5),
           Text(
             kpi['value']?.toString() ?? '—',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
-              color: _text,
-              fontSize: 16,
+              color: Colors.white,
+              fontSize: 18,
               fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
             ),
           ),
-          if (trend != null && trend.isNotEmpty) ...[
+          if (hasTrend) ...[
             const SizedBox(height: 3),
             Row(
               children: [
                 Icon(
                   positive
-                      ? Icons.arrow_upward_rounded
-                      : Icons.arrow_downward_rounded,
-                  size: 11,
+                      ? Icons.arrow_drop_up_rounded
+                      : Icons.arrow_drop_down_rounded,
+                  size: 14,
                   color: positive ? _green : _red,
                 ),
-                const SizedBox(width: 3),
-                Text(
-                  trend,
-                  style: TextStyle(
-                    color: positive ? _green : _red,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Text(
+                    trend,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: positive ? _green : _red,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
@@ -274,318 +471,135 @@ class _ChartBlock extends StatelessWidget {
 
   const _ChartBlock({required this.spec});
 
-  List<({String label, double value})> get _points =>
-      ((spec['data'] as List?) ?? const [])
-          .whereType<Map>()
-          .map((e) => (
-                label: e['label']?.toString() ?? '',
-                value: (e['value'] as num?)?.toDouble() ?? 0.0,
-              ))
-          .toList(growable: false);
+  List<ChartPoint> get _points => ((spec['data'] as List?) ?? const [])
+      .whereType<Map>()
+      .map((e) => ChartPoint(
+            e['label']?.toString() ?? '',
+            (e['value'] as num?)?.toDouble() ?? 0.0,
+          ))
+      .toList(growable: false);
+
+  bool get _isEuro => spec['unit']?.toString() == 'eur';
+
+  Widget _chart({required bool expanded}) {
+    final points = _points;
+    return switch (spec['type']?.toString()) {
+      'pie' => GoldPieChart(
+          points: points,
+          legend: expanded ? PieLegend.below : PieLegend.beside,
+          holeColor: _chartSurface,
+        ),
+      'bar' => GoldBarChart(
+          points: points,
+          asEuro: _isEuro,
+          // A paired before/after series reads better in two alternating
+          // colours than as one gold run.
+          colors: spec['color_scheme'] == 'paired'
+              ? const [Color(0xFF4A90D9), _gold]
+              : (spec['color_scheme'] == 'mixed' ? kChartPalette : null),
+        ),
+      'area' => GoldAreaChart(points: points),
+      _ => GoldLineChart(
+          points: points,
+          asEuro: _isEuro,
+          highlight: spec['highlight']?.toString(),
+        ),
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
-    final points = _points;
-    if (points.isEmpty) return const SizedBox.shrink();
-    final type = spec['type']?.toString() ?? 'line';
-
-    final chart = switch (type) {
-      'pie' => _PieBlock(points: points),
-      'bar' => _barChart(points),
-      _ => _lineChart(points, isArea: type == 'area'),
-    };
+    if (_points.isEmpty) return const SizedBox.shrink();
     final title = spec['title']?.toString() ?? '';
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  color: _text,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _chartSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: _hairline),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-            // Charts are dense on a phone; expand gives them the full screen.
-            GestureDetector(
-              onTap: () => _openFullScreen(context, title, chart),
-              behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: Icon(Icons.open_in_full_rounded,
-                    size: 15, color: _gold.withValues(alpha: 0.8)),
+              // Charts are dense on a phone; expand gives them the full width.
+              GestureDetector(
+                onTap: () => _openFullScreen(context, title),
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 8),
+                  child: Icon(Icons.open_in_full_rounded,
+                      size: 14, color: _gold),
+                ),
               ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 220,
-          width: double.infinity,
-          child: chart,
-        ),
-      ],
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            height: 165,
+            width: double.infinity,
+            child: _chart(expanded: false),
+          ),
+        ],
+      ),
     );
   }
 
-  void _openFullScreen(BuildContext context, String title, Widget chart) {
+  void _openFullScreen(BuildContext context, String title) {
     showDialog<void>(
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.85),
-      builder: (dialogContext) => Dialog.fullscreen(
+      builder: (dialogContext) => Dialog(
         backgroundColor: _surface,
-        child: SafeArea(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 40),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(18, 12, 8, 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          color: _text,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        color: _text,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close_rounded, color: _textMuted),
-                      onPressed: () => Navigator.of(dialogContext).pop(),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 8, 18, 24),
-                  child: chart,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Show at most ~4 x-axis labels so they never overlap.
-  Widget _bottomLabel(List<({String label, double value})> points, double v) {
-    final i = v.round();
-    if (i < 0 || i >= points.length) return const SizedBox.shrink();
-    final step = (points.length / 4).ceil().clamp(1, 100);
-    if (i % step != 0 && i != points.length - 1) {
-      return const SizedBox.shrink();
-    }
-    var label = points[i].label;
-    if (label.length > 9) label = label.substring(0, 9);
-    return Padding(
-      padding: const EdgeInsets.only(top: 5),
-      child: Text(label,
-          style: const TextStyle(color: _textMuted, fontSize: 9)),
-    );
-  }
-
-  FlTitlesData _titles(List<({String label, double value})> points) =>
-      FlTitlesData(
-        topTitles:
-            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        rightTitles:
-            const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 40,
-            getTitlesWidget: (v, _) => Text(
-              v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}k' : v.toStringAsFixed(0),
-              style: const TextStyle(color: _textMuted, fontSize: 9),
-            ),
-          ),
-        ),
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 24,
-            interval: 1,
-            getTitlesWidget: (v, _) => _bottomLabel(points, v),
-          ),
-        ),
-      );
-
-  FlGridData get _grid => FlGridData(
-        show: true,
-        drawVerticalLine: false,
-        getDrawingHorizontalLine: (_) =>
-            const FlLine(color: Color(0x14FFFFFF), strokeWidth: 1),
-      );
-
-  Widget _lineChart(List<({String label, double value})> points,
-      {required bool isArea}) {
-    final highlight = spec['highlight']?.toString();
-    final blue = spec['color_scheme'] == 'blue';
-    final lineColor = blue ? const Color(0xFF4A90D9) : _gold;
-    return LineChart(
-      LineChartData(
-        gridData: _grid,
-        titlesData: _titles(points),
-        borderData: FlBorderData(show: false),
-        lineTouchData: LineTouchData(
-          touchTooltipData: LineTouchTooltipData(
-            getTooltipItems: (spots) => spots
-                .map((s) => LineTooltipItem(
-                      '${points[s.x.toInt()].label}\n${s.y.toStringAsFixed(0)}',
-                      const TextStyle(
-                          color: _text,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700),
-                    ))
-                .toList(),
-          ),
-        ),
-        lineBarsData: [
-          LineChartBarData(
-            spots: [
-              for (var i = 0; i < points.length; i++)
-                FlSpot(i.toDouble(), points[i].value),
-            ],
-            isCurved: true,
-            curveSmoothness: 0.3,
-            color: lineColor,
-            barWidth: 2.5,
-            dotData: FlDotData(
-              show: true,
-              checkToShowDot: (spot, _) =>
-                  highlight != null &&
-                  points[spot.x.toInt()].label == highlight,
-              getDotPainter: (spot, _, __, ___) => FlDotCirclePainter(
-                radius: 4,
-                color: lineColor,
-                strokeWidth: 2,
-                strokeColor: Colors.white,
-              ),
-            ),
-            belowBarData: BarAreaData(
-              show: true,
-              color: lineColor.withValues(alpha: isArea ? 0.22 : 0.08),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _barChart(List<({String label, double value})> points) {
-    final mixed = spec['color_scheme'] == 'mixed';
-    return BarChart(
-      BarChartData(
-        gridData: _grid,
-        titlesData: _titles(points),
-        borderData: FlBorderData(show: false),
-        barTouchData: BarTouchData(
-          touchTooltipData: BarTouchTooltipData(
-            getTooltipItem: (group, _, rod, __) => BarTooltipItem(
-              '${points[group.x].label}\n${rod.toY.toStringAsFixed(0)}',
-              const TextStyle(
-                  color: _text, fontSize: 11, fontWeight: FontWeight.w700),
-            ),
-          ),
-        ),
-        barGroups: [
-          for (var i = 0; i < points.length; i++)
-            BarChartGroupData(x: i, barRods: [
-              BarChartRodData(
-                toY: points[i].value,
-                width: (220 / points.length).clamp(6.0, 22.0),
-                borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(4)),
-                color: mixed
-                    ? _mixedPalette[i % _mixedPalette.length]
-                    : (i.isEven ? _gold : _goldDeep),
-              ),
-            ]),
-        ],
-      ),
-    );
-  }
-}
-
-class _PieBlock extends StatelessWidget {
-  final List<({String label, double value})> points;
-
-  const _PieBlock({required this.points});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: PieChart(
-            PieChartData(
-              sectionsSpace: 2,
-              centerSpaceRadius: 38,
-              sections: [
-                for (var i = 0; i < points.length; i++)
-                  PieChartSectionData(
-                    value: points[i].value <= 0 ? 0.01 : points[i].value,
-                    color: _mixedPalette[i % _mixedPalette.length],
-                    radius: i == 0 ? 56 : 48,
-                    title: '${points[i].value.toStringAsFixed(0)}%',
-                    titleStyle: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
                     ),
                   ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        // Legend
-        Expanded(
-          flex: 2,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var i = 0; i < points.length && i < 6; i++)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 9,
-                        height: 9,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _mixedPalette[i % _mixedPalette.length],
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          points[i].label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: _text, fontSize: 10.5),
-                        ),
-                      ),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded,
+                        color: _textMuted, size: 20),
+                    onPressed: () => Navigator.of(dialogContext).pop(),
                   ),
-                ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 320,
+                width: double.infinity,
+                child: _chart(expanded: true),
+              ),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 }

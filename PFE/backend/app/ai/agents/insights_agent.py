@@ -27,7 +27,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from app.ai.agents.shared import AgentState, _last_human_text, safe_tool_args, with_persona
-from app.ai.analysis_triggers import detect_analysis_type
+from app.ai.analysis_triggers import detect_analysis_mode
 from app.ai.model_router import get_model
 from app.ai.tool_registry import get_tools_for_role
 
@@ -38,6 +38,15 @@ _TOOLS = frozenset({
     "list_users",
     "run_business_analysis",
 })
+
+_WINDOW_MONTHS = {
+    "full_review": 12,
+    "seasonal": 12,
+    "pricing": 12,
+    "revenue": 6,
+    "bookings": 6,
+    "vehicles": 6,
+}
 
 
 async def insights_node(state: AgentState) -> dict:
@@ -50,18 +59,22 @@ async def insights_node(state: AgentState) -> dict:
     messages = state["messages"]
 
     # ── Business-analysis fast path (deterministic) ───────────────────────────
-    analysis_type = detect_analysis_type(_last_human_text(messages))
+    analysis_type = detect_analysis_mode(_last_human_text(messages))
     if analysis_type:
         tool_obj = next((t for t in tools if t.name == "run_business_analysis"), None)
         if tool_obj:
-            months = 12 if analysis_type in ("full_review", "seasonal",
-                                             "pricing_impact") else 6
+            # Seasonality and pricing correlation need a long window to say
+            # anything; revenue/booking/fleet questions read "recent" as ~6 months.
+            months = _WINDOW_MONTHS.get(analysis_type, 6)
             args = {"analysis_type": analysis_type, "months_back": months}
             result = await tool_obj.ainvoke(args)
             # Compact payload for the app (charts/KPIs/insights); the raw data
-            # stays server-side only.
+            # stays server-side only.  `mode` drives which layout the
+            # AnalyticsCard renders; analysis_type stays for older clients.
             payload = {
                 "analysis_type": result.get("analysis_type"),
+                "mode": result.get("mode", result.get("analysis_type")),
+                "title": result.get("title"),
                 "charts": result.get("charts", []),
                 "kpis": result.get("kpis", []),
                 "insights": result.get("insights", []),

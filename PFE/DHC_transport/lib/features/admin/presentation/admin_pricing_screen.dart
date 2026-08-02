@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/language_service.dart';
 import '../../../core/services/transport_api_client.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../widgets/common/luxury_skeleton.dart';
 
 /// Admin Pricing — per-vehicle pricing parameters dashboard.
@@ -67,52 +69,34 @@ class _AdminPricingScreenState extends State<AdminPricingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: Icon(Icons.arrow_back_rounded,
-                        color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Vehicle Pricing',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _load,
-                    icon: Icon(Icons.refresh_rounded,
-                        color: AppColors.accentText),
-                  ),
-                ],
-              ),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AdminTopBar(
+            title: LanguageService.instance.t('admin_qa_pricing'),
+            showBack: true,
+            action: IconButton(
+              onPressed: _load,
+              icon:
+                  Icon(Icons.refresh_rounded, color: AppColors.accentText),
+              splashRadius: 22,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'Live rates from the Chauffeur Booking System model. '
-                'Tap a vehicle to edit its parameters.',
-                style: TextStyle(color: AppColors.textMuted, fontSize: 13),
-              ),
+          ),
+          const SizedBox(height: 14),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'Live rates from the Chauffeur Booking System model. '
+              'Tap a vehicle to edit its parameters.',
+              style: TextStyle(color: AppColors.textMuted, fontSize: 13),
             ),
-            const SizedBox(height: 12),
-            Expanded(child: _body()),
-          ],
-        ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(child: _body()),
+        ],
       ),
     );
   }

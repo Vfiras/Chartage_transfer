@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
+import '../../../core/services/language_service.dart';
 import '../../../core/services/transport_api_client.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../widgets/common/luxury_skeleton.dart';
 
 /// Admin Complaints — full management screen.
@@ -98,40 +100,25 @@ class _AdminComplaintsScreenState extends State<AdminComplaintsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 6),
-              child: Row(
-                children: [
-                  IconButton(
-                    onPressed: () => Navigator.of(context).maybePop(),
-                    icon: Icon(Icons.arrow_back_rounded,
-                        color: AppColors.textPrimary),
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      'Complaints',
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _load,
-                    icon: Icon(Icons.refresh_rounded,
-                        color: AppColors.accentText),
-                  ),
-                ],
+            AdminTopBar(
+              title: LanguageService.instance.t('admin_qa_complaints'),
+              showBack: true,
+              action: IconButton(
+                onPressed: _load,
+                icon:
+                    Icon(Icons.refresh_rounded, color: AppColors.accentText),
+                splashRadius: 22,
               ),
             ),
+            const SizedBox(height: 12),
             SizedBox(
               height: 40,
               child: ListView(

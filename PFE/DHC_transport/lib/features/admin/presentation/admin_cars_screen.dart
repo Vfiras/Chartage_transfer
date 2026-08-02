@@ -4,11 +4,19 @@ import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/language_service.dart';
 import '../../../core/services/transport_api_client.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../widgets/common/fallback_network_image.dart';
 import '../../../widgets/common/luxury_skeleton.dart';
 
 class AdminCarsScreen extends StatefulWidget {
-  const AdminCarsScreen({super.key});
+  final int unreadCount;
+  final VoidCallback? onOpenNotifications;
+
+  const AdminCarsScreen({
+    super.key,
+    this.unreadCount = 0,
+    this.onOpenNotifications,
+  });
 
   @override
   State<AdminCarsScreen> createState() => _AdminCarsScreenState();
@@ -135,15 +143,22 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
   Widget build(BuildContext context) {
     AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
     final l = LanguageService.instance;
-    return SafeArea(
-      child: RefreshIndicator(
-        color: AppColors.secondary,
-        backgroundColor: AppColors.surface,
-        onRefresh: _load,
-        child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
-          children: [
+    return Column(
+      children: [
+        AdminTopBar(
+          title: l.t('admin_fleet_title'),
+          unreadCount: widget.unreadCount,
+          onNotificationTap: widget.onOpenNotifications,
+        ),
+        Expanded(
+          child: RefreshIndicator(
+            color: AppColors.secondary,
+            backgroundColor: AppColors.surface,
+            onRefresh: _load,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 130),
+              children: [
             Row(
               children: [
                 Expanded(
@@ -206,9 +221,11 @@ class _AdminCarsScreenState extends State<AdminCarsScreen> {
                 ),
                 const SizedBox(height: 14),
               ],
-          ],
+              ],
+            ),
+          ),
         ),
-      ),
+      ],
     );
   }
 }

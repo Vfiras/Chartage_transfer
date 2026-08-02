@@ -1,14 +1,13 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/models/transport_trip.dart';
-import '../../../core/services/auth_service.dart';
 import '../../../core/services/language_service.dart';
 import '../../../core/services/transport_api_client.dart';
 import '../../../core/services/trip_service.dart';
-import '../../../widgets/common/fallback_network_image.dart';
+import '../../../shared/widgets/admin/admin_charts.dart';
+import '../../../shared/widgets/admin/admin_top_bar.dart';
 import '../../../widgets/common/luxury_skeleton.dart';
 
 // ─── Local palette helpers ─────────────────────────────────────────────────────
@@ -38,6 +37,8 @@ class AdminDashboardScreen extends StatefulWidget {
   final VoidCallback? onOpenComplaints;
   final VoidCallback? onOpenSuppliers;
   final VoidCallback? onOpenRecommendations;
+  final VoidCallback? onOpenNotifications;
+  final int unreadCount;
 
   const AdminDashboardScreen({
     super.key,
@@ -48,6 +49,8 @@ class AdminDashboardScreen extends StatefulWidget {
     this.onOpenComplaints,
     this.onOpenSuppliers,
     this.onOpenRecommendations,
+    this.onOpenNotifications,
+    this.unreadCount = 0,
   });
 
   @override
@@ -221,7 +224,18 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
     return Column(
       children: [
-        _TopBar(onMenu: _openMenu),
+        AdminTopBar(
+          title: l.t('admin_dashboard_title'),
+          unreadCount: widget.unreadCount,
+          onNotificationTap: widget.onOpenNotifications,
+          // The menu reaches the screens that are not nav tabs.
+          action: IconButton(
+            icon: Icon(Icons.menu_rounded,
+                color: AppColors.secondary, size: 23),
+            splashRadius: 22,
+            onPressed: _openMenu,
+          ),
+        ),
         Expanded(
           child: RefreshIndicator(
             color: AppColors.secondary,
@@ -324,78 +338,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           ),
         ),
       ],
-    );
-  }
-}
-
-// ─── Top bar ───────────────────────────────────────────────────────────────────
-
-class _TopBar extends StatelessWidget {
-  final VoidCallback onMenu;
-
-  const _TopBar({required this.onMenu});
-
-  @override
-  Widget build(BuildContext context) {
-    final avatarUrl = AuthService.instance.currentUser?.avatarUrl;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.background.withValues(alpha: 0.85),
-        border: Border(
-          bottom: BorderSide(color: _hairline(context)),
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-          child: Row(
-            children: [
-              GestureDetector(
-                onTap: onMenu,
-                behavior: HitTestBehavior.opaque,
-                child: Icon(Icons.menu_rounded,
-                    color: AppColors.secondary, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'CARTHAGE TRANSFER · ${LanguageService.instance.t('admin_dashboard_title')}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.secondary,
-                    fontSize: 17,
-                    height: 1.2,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.3,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: _hairline(context)),
-                ),
-                child: ClipOval(
-                  child: (avatarUrl == null || avatarUrl.isEmpty)
-                      ? Container(
-                          color: _inner(context),
-                          alignment: Alignment.center,
-                          child: Icon(Icons.person_rounded,
-                              color: AppColors.secondary, size: 20),
-                        )
-                      : FallbackNetworkImage(
-                          url: avatarUrl, fit: BoxFit.cover),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
@@ -852,96 +794,18 @@ class _TrendChart extends StatelessWidget {
       );
     }
 
-    final maxCount = data.fold<double>(1, (m, e) {
-      final c = ((e['count'] as num?) ?? 0).toDouble();
-      return c > m ? c : m;
-    });
-
+    // Shared primitive — identical styling to AVA's analytics charts.
     return SizedBox(
       height: 200,
-      child: BarChart(
-        BarChartData(
-          alignment: BarChartAlignment.spaceAround,
-          maxY: maxCount * 1.2,
-          borderData: FlBorderData(show: false),
-          gridData: FlGridData(
-            show: true,
-            drawVerticalLine: false,
-            horizontalInterval: (maxCount / 4).clamp(1, double.infinity),
-            getDrawingHorizontalLine: (_) => FlLine(
-              color: _isDark(context)
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.05),
-              strokeWidth: 1,
-            ),
-          ),
-          titlesData: FlTitlesData(
-            topTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            rightTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            leftTitles:
-                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 26,
-                getTitlesWidget: (v, _) {
-                  final i = v.toInt();
-                  if (i < 0 || i >= data.length) return const SizedBox();
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 8),
-                    child: Text(
-                      _weekday(data[i]['date']?.toString() ?? ''),
-                      style: TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        letterSpacing: 0.4,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          barTouchData: BarTouchData(
-            touchTooltipData: BarTouchTooltipData(
-              getTooltipItem: (group, _, rod, __) => BarTooltipItem(
-                '${rod.toY.toInt()}',
-                const TextStyle(
-                  color: Color(0xFFFFFCF3),
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ),
-          barGroups: [
-            for (var i = 0; i < data.length; i++)
-              BarChartGroupData(
-                x: i,
-                barRods: [
-                  BarChartRodData(
-                    toY: ((data[i]['count'] as num?) ?? 0).toDouble(),
-                    width: 18,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(3),
-                    ),
-                    // Solid gold fading downward, as in the design.
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.secondary,
-                        AppColors.secondary.withValues(alpha: 0.20),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
+      child: GoldBarChart(
+        points: [
+          for (final e in data)
+            ChartPoint(e['date']?.toString() ?? '',
+                ((e['count'] as num?) ?? 0).toDouble()),
+        ],
+        showLeftAxis: false,
+        barWidth: 18,
+        labelFormat: _weekday,
       ),
     );
   }
@@ -1078,15 +942,6 @@ class _RevenueSplit extends StatelessWidget {
 
   const _RevenueSplit({required this.analytics});
 
-  static const _palette = [
-    AppColors.secondary,
-    Color(0xFF14B8A6),
-    Color(0xFFF59E0B),
-    Color(0xFF3B82F6),
-    Color(0xFF7B5EA7),
-    Color(0xFF10B981),
-  ];
-
   @override
   Widget build(BuildContext context) {
     final l = LanguageService.instance;
@@ -1110,56 +965,20 @@ class _RevenueSplit extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        SizedBox(
-          height: 150,
-          child: PieChart(
-            PieChartData(
-              sectionsSpace: 0,
-              // Donut hole punched in the card colour, matching the design.
-              centerSpaceRadius: 38,
-              centerSpaceColor: _card(context),
-              sections: [
-                for (var i = 0; i < byCat.length; i++)
-                  PieChartSectionData(
-                    value: ((byCat[i]['revenue'] as num?) ?? 0).toDouble(),
-                    color: _palette[i % _palette.length],
-                    radius: 28,
-                    showTitle: false,
-                  ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 14,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < byCat.length; i++)
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    color: _palette[i % _palette.length],
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    byCat[i]['category']?.toString() ?? '—',
-                    style: TextStyle(
-                      color: AppColors.textSecondary,
-                      fontSize: 11.5,
-                    ),
-                  ),
-                ],
-              ),
-          ],
-        ),
-      ],
+    // Shared primitive — identical styling to AVA's analytics charts.
+    return SizedBox(
+      height: 210,
+      child: GoldPieChart(
+        points: [
+          for (final e in byCat)
+            ChartPoint(e['category']?.toString() ?? '—',
+                ((e['revenue'] as num?) ?? 0).toDouble()),
+        ],
+        legend: PieLegend.below,
+        // Donut hole punched in the card colour, matching the design.
+        holeColor: _card(context),
+        showPercentages: false,
+      ),
     );
   }
 }

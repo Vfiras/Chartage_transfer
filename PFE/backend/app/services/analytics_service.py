@@ -280,3 +280,120 @@ async def get_kpi_summary() -> dict:
         "revenue_growth_yoy": yoy,
         "currency": "EUR",
     }
+
+
+# ── Booking statistics ─────────────────────────────────────────────────────────
+
+async def get_booking_stats(months_back: int = 6) -> dict:
+    """Volume-side counterpart to the revenue KPIs: status mix, completion and
+    cancellation rates, and the per-vehicle booking split (any status — this
+    measures demand, not realised revenue)."""
+    cutoff = datetime.now(timezone.utc) - timedelta(days=31 * months_back)
+    statuses: dict[str, int] = defaultdict(int)
+    by_vehicle: dict[str, int] = defaultdict(int)
+    in_window = 0
+
+    for b in await _all_bookings():
+        dt = _booking_dt(b)
+        if dt and dt < cutoff:
+            continue
+        in_window += 1
+        statuses[str(b.get("status") or "unknown")] += 1
+        by_vehicle[b.get("vehicle_class") or b.get("vehicle_type") or "Unknown"] += 1
+
+    completed = statuses.get("completed", 0)
+    cancelled = statuses.get("cancelled", 0)
+    total = in_window or 1
+
+    return {
+        "total": in_window,
+        "completed": completed,
+        "cancelled": cancelled,
+        "pending": statuses.get("pending", 0) + statuses.get("pending_approval", 0),
+        "confirmed": statuses.get("confirmed", 0),
+        "on_route": statuses.get("on_route", 0),
+        "completion_rate": round(completed / total * 100, 1),
+        "cancellation_rate": round(cancelled / total * 100, 1),
+        "by_status": dict(statuses),
+        "by_vehicle": [
+            {"vehicle": v, "bookings": n}
+            for v, n in sorted(by_vehicle.items(), key=lambda kv: kv[1], reverse=True)
+        ],
+    }
+
+
+# ── Named aliases used by the mode dispatcher ──────────────────────────────────
+#
+# The aggregation implementations above predate the mode split; these names
+# describe what each one contributes to a specific analysis mode.
+
+get_revenue_metrics = get_kpi_summary
+get_revenue_by_category = get_revenue_by_vehicle_category
+get_pricing_impact = get_pricing_impact_analysis
+get_seasonal_trends = get_seasonal_analysis
+get_weekly_volume = get_booking_volume_trend
+
+
+async def get_completed_bookings_per_month(months_back: int = 6) -> list[dict]:
+    """Completed-booking counts per month (drops the revenue column)."""
+    return [
+        {"month": r["month"], "bookings": r["booking_count"]}
+        for r in await get_revenue_by_month(months_back)
+    ]
+
+
+# ── Mode dispatcher ────────────────────────────────────────────────────────────
+
+MODES = ("full_review", "revenue", "bookings", "pricing", "seasonal", "vehicles")
+
+# Legacy analysis_type values still accepted from stored sessions / older clients.
+_MODE_ALIASES = {"pricing_impact": "pricing", "vehicle": "vehicles",
+                 "booking": "bookings", "full": "full_review"}
+
+
+def normalise_mode(mode: str | None) -> str:
+    """Map any incoming analysis_type to one of MODES (default full_review)."""
+    m = (mode or "").strip().lower()
+    m = _MODE_ALIASES.get(m, m)
+    return m if m in MODES else "full_review"
+
+
+async def collect(mode: str, months_back: int = 6) -> dict:
+    """Run ONLY the aggregations a given analysis mode needs.
+
+    Each mode returns a different set of keys — that difference is what makes
+    the six analyses read differently instead of repeating one generic blob.
+    """
+    mode = normalise_mode(mode)
+    data: dict = {"mode": mode}
+
+    if mode == "full_review":
+        data["kpi"] = await get_revenue_metrics()
+        data["booking_stats"] = await get_booking_stats(months_back)
+        data["revenue_by_month"] = await get_revenue_by_month(months_back)
+        data["revenue_by_category"] = await get_revenue_by_category(months_back)
+        data["booking_volume"] = await get_weekly_volume(months_back)
+        data["seasonal"] = await get_seasonal_trends()
+        data["pricing_impact"] = await get_pricing_impact()
+
+    elif mode == "revenue":
+        data["kpi"] = await get_revenue_metrics()
+        data["revenue_by_month"] = await get_revenue_by_month(months_back)
+        data["revenue_by_category"] = await get_revenue_by_category(months_back)
+
+    elif mode == "bookings":
+        data["booking_stats"] = await get_booking_stats(months_back)
+        data["bookings_per_month"] = await get_completed_bookings_per_month(months_back)
+
+    elif mode == "pricing":
+        data["pricing_impact"] = await get_pricing_impact()
+
+    elif mode == "seasonal":
+        data["seasonal"] = await get_seasonal_trends()
+        data["booking_volume"] = await get_weekly_volume(months_back)
+
+    elif mode == "vehicles":
+        data["revenue_by_category"] = await get_revenue_by_category(months_back)
+        data["booking_stats"] = await get_booking_stats(months_back)
+
+    return data
