@@ -130,6 +130,20 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
         _ => 'Status updated',
       };
 
+  /// Full manual status control. There is no driver app pushing progress, so
+  /// the admin is the only actor who can move a booking along — every status
+  /// is reachable from every other one.
+  Future<void> _pickStatus(TransportTrip trip) async {
+    if (_busy) return;
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _StatusPickerSheet(current: trip.status),
+    );
+    if (picked == null || picked == trip.status || !mounted) return;
+    await _updateStatus(trip, picked);
+  }
+
   // ── Edit ─────────────────────────────────────────────────────────────────────
 
   Future<void> _edit(TransportTrip trip) async {
@@ -326,6 +340,8 @@ class _AdminBookingsScreenState extends State<AdminBookingsScreen> {
                                     _updateStatus(trip, 'confirmed'),
                                 onReject: () =>
                                     _updateStatus(trip, 'cancelled'),
+                                onAdvance: (s) => _updateStatus(trip, s),
+                                onPickStatus: () => _pickStatus(trip),
                               ),
                               const SizedBox(height: 16),
                             ],
@@ -512,6 +528,81 @@ class _StatusChip extends StatelessWidget {
   }
 }
 
+// ─── Status picker ─────────────────────────────────────────────────────────────
+
+/// Manual override for a booking's status. Every status is selectable in any
+/// order — there is no driver app to report progress, so the admin needs to be
+/// able to correct a booking to any state, not just walk it forward.
+class _StatusPickerSheet extends StatelessWidget {
+  final String current;
+
+  const _StatusPickerSheet({required this.current});
+
+  static const _options = [
+    ('pending', 'admin_st_pending', Icons.schedule_rounded, Color(0xFFF59E0B)),
+    ('confirmed', 'admin_st_confirmed', Icons.check_circle_outline_rounded,
+        Color(0xFF10B981)),
+    ('on_route', 'admin_st_on_route', Icons.navigation_outlined,
+        Color(0xFF3B82F6)),
+    ('completed', 'admin_st_completed', Icons.flag_outlined, Color(0xFF14B8A6)),
+    ('cancelled', 'admin_st_cancelled', Icons.cancel_outlined,
+        Color(0xFFE07A7A)),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
+        decoration: BoxDecoration(
+          color: _card(context),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _hairline(context)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+              child: Text(
+                l.t('admin_change_status'),
+                style: TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            for (final (value, key, icon, colour) in _options)
+              ListTile(
+                dense: true,
+                leading: Icon(icon, color: colour, size: 20),
+                title: Text(
+                  l.t(key),
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 14.5,
+                    fontWeight:
+                        value == current ? FontWeight.w700 : FontWeight.w500,
+                  ),
+                ),
+                trailing: value == current
+                    ? Icon(Icons.check_rounded,
+                        color: AppColors.secondary, size: 19)
+                    : null,
+                onTap: () => Navigator.of(context).pop(value),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 // ─── Booking card ──────────────────────────────────────────────────────────────
 
 class _BookingCard extends StatelessWidget {
@@ -521,6 +612,8 @@ class _BookingCard extends StatelessWidget {
   final VoidCallback onDelete;
   final VoidCallback onApprove;
   final VoidCallback onReject;
+  final ValueChanged<String> onAdvance;
+  final VoidCallback onPickStatus;
 
   const _BookingCard({
     required this.trip,
@@ -529,12 +622,28 @@ class _BookingCard extends StatelessWidget {
     required this.onDelete,
     required this.onApprove,
     required this.onReject,
+    required this.onAdvance,
+    required this.onPickStatus,
   });
+
+  /// The next step in the booking lifecycle: (status, label key, icon).
+  /// Null once the booking reaches a terminal state, or while it is still
+  /// awaiting payment approval (Approve/Reject own that decision).
+  static (String, String, IconData)? advanceStep(TransportTrip trip) {
+    if (trip.isPendingApproval) return null;
+    return switch (trip.status) {
+      'pending' => ('confirmed', 'admin_adv_confirm', Icons.check_circle_outline_rounded),
+      'confirmed' => ('on_route', 'admin_adv_start', Icons.navigation_outlined),
+      'on_route' => ('completed', 'admin_adv_complete', Icons.flag_outlined),
+      _ => null, // completed / cancelled are terminal
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
     final l = LanguageService.instance;
     final awaiting = trip.isPendingApproval;
+    final advance = advanceStep(trip);
 
     return Container(
       clipBehavior: Clip.hardEdge,
@@ -673,11 +782,37 @@ class _BookingCard extends StatelessWidget {
                     const SizedBox(height: 14),
 
                     // ── Status ──────────────────────────────────────────
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: _StatusChip(trip: trip),
+                    // The chip is the entry point to manual status control:
+                    // with no driver app, the admin moves every booking along.
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: onPickStatus,
+                          behavior: HitTestBehavior.opaque,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _StatusChip(trip: trip),
+                              const SizedBox(width: 6),
+                              Icon(Icons.unfold_more_rounded,
+                                  size: 16, color: AppColors.textMuted),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
+
+                    // ── Advance to the next stage ───────────────────────
+                    if (advance != null) ...[
+                      _CardButton(
+                        icon: advance.$3,
+                        label: l.t(advance.$2),
+                        tone: _ButtonTone.gold,
+                        onTap: () => onAdvance(advance.$1),
+                      ),
+                      const SizedBox(height: 10),
+                    ],
 
                     // ── Actions ─────────────────────────────────────────
                     if (awaiting) ...[

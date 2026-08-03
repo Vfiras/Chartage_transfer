@@ -67,6 +67,13 @@ KEEPALIVE_INTERVAL = 3.5  # seconds between keep-alive token events
 # the chat bubble; the real error is logged server-side only.
 _FRIENDLY_ERROR = "AVA is temporarily unavailable. Please try again in a moment."
 
+# Quota is a daily budget, not a blip — a distinct message stops the user
+# retrying in a loop against a limit that will not clear until tomorrow.
+_QUOTA_ERROR = (
+    "AVA has reached today's request limit and will be back tomorrow. "
+    "Everything else in the app works as normal."
+)
+
 
 # ---------------------------------------------------------------------------
 # Supervisor singleton — one compiled graph per process
@@ -151,7 +158,14 @@ async def _stream_supervisor(
             # its raw dict into the stream.  Log the real cause, emit only the
             # friendly constant.
             print(f"[assistant.chat] supervisor failed; raw error: {exc!r}")
-            await queue.put(("error", _FRIENDLY_ERROR))
+            # Quota exhaustion gets its own wording — it is not transient
+            # within the day, so telling the user to retry "in a moment" is
+            # actively misleading. Still a fixed constant; no provider detail.
+            from app.ai.model_router import is_quota_error
+
+            await queue.put(
+                ("error", _QUOTA_ERROR if is_quota_error(exc) else _FRIENDLY_ERROR)
+            )
         finally:
             await queue.put(("eof", None))
 
@@ -173,9 +187,13 @@ async def _stream_supervisor(
                 break
 
             if kind == "error":
-                # Never forward `payload` verbatim — force the friendly constant
-                # so no raw provider error can ever reach the chat bubble.
-                yield _sse("error", _FRIENDLY_ERROR)
+                # Only ever one of our own two constants — a raw provider
+                # error can never reach the chat bubble.
+                yield _sse(
+                    "error",
+                    payload if payload in (_FRIENDLY_ERROR, _QUOTA_ERROR)
+                    else _FRIENDLY_ERROR,
+                )
                 break
 
             # kind == "chunk": one dict per completed graph node

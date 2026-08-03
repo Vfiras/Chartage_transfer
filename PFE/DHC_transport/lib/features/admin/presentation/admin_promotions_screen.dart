@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/language_service.dart';
@@ -16,6 +17,8 @@ class AdminPromotionsScreen extends StatefulWidget {
 
 class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
   List<Map<String, dynamic>> _promos = [];
+  Map<String, dynamic>? _loyalty;
+  String _scope = 'all';
   bool _loading = true;
   String? _error;
 
@@ -32,10 +35,19 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
     });
     try {
       final res = await TransportApiClient.instance.get('/promotions/');
+      // The loyalty summary is supporting context — a failure there must not
+      // blank the promo list, so it is fetched separately and tolerated.
+      Map<String, dynamic>? loyalty;
+      try {
+        loyalty = await TransportApiClient.instance.get('/promotions/loyalty');
+      } catch (_) {
+        loyalty = null;
+      }
       if (!mounted) return;
       setState(() {
         _promos =
             ((res['promotions'] as List?) ?? []).cast<Map<String, dynamic>>();
+        _loyalty = loyalty;
         _loading = false;
       });
     } catch (e) {
@@ -46,6 +58,15 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
       });
     }
   }
+
+  /// Codes matching the selected scope. 'campaign' = global marketing codes the
+  /// admin creates; 'member' = tier/welcome/referral codes the loyalty
+  /// programme mints for one client.
+  List<Map<String, dynamic>> get _visible => switch (_scope) {
+        'campaign' => _promos.where((p) => p['scope'] != 'member').toList(),
+        'member' => _promos.where((p) => p['scope'] == 'member').toList(),
+        _ => _promos,
+      };
 
   Future<void> _toggle(String id) async {
     try {
@@ -109,12 +130,13 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
   @override
   Widget build(BuildContext context) {
     AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
+    final l = LanguageService.instance;
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Column(
         children: [
           AdminTopBar(
-            title: LanguageService.instance.t('admin_qa_promotions'),
+            title: l.t('admin_qa_promotions'),
             showBack: true,
           ),
           Expanded(
@@ -166,29 +188,270 @@ class _AdminPromotionsScreenState extends State<AdminPromotionsScreen> {
               )
             else if (_error != null)
               _ErrorView(message: _error!, onRetry: _load)
-            else if (_promos.isEmpty)
-              const _EmptyView(
-                icon: Icons.local_offer_outlined,
-                message: 'No promotions yet.',
-              )
-            else
-              for (final promo in _promos) ...[
-                _PromoCard(
-                  promo: promo,
-                  onEdit: () => _openForm(promo: promo),
-                  onToggle: () => _toggle(promo['_id']?.toString() ?? ''),
-                  onDelete: () => _delete(
-                    promo['_id']?.toString() ?? '',
-                    promo['code']?.toString() ?? '',
-                  ),
-                ),
-                const SizedBox(height: 12),
+            else ...[
+              if (_loyalty != null) ...[
+                _LoyaltySummary(data: _loyalty!),
+                const SizedBox(height: 18),
               ],
+              _ScopeTabs(
+                scope: _scope,
+                campaignCount:
+                    _promos.where((p) => p['scope'] != 'member').length,
+                memberCount:
+                    _promos.where((p) => p['scope'] == 'member').length,
+                onChanged: (s) => setState(() => _scope = s),
+              ),
+              const SizedBox(height: 16),
+              if (_visible.isEmpty)
+                _EmptyView(
+                  icon: Icons.local_offer_outlined,
+                  message: _scope == 'member'
+                      ? l.t('admin_no_member_codes')
+                      : l.t('admin_no_promos'),
+                )
+              else
+                for (final promo in _visible) ...[
+                  _PromoCard(
+                    promo: promo,
+                    onEdit: () => _openForm(promo: promo),
+                    onToggle: () => _toggle(promo['_id']?.toString() ?? ''),
+                    onDelete: () => _delete(
+                      promo['_id']?.toString() ?? '',
+                      promo['code']?.toString() ?? '',
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+            ],
                 ],
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Loyalty summary ──────────────────────────────────────────────────────────
+
+/// Programme-wide loyalty state. Points here are derived by the same rule the
+/// client app uses (completed trips x 10), so admin and client can never
+/// disagree about a member's tier.
+class _LoyaltySummary extends StatelessWidget {
+  final Map<String, dynamic> data;
+
+  const _LoyaltySummary({required this.data});
+
+  static const _tierColours = {
+    'Bronze': Color(0xFFB08D57),
+    'Silver': Color(0xFFA8A9AD),
+    'Gold': Color(0xFFC8A96B),
+    'Black': Color(0xFF6E6E73),
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final tiers = (data['tiers'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final members = (data['total_members'] as num?)?.toInt() ?? 0;
+    final referred = (data['referred_signups'] as num?)?.toInt() ?? 0;
+    final pending = (data['pending_referrals'] as num?)?.toInt() ?? 0;
+
+    return AdminCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.workspace_premium_rounded,
+                  color: AppColors.secondary, size: 18),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  l.t('admin_loyalty_programme'),
+                  style: TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                l.t('admin_loyalty_members', args: {'n': '$members'}),
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final entry in tiers.entries)
+                _TierPill(
+                  tier: entry.key,
+                  count: (entry.value as num?)?.toInt() ?? 0,
+                  colour: _tierColours[entry.key] ?? AppColors.textMuted,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Divider(color: AppColors.surfaceElevated, height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _MiniStat(
+                  label: l.t('admin_loyalty_referred'),
+                  value: '$referred',
+                ),
+              ),
+              Expanded(
+                child: _MiniStat(
+                  label: l.t('admin_loyalty_pending'),
+                  value: '$pending',
+                ),
+              ),
+              Expanded(
+                child: _MiniStat(
+                  label: l.t('admin_loyalty_member_codes'),
+                  value: '${(data['member_codes'] as num?)?.toInt() ?? 0}',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TierPill extends StatelessWidget {
+  final String tier;
+  final int count;
+  final Color colour;
+
+  const _TierPill(
+      {required this.tier, required this.count, required this.colour});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
+      decoration: BoxDecoration(
+        color: colour.withValues(alpha: 0.13),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: colour.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 7,
+            height: 7,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: colour),
+          ),
+          const SizedBox(width: 7),
+          Text(
+            '$tier  $count',
+            style: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MiniStat extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _MiniStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          value,
+          style: TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          maxLines: 2,
+          style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Scope tabs ───────────────────────────────────────────────────────────────
+
+class _ScopeTabs extends StatelessWidget {
+  final String scope;
+  final int campaignCount;
+  final int memberCount;
+  final ValueChanged<String> onChanged;
+
+  const _ScopeTabs({
+    required this.scope,
+    required this.campaignCount,
+    required this.memberCount,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final tabs = [
+      ('all', l.t('admin_scope_all'), campaignCount + memberCount),
+      ('campaign', l.t('admin_scope_campaign'), campaignCount),
+      ('member', l.t('admin_scope_member'), memberCount),
+    ];
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: tabs.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final (value, label, count) = tabs[i];
+          final selected = value == scope;
+          return GestureDetector(
+            onTap: () => onChanged(value),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color:
+                    selected ? AppColors.secondary : AppColors.surfaceElevated,
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                '$label ($count)',
+                style: TextStyle(
+                  color: selected
+                      ? const Color(0xFF141313)
+                      : AppColors.textSecondary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -211,14 +474,21 @@ class _PromoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = LanguageService.instance;
     final active = promo['active'] == true;
     final discountType = promo['discount_type']?.toString() ?? 'percentage';
     final value = promo['value'];
     final valueLabel = discountType == 'percentage'
         ? '${value?.toString() ?? '0'}%'
-        : '${value?.toString() ?? '0'} DT';
+        : '${value?.toString() ?? '0'} EUR';
     final usageCount = promo['usage_count'] ?? 0;
     final usageLimit = promo['usage_limit'] ?? 0;
+    // Member codes are minted by the loyalty programme for one client. Editing
+    // one would desync it from the tier that issued it, so the backend refuses
+    // — the card hides Edit rather than offering an action that will fail.
+    final isMember = promo['scope'] == 'member';
+    final owner = promo['owner_name']?.toString();
+    final origin = promo['origin']?.toString() ?? 'campaign';
     final expiry = promo['expiry_date']?.toString();
 
     return AdminCard(
@@ -227,24 +497,30 @@ class _PromoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  promo['code']?.toString() ?? '',
-                  style: TextStyle(
-                    color: AppColors.secondary,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1.2,
+              // Generated codes (BRONZE2623-YTJ4, WELCOME10-A6Q5) are long
+              // enough to push the actions off-screen — let the chip shrink.
+              Flexible(
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondary.withValues(alpha: 0.14),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    promo['code']?.toString() ?? '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.secondary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.2,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -261,35 +537,64 @@ class _PromoCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
-              IconButton(
-                icon: Icon(Icons.edit_rounded,
-                    color: AppColors.textSecondary, size: 18),
-                onPressed: onEdit,
-                tooltip: 'Edit',
-              ),
+              if (!isMember)
+                IconButton(
+                  icon: Icon(Icons.edit_rounded,
+                      color: AppColors.textSecondary, size: 18),
+                  onPressed: onEdit,
+                  tooltip: 'Edit',
+                  visualDensity: VisualDensity.compact,
+                ),
               IconButton(
                 icon: Icon(Icons.delete_outline_rounded,
                     color: Color(0xFFEF4444), size: 18),
                 onPressed: onDelete,
-                tooltip: 'Delete',
+                tooltip: isMember ? 'Revoke' : 'Delete',
+                visualDensity: VisualDensity.compact,
               ),
             ],
           ),
+          // Who this private code belongs to, and what issued it — without
+          // this the admin just sees an unexplained BRONZE2623-YTJ4.
+          if (isMember) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _OriginBadge(origin: origin),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    owner == null || owner.isEmpty
+                        ? l.t('admin_member_code')
+                        : owner,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 12),
-          Row(
+          // Wrap, not Row: the expiry chip is wide and would otherwise
+          // overflow beside the usage chip on a narrow phone.
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _InfoChip(
                 icon: Icons.bar_chart_rounded,
                 label: '$usageCount / $usageLimit uses',
               ),
-              if (expiry != null) ...[
-                const SizedBox(width: 8),
+              if (expiry != null)
                 _InfoChip(
                   icon: Icons.calendar_today_rounded,
-                  label: 'Expires $expiry',
+                  label: 'Expires ${_formatExpiry(expiry)}',
                 ),
-              ],
             ],
           ),
           const SizedBox(height: 12),
@@ -312,6 +617,71 @@ class _PromoCard extends StatelessWidget {
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// The API returns a full ISO timestamp ('2026-10-30T18:31:16.123+00:00');
+  /// only the date is useful on a card, and the rest overflows.
+  static String _formatExpiry(String raw) {
+    final parsed = DateTime.tryParse(raw);
+    if (parsed != null) return DateFormat('d MMM yyyy').format(parsed.toLocal());
+    return raw.length >= 10 ? raw.substring(0, 10) : raw;
+  }
+}
+
+/// What minted a member code: a loyalty tier, a referral payout, or signup.
+class _OriginBadge extends StatelessWidget {
+  final String origin;
+
+  const _OriginBadge({required this.origin});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final (label, colour, icon) = switch (origin) {
+      'tier' => (
+          l.t('admin_origin_tier'),
+          const Color(0xFFC8A96B),
+          Icons.workspace_premium_rounded
+        ),
+      'referral' => (
+          l.t('admin_origin_referral'),
+          const Color(0xFF00A896),
+          Icons.group_add_rounded
+        ),
+      'welcome' => (
+          l.t('admin_origin_welcome'),
+          const Color(0xFF4A90D9),
+          Icons.waving_hand_rounded
+        ),
+      _ => (
+          l.t('admin_origin_campaign'),
+          AppColors.textMuted,
+          Icons.campaign_rounded
+        ),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: colour.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: colour),
+          const SizedBox(width: 5),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              color: colour,
+              fontSize: 9.5,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.6,
+            ),
           ),
         ],
       ),

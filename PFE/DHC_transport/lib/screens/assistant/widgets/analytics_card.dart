@@ -136,7 +136,9 @@ class AnalyticsCard extends StatelessWidget {
 
   // ── KPI tiles (horizontal scroll when they overflow) ──────────────────────
   Widget _kpiRow(List<Map<String, dynamic>> kpis) => SizedBox(
-        height: 68,
+        // Tall enough for label + 18px value + trend row; the trend row is
+        // optional, so tiles without one just centre their content.
+        height: 84,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: EdgeInsets.zero,

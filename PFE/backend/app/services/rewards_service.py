@@ -200,6 +200,34 @@ async def apply_referral(new_user_id: str, referral_code: str) -> dict:
                                  f"{REFERRAL_REWARD_EUR:.0f} EUR after your first ride."}
 
 
+async def grant_referral_credit_code(user_id: str, amount: float) -> dict:
+    """Mint a private fixed-value promo code worth ``amount`` EUR.
+
+    Referral credit used to be a number on the user document that nothing ever
+    spent. Issuing it as a real promo instead means it redeems through the
+    existing validated path (owner check, expiry, usage limit) and shows up in
+    the client's rewards list with no special-casing anywhere.
+    """
+    db = get_database()
+    now = datetime.now(timezone.utc)
+    doc = {
+        "_id": f"promo-{uuid4().hex}",
+        "code": f"REF{int(amount)}-{_rand()}",
+        "discount_type": "fixed",
+        "value": float(amount),
+        "expiry_date": (now + timedelta(days=365)).isoformat(),
+        "usage_limit": 1,
+        "usage_count": 0,
+        "active": True,
+        "owner_user_id": user_id,
+        "referral_reward": True,
+        "created_at": now,
+        "updated_at": now,
+    }
+    await db.promotions.insert_one(doc)
+    return doc
+
+
 async def settle_referral_if_first_ride(user_id: str) -> None:
     """Pay the referrer once the referred user completes their first booking.
 
@@ -217,10 +245,90 @@ async def settle_referral_if_first_ride(user_id: str) -> None:
     if completed < 1:
         return
 
-    await db.users.update_one(
-        {"_id": user["referred_by"]},
-        {"$inc": {"referral_credits": REFERRAL_REWARD_EUR}},
-    )
+    referrer_id = user["referred_by"]
+    # Clear the flag FIRST: if code minting throws, a retry must not pay twice.
     await db.users.update_one(
         {"_id": user_id}, {"$set": {"referral_pending": False}}
     )
+    # referral_credits stays as the lifetime-earned counter shown in the app;
+    # the spendable form is the promo code minted here.
+    await db.users.update_one(
+        {"_id": referrer_id},
+        {"$inc": {"referral_credits": REFERRAL_REWARD_EUR}},
+    )
+    reward = await grant_referral_credit_code(referrer_id, REFERRAL_REWARD_EUR)
+
+    await db.notifications.insert_one({
+        "_id": f"notif-{uuid4().hex}",
+        "user_id": referrer_id,
+        "title": "Referral reward earned",
+        "message": f"A friend you referred completed their first ride. "
+                   f"Use code {reward['code']} for {REFERRAL_REWARD_EUR:.0f} EUR off.",
+        "read": False,
+        "created_at": datetime.now(timezone.utc),
+    })
+
+
+# ── Admin-side reporting ───────────────────────────────────────────────────────
+
+async def loyalty_overview() -> dict:
+    """Programme-wide view for the admin: tier spread, referrals, code counts.
+
+    Points are derived the same way as on the client (completed trips x 10), so
+    the two sides can never disagree about who sits on which tier.
+    """
+    db = get_database()
+
+    completed_by_user: dict[str, int] = {}
+    async for b in db.bookings.find({"status": "completed"}, {"user_id": 1}):
+        uid = b.get("user_id")
+        if uid:
+            completed_by_user[uid] = completed_by_user.get(uid, 0) + 1
+
+    tiers: dict[str, int] = {name: 0 for name, *_ in _TIERS}
+    members: list[dict] = []
+    referrers = 0
+    pending_referrals = 0
+
+    async for user in db.users.find({"role": "client"}):
+        uid = user["_id"]
+        trips = completed_by_user.get(uid, 0)
+        points = trips * POINTS_PER_TRIP
+        tier, next_tier, threshold = resolve_tier(points)
+        tiers[tier] = tiers.get(tier, 0) + 1
+        if user.get("referred_by"):
+            referrers += 1
+            if user.get("referral_pending"):
+                pending_referrals += 1
+        members.append({
+            "user_id": uid,
+            "name": user.get("full_name") or user.get("email") or uid,
+            "email": user.get("email", ""),
+            "tier": tier,
+            "points": points,
+            "completed_trips": trips,
+            "next_tier": next_tier,
+            "next_tier_threshold": threshold,
+            "referral_code": user.get("referral_code"),
+            "referral_credits": float(user.get("referral_credits", 0) or 0),
+        })
+
+    members.sort(key=lambda m: m["points"], reverse=True)
+
+    member_codes = await db.promotions.count_documents(
+        {"owner_user_id": {"$exists": True}})
+    campaign_codes = await db.promotions.count_documents(
+        {"owner_user_id": {"$exists": False}})
+
+    return {
+        "tiers": tiers,
+        "tier_thresholds": {name: low for name, low, *_ in _TIERS},
+        "total_members": len(members),
+        "members": members[:50],
+        "referred_signups": referrers,
+        "pending_referrals": pending_referrals,
+        "referral_reward": REFERRAL_REWARD_EUR,
+        "points_per_trip": POINTS_PER_TRIP,
+        "member_codes": member_codes,
+        "campaign_codes": campaign_codes,
+    }

@@ -81,6 +81,7 @@ async def _compute_price(
     date: str,
     time: str,
     promo_code: Optional[str] = None,
+    user_id: Optional[str] = None,
 ) -> tuple[float, float, float]:
     """Return (base_price, dynamic_surcharge, discount_amount).
     Mirrors the same rules that pricing.py applies so the LLM never supplies a price.
@@ -144,6 +145,11 @@ async def _compute_price(
     if promo_code:
         code = promo_code.strip().upper()
         promo = await db.promotions.find_one({"code": code, "active": True})
+        # Ownership: tier/welcome/referral codes are private to one member.
+        # pricing.py enforces this on the HTTP path; without the same check
+        # here, booking through AVA would honour someone else's code.
+        if promo and promo.get("owner_user_id") not in (None, user_id):
+            promo = None
         if promo:
             expiry_raw = promo.get("expiry_date")
             if expiry_raw:
@@ -301,7 +307,7 @@ async def create_booking(
 
     # Compute price internally — LLM never supplies this
     base_price, dynamic_surcharge, discount_amount = await _compute_price(
-        vehicle_type, date, time, promo_code
+        vehicle_type, date, time, promo_code, user_id
     )
     total_price = round(base_price + dynamic_surcharge - discount_amount, 2)
 
@@ -534,25 +540,21 @@ async def get_user_promos(user_id: str) -> dict:
     The model only has to read the numbers back.  At the top tier (no next tier)
     both gaps are 0 — never negative, never a crash.
     """
+    # Tiers, points and promo visibility all come from rewards_service — the
+    # same code path behind GET /rewards/me and the admin loyalty view. This
+    # tool used to keep its own copy of the tier table (0/50/150/300) which had
+    # drifted from the real one (0/30/100/200), so AVA quoted thresholds that
+    # contradicted the client's own Rewards screen.
+    from app.services import rewards_service as rw
+
     db = get_database()
 
-    points_per_trip = 10
+    points_per_trip = rw.POINTS_PER_TRIP
     completed_trips = await db.bookings.count_documents(
         {"user_id": user_id, "status": "completed"}
     )
     points = completed_trips * points_per_trip
-
-    _TIERS = [
-        ("Bronze", 0, 50, "Silver"),
-        ("Silver", 50, 150, "Gold"),
-        ("Gold", 150, 300, "Black"),
-        ("Black", 300, None, None),
-    ]
-    tier, next_tier, next_threshold = "Bronze", "Silver", 50
-    for name, low, high, next_name in _TIERS:
-        if high is None or points < high:
-            tier, next_tier, next_threshold = name, next_name, high
-            break
+    tier, next_tier, next_threshold = rw.resolve_tier(points)
 
     # Pre-compute the gap to the next tier in BOTH points and trips.
     # Top tier (next_threshold is None) → no next tier → both gaps are 0.
@@ -564,9 +566,10 @@ async def get_user_promos(user_id: str) -> dict:
         # Ceiling division: a partial trip still counts as one more trip.
         trips_to_next_tier = -(-points_to_next_tier // points_per_trip)
 
-    promos: list[dict] = []
-    async for promo in db.promotions.find({"active": True}).sort([("value", -1)]):
-        promos.append(serialize_document(promo) or {})
+    # Only this client's own codes plus global ones. The unfiltered query used
+    # here before advertised other members' private tier/welcome codes, which
+    # the promo validator then correctly refused at checkout.
+    promos = [serialize_document(p) or {} for p in await rw.visible_promos(user_id)]
 
     return {
         "points": points,

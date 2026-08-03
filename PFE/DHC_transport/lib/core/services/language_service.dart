@@ -138,6 +138,30 @@ const _strings = {
     'admin_qa_suppliers': 'Suppliers',
     'admin_qa_destinations': 'Destinations',
 
+    // Admin promotions + loyalty programme
+    'admin_loyalty_programme': 'Loyalty programme',
+    'admin_loyalty_members': '{n} members',
+    'admin_loyalty_referred': 'Referred signups',
+    'admin_loyalty_pending': 'Awaiting first ride',
+    'admin_loyalty_member_codes': 'Member codes issued',
+    'admin_scope_all': 'All codes',
+    'admin_scope_campaign': 'Campaign',
+    'admin_scope_member': 'Member rewards',
+    'admin_no_promos': 'No promotions yet.',
+    'admin_no_member_codes':
+        'No member reward codes yet. They are issued automatically on signup, tier changes and referrals.',
+    'admin_member_code': 'Member reward',
+    'admin_origin_tier': 'Tier',
+    'admin_origin_referral': 'Referral',
+    'admin_origin_welcome': 'Welcome',
+    'admin_origin_campaign': 'Campaign',
+
+    // Admin booking status control
+    'admin_change_status': 'Change status',
+    'admin_adv_confirm': 'Confirm booking',
+    'admin_adv_start': 'Start trip (on route)',
+    'admin_adv_complete': 'Mark as completed',
+
     // AVA analytics — card sections
     'ava_key_findings': 'KEY FINDINGS',
     'ava_recommendation': 'Recommendation:',
@@ -518,6 +542,30 @@ const _strings = {
     'admin_qa_complaints': 'Reclamations',
     'admin_qa_suppliers': 'Fournisseurs',
     'admin_qa_destinations': 'Destinations',
+
+    // Promotions et programme de fidelite (admin)
+    'admin_loyalty_programme': 'Programme de fidelite',
+    'admin_loyalty_members': '{n} membres',
+    'admin_loyalty_referred': 'Inscriptions parrainees',
+    'admin_loyalty_pending': 'En attente du 1er trajet',
+    'admin_loyalty_member_codes': 'Codes membres emis',
+    'admin_scope_all': 'Tous les codes',
+    'admin_scope_campaign': 'Campagne',
+    'admin_scope_member': 'Recompenses membres',
+    'admin_no_promos': 'Aucune promotion pour le moment.',
+    'admin_no_member_codes':
+        'Aucun code de recompense. Ils sont emis automatiquement a l inscription, au changement de palier et au parrainage.',
+    'admin_member_code': 'Recompense membre',
+    'admin_origin_tier': 'Palier',
+    'admin_origin_referral': 'Parrainage',
+    'admin_origin_welcome': 'Bienvenue',
+    'admin_origin_campaign': 'Campagne',
+
+    // Controle du statut des reservations (admin)
+    'admin_change_status': 'Changer le statut',
+    'admin_adv_confirm': 'Confirmer la reservation',
+    'admin_adv_start': 'Demarrer le trajet (en route)',
+    'admin_adv_complete': 'Marquer comme terminee',
 
     // AVA analytics — sections de la carte
     'ava_key_findings': 'CONSTATS CLES',
