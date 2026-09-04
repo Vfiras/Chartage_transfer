@@ -367,7 +367,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen> {
             builder: (ctx, scrollController) {
               return Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C1C1F),
+                  color: PremiumClientTheme.elevated(context),
                   borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(28)),
                   boxShadow: [
@@ -387,7 +387,7 @@ class _BookingSearchScreenState extends State<BookingSearchScreen> {
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.22),
+                          color: PremiumClientTheme.muted(context),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -528,10 +528,10 @@ class _BookingSearchScreenState extends State<BookingSearchScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 20, vertical: 9),
                 decoration: BoxDecoration(
-                  color: const Color(0xE6000000),
+                  color: PremiumClientTheme.glass(context),
                   borderRadius: BorderRadius.circular(999),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: PremiumClientTheme.glassBorder(context),
                   ),
                 ),
                 child: const Text(
@@ -606,7 +606,7 @@ class _TripTypeToggle extends StatelessWidget {
             style: TextStyle(
               color: active
                   ? const Color(0xFF402D00)
-                  : Colors.white.withValues(alpha: 0.70),
+                  : PremiumClientTheme.text(context).withValues(alpha: 0.70),
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
@@ -650,7 +650,7 @@ class _LocationCard extends StatelessWidget {
         Container(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 14),
           decoration: BoxDecoration(
-            color: const Color(0xFF141416),
+            color: PremiumClientTheme.surface(context),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
               color: highlighted
@@ -668,7 +668,7 @@ class _LocationCard extends StatelessWidget {
                   color: highlighted
                       ? PremiumClientPalette.goldDeep
                           .withValues(alpha: 0.18)
-                      : const Color(0xFF1C1C1F),
+                      : PremiumClientTheme.elevated(context),
                 ),
                 child: Icon(
                   icon,
@@ -727,7 +727,7 @@ class _LocationCard extends StatelessWidget {
           Container(
             margin: const EdgeInsets.only(top: 4),
             decoration: BoxDecoration(
-              color: const Color(0xFF141416),
+              color: PremiumClientTheme.surface(context),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: PremiumClientPalette.gold.withValues(alpha: 0.16),
@@ -806,7 +806,7 @@ class _PickerTile extends StatelessWidget {
         height: 90,
         padding: const EdgeInsets.fromLTRB(16, 16, 14, 12),
         decoration: BoxDecoration(
-          color: const Color(0xFF141416),
+          color: PremiumClientTheme.surface(context),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
@@ -874,7 +874,7 @@ class _CounterRow extends StatelessWidget {
       height: 76,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF141416),
+        color: PremiumClientTheme.surface(context),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -945,7 +945,7 @@ class _CounterBtn extends StatelessWidget {
           icon,
           color: enabled
               ? PremiumClientPalette.gold
-              : Colors.white.withValues(alpha: 0.25),
+              : PremiumClientTheme.muted(context).withValues(alpha: 0.55),
           size: 16,
         ),
       ),

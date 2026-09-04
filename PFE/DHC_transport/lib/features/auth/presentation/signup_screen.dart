@@ -64,14 +64,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  void _socialSoon(String provider) {
-    final l = LanguageService.instance;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l.t('social_signup_soon', args: {'provider': provider})),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,12 +168,6 @@ class _SignupScreenState extends State<SignupScreen> {
             text: l.t('signup'),
             loading: _loading,
             onPressed: _signup,
-          ),
-          const SizedBox(height: 26),
-          AuthDividerLabel(text: l.t('continue_with')),
-          const SizedBox(height: 18),
-          AuthSocialButtons(
-            onGoogle: () => _socialSoon('Google'),
           ),
           const SizedBox(height: 52),
           AuthBottomPrompt(

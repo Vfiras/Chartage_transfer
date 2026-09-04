@@ -200,32 +200,30 @@ async def apply_referral(new_user_id: str, referral_code: str) -> dict:
                                  f"{REFERRAL_REWARD_EUR:.0f} EUR after your first ride."}
 
 
-async def grant_referral_credit_code(user_id: str, amount: float) -> dict:
-    """Mint a private fixed-value promo code worth ``amount`` EUR.
+async def redeem_referral_credits(user_id: str, amount_due: float) -> float:
+    """Spend up to ``amount_due`` of the user's referral balance; return the
+    amount actually applied.
 
-    Referral credit used to be a number on the user document that nothing ever
-    spent. Issuing it as a real promo instead means it redeems through the
-    existing validated path (owner check, expiry, usage limit) and shows up in
-    the client's rewards list with no special-casing anywhere.
+    Credit is a wallet balance, not a promo code: it applies automatically at
+    booking time and is decremented atomically. The ``$gte`` guard makes the
+    update a no-op if two bookings race for the same balance, so the credit
+    can never be spent twice.
     """
+    if amount_due <= 0:
+        return 0.0
+
     db = get_database()
-    now = datetime.now(timezone.utc)
-    doc = {
-        "_id": f"promo-{uuid4().hex}",
-        "code": f"REF{int(amount)}-{_rand()}",
-        "discount_type": "fixed",
-        "value": float(amount),
-        "expiry_date": (now + timedelta(days=365)).isoformat(),
-        "usage_limit": 1,
-        "usage_count": 0,
-        "active": True,
-        "owner_user_id": user_id,
-        "referral_reward": True,
-        "created_at": now,
-        "updated_at": now,
-    }
-    await db.promotions.insert_one(doc)
-    return doc
+    user = await db.users.find_one({"_id": user_id})
+    balance = float((user or {}).get("referral_credits", 0) or 0)
+    applied = round(min(balance, amount_due), 2)
+    if applied <= 0:
+        return 0.0
+
+    result = await db.users.update_one(
+        {"_id": user_id, "referral_credits": {"$gte": applied}},
+        {"$inc": {"referral_credits": -applied}},
+    )
+    return applied if result.modified_count else 0.0
 
 
 async def settle_referral_if_first_ride(user_id: str) -> None:
@@ -246,24 +244,24 @@ async def settle_referral_if_first_ride(user_id: str) -> None:
         return
 
     referrer_id = user["referred_by"]
-    # Clear the flag FIRST: if code minting throws, a retry must not pay twice.
+    # Clear the flag FIRST: if the credit write throws, a retry must not pay twice.
     await db.users.update_one(
         {"_id": user_id}, {"$set": {"referral_pending": False}}
     )
-    # referral_credits stays as the lifetime-earned counter shown in the app;
-    # the spendable form is the promo code minted here.
+    # referral_credits is a spendable balance — booking creation draws it down
+    # automatically (see redeem_referral_credits).
     await db.users.update_one(
         {"_id": referrer_id},
         {"$inc": {"referral_credits": REFERRAL_REWARD_EUR}},
     )
-    reward = await grant_referral_credit_code(referrer_id, REFERRAL_REWARD_EUR)
 
     await db.notifications.insert_one({
         "_id": f"notif-{uuid4().hex}",
         "user_id": referrer_id,
         "title": "Referral reward earned",
         "message": f"A friend you referred completed their first ride. "
-                   f"Use code {reward['code']} for {REFERRAL_REWARD_EUR:.0f} EUR off.",
+                   f"{REFERRAL_REWARD_EUR:.0f} EUR credit has been added to "
+                   f"your account and will apply to your next booking.",
         "read": False,
         "created_at": datetime.now(timezone.utc),
     })

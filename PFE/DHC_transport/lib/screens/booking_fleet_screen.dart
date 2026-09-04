@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../core/routing/app_routes.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/language_service.dart';
 import '../core/services/pricing_service.dart';
 import '../core/services/vehicle_catalog_service.dart';
 import '../models/booking_data.dart';
@@ -39,7 +40,31 @@ class _BookingFleetScreenState extends State<BookingFleetScreen> {
     final vehicles = await const VehicleCatalogService().listVehicles();
     final rules = await const PricingService().rules();
     final real = await _realFor(_tripType);
-    return _FleetPayload(vehicles: vehicles, rules: rules, real: real);
+    return _FleetPayload(
+      vehicles: _fitting(vehicles),
+      totalCount: vehicles.length,
+      rules: rules,
+      real: real,
+    );
+  }
+
+  /// Only vehicles that can actually carry the requested group. A car the
+  /// party does not fit into is not an option, so it is hidden outright
+  /// rather than shown disabled.
+  ///
+  /// A vehicle reporting 0 seats/bags has no capacity data rather than zero
+  /// capacity, so it is kept — hiding it would empty the list on incomplete
+  /// records.
+  List<Vehicle> _fitting(List<Vehicle> all) {
+    final passengers = widget.data.passengers;
+    final luggage = widget.data.luggageCount;
+    return all.where((v) {
+      final seats = v.seatCount;
+      final bags = v.bags;
+      final seatsOk = seats <= 0 || seats >= passengers;
+      final bagsOk = bags <= 0 || bags >= luggage;
+      return seatsOk && bagsOk;
+    }).toList(growable: false);
   }
 
   Future<RealEstimateResult?> _realFor(String tripType) async {
@@ -222,12 +247,28 @@ class _BookingFleetScreenState extends State<BookingFleetScreen> {
                   const SizedBox(height: 12),
                   _RouteMetricsLine(real: payload!.real!),
                 ],
+                // Explains why some vehicles are missing from the list.
+                if (!loading && payload!.totalCount > 0) ...[
+                  const SizedBox(height: 18),
+                  _CapacityNotice(
+                    passengers: widget.data.passengers,
+                    luggage: widget.data.luggageCount,
+                    hidden: payload.totalCount - payload.vehicles.length,
+                  ),
+                ],
                 const SizedBox(height: 28),
                 // Loading = skeletons shaped like the product cards, so the
                 // page keeps its structure while quotes come in.
                 if (loading)
                   const SkeletonVehicleCards(count: 3)
-                else if (payload!.vehicles.isEmpty)
+                else if (payload!.vehicles.isEmpty && payload.totalCount > 0)
+                  // The fleet loaded fine — nothing in it fits this party.
+                  _NoFittingVehiclesState(
+                    passengers: widget.data.passengers,
+                    luggage: widget.data.luggageCount,
+                    onBack: () => Navigator.of(context).maybePop(),
+                  )
+                else if (payload.vehicles.isEmpty)
                   _EmptyFleetState(onRetry: () {
                     setState(() => _future = _load());
                   })
@@ -257,12 +298,18 @@ class _BookingFleetScreenState extends State<BookingFleetScreen> {
 }
 
 class _FleetPayload {
+  /// Vehicles that fit the requested party.
   final List<Vehicle> vehicles;
+
+  /// How many the catalogue returned before the capacity filter — used to
+  /// tell "the fleet is empty" apart from "nothing fits this group".
+  final int totalCount;
   final PricingRules rules;
   final RealEstimateResult? real;
 
   const _FleetPayload({
     required this.vehicles,
+    required this.totalCount,
     required this.rules,
     this.real,
   });
@@ -816,6 +863,124 @@ class _VehicleChoiceCard extends StatelessWidget {
 }
 
 /// Real empty state — shown when the fleet API returns nothing at all.
+/// Tells the user which capacity the list is filtered to, so a missing
+/// vehicle reads as "too small for your group" rather than "broken app".
+class _CapacityNotice extends StatelessWidget {
+  final int passengers;
+  final int luggage;
+  final int hidden;
+
+  const _CapacityNotice({
+    required this.passengers,
+    required this.luggage,
+    required this.hidden,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final textColor = PremiumClientTheme.text(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: PremiumClientPalette.gold.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+            color: PremiumClientPalette.gold.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.groups_outlined,
+              color: PremiumClientPalette.gold, size: 17),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              hidden > 0
+                  ? l.t('fleet_filter_notice_hidden', args: {
+                      'passengers': '$passengers',
+                      'luggage': '$luggage',
+                      'hidden': '$hidden',
+                    })
+                  : l.t('fleet_filter_notice', args: {
+                      'passengers': '$passengers',
+                      'luggage': '$luggage',
+                    }),
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.80),
+                fontSize: 12.5,
+                height: 1.4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The catalogue loaded, but nothing in it can carry this party.
+class _NoFittingVehiclesState extends StatelessWidget {
+  final int passengers;
+  final int luggage;
+  final VoidCallback onBack;
+
+  const _NoFittingVehiclesState({
+    required this.passengers,
+    required this.luggage,
+    required this.onBack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l = LanguageService.instance;
+    final textColor = PremiumClientTheme.text(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Column(
+        children: [
+          Icon(Icons.no_transfer_outlined,
+              color: textColor.withValues(alpha: 0.30), size: 44),
+          const SizedBox(height: 14),
+          Text(
+            l.t('fleet_no_fit_title'),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l.t('fleet_no_fit_body', args: {
+              'passengers': '$passengers',
+              'luggage': '$luggage',
+            }),
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor.withValues(alpha: 0.60),
+              fontSize: 13,
+              height: 1.45,
+            ),
+          ),
+          const SizedBox(height: 18),
+          TextButton(
+            onPressed: onBack,
+            child: Text(
+              l.t('fleet_no_fit_action'),
+              style: const TextStyle(
+                color: PremiumClientPalette.gold,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _EmptyFleetState extends StatelessWidget {
   final VoidCallback onRetry;
 

@@ -1,6 +1,7 @@
 from functools import lru_cache
 from pathlib import Path
 
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,8 +20,12 @@ class Settings(BaseSettings):
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_user: str = ""
-    smtp_pass: str = ""
-    from_email: str = ""
+    smtp_pass: str = Field(
+        "", validation_alias=AliasChoices("SMTP_PASS", "SMTP_PASSWORD")
+    )
+    from_email: str = Field(
+        "", validation_alias=AliasChoices("FROM_EMAIL", "SMTP_FROM")
+    )
     app_base_url: str = "http://localhost:8000"
     openai_api_key: str = ""
     google_api_key: str = ""

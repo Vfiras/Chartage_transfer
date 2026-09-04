@@ -358,9 +358,16 @@ async def update_booking(
     passenger_count: Optional[int] = None,
     luggage_count: Optional[int] = None,
 ) -> dict:
-    """Modify an existing booking for the client.  Only fields supplied will be
-    updated.  Modification is blocked within 24 hours of departure.
-    Returns the updated booking or an error dict."""
+    """Modify an existing booking for the client.
+
+    You MUST supply at least one field to change. If the client has only said
+    they want to modify a booking without saying WHAT to change, do not call
+    this tool — ask them what to change first (date, time, pickup address,
+    destination, or passenger/luggage count).
+
+    Only fields supplied are updated. Modification is blocked within 24 hours
+    of departure. Returns the updated booking plus a `changes` list describing
+    exactly what moved, or an error dict."""
     db = get_database()
     booking = await db.bookings.find_one({"_id": booking_id})
     if not booking:
@@ -397,8 +404,47 @@ async def update_booking(
         "passenger_count": passenger_count,
         "luggage_count": luggage_count,
     }
-    updated = await update_trip(booking_id, fields)
-    return updated or {"error": "Update failed"}
+
+    # Only values that differ from what is stored count as a change. Without
+    # this, calling the tool with nothing to change wrote nothing yet returned
+    # the booking — which reads as success, so AVA confirmed a modification
+    # that never happened.
+    supplied = {k: v for k, v in fields.items() if v is not None}
+    changes = [
+        {
+            "field": k,
+            "from": booking.get(k),
+            "to": v,
+        }
+        for k, v in supplied.items()
+        if str(booking.get(k) or "") != str(v)
+    ]
+
+    if not supplied:
+        return {
+            "error": "no_changes_specified",
+            "message": "Ask the client what they would like to change before "
+                       "calling this tool.",
+            "changeable_fields": [
+                "departure_date", "departure_time", "pickup_location",
+                "destination_name", "passenger_count", "luggage_count",
+                "passenger_name", "passenger_phone",
+            ],
+            "current_values": {k: booking.get(k) for k in fields},
+        }
+
+    if not changes:
+        return {
+            "error": "values_unchanged",
+            "message": "Every supplied value already matches the booking. "
+                       "Confirm with the client what should be different.",
+            "current_values": {k: booking.get(k) for k in supplied},
+        }
+
+    updated = await update_trip(booking_id, supplied)
+    if not updated:
+        return {"error": "Update failed"}
+    return {"booking": updated, "changes": changes, "updated": True}
 
 
 # ── 5. Cancel booking ──────────────────────────────────────────────────────────

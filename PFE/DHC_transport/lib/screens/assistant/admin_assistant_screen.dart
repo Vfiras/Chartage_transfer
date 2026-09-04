@@ -96,63 +96,70 @@ class _AdminAssistantScreenState extends State<AdminAssistantScreen> {
   Widget build(BuildContext context) {
     final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
 
-    return Scaffold(
-      backgroundColor: _bg,
-      resizeToAvoidBottomInset: true,
-      body: Column(
-        children: [
-          const _TopBar(),
-          Expanded(
-            child: Stack(
-              children: [
-                ListView(
-                  controller: _scrollCtrl,
-                  padding:
-                      EdgeInsets.fromLTRB(20, 12, 20, 100 + bottomPadding),
-                  children: [
-                    const _Header(),
-                    const SizedBox(height: 20),
-                    _QuickActions(onAction: _send),
-                    const SizedBox(height: 24),
-                    for (final msg in _ctrl.messages)
-                      if (msg.fromUser)
-                        UserMessageBubble(key: ValueKey(msg.id), message: msg)
-                      else if (msg.isAnalytics)
-                        // Business-analysis response → rich KPI/chart card
-                        AnalyticsCard(key: ValueKey(msg.id), message: msg)
-                      else
-                        AssistantMessageBubble(
-                          key: ValueKey(msg.id),
-                          message: msg,
-                          animate: msg.shouldStream &&
-                              !_ctrl.hasStreamed(msg.id),
-                          onTextGrew: _scrollToBottom,
-                          onStreamComplete: () => _ctrl.markStreamed(msg.id),
-                          // Card taps go through the same send path as the client.
-                          onCardAction: _send,
-                          cardEnabled: _ctrl.canSend,
-                        ),
-                    if (_ctrl.isTyping) const TypingIndicator(),
-                    // Contextual next steps, only under the newest analysis
-                    // and only once the turn has finished.
-                    if (!_ctrl.isTyping && _lastAnalysisMode != null)
-                      _FollowUps(mode: _lastAnalysisMode!, onAction: _send),
-                  ],
-                ),
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: _InputBar(
-                    controller: _textCtrl,
-                    enabled: _ctrl.canSend,
-                    onSend: () => _send(),
+    // The operations console is deliberately dark in both app themes. The
+    // message bubbles it shares with the client chat are now theme-aware, so
+    // this pins their brightness — without it a light app theme would put
+    // light bubbles on this dark canvas.
+    return Theme(
+      data: Theme.of(context).copyWith(brightness: Brightness.dark),
+      child: Scaffold(
+        backgroundColor: _bg,
+        resizeToAvoidBottomInset: true,
+        body: Column(
+          children: [
+            const _TopBar(),
+            Expanded(
+              child: Stack(
+                children: [
+                  ListView(
+                    controller: _scrollCtrl,
+                    padding:
+                        EdgeInsets.fromLTRB(20, 12, 20, 100 + bottomPadding),
+                    children: [
+                      const _Header(),
+                      const SizedBox(height: 20),
+                      _QuickActions(onAction: _send),
+                      const SizedBox(height: 24),
+                      for (final msg in _ctrl.messages)
+                        if (msg.fromUser)
+                          UserMessageBubble(key: ValueKey(msg.id), message: msg)
+                        else if (msg.isAnalytics)
+                          // Business-analysis response → rich KPI/chart card
+                          AnalyticsCard(key: ValueKey(msg.id), message: msg)
+                        else
+                          AssistantMessageBubble(
+                            key: ValueKey(msg.id),
+                            message: msg,
+                            animate:
+                                msg.shouldStream && !_ctrl.hasStreamed(msg.id),
+                            onTextGrew: _scrollToBottom,
+                            onStreamComplete: () => _ctrl.markStreamed(msg.id),
+                            // Card taps go through the same send path as the client.
+                            onCardAction: _send,
+                            cardEnabled: _ctrl.canSend,
+                          ),
+                      if (_ctrl.isTyping) const TypingIndicator(),
+                      // Contextual next steps, only under the newest analysis
+                      // and only once the turn has finished.
+                      if (!_ctrl.isTyping && _lastAnalysisMode != null)
+                        _FollowUps(mode: _lastAnalysisMode!, onAction: _send),
+                    ],
                   ),
-                ),
-              ],
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: _InputBar(
+                      controller: _textCtrl,
+                      enabled: _ctrl.canSend,
+                      onSend: () => _send(),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -252,7 +259,8 @@ class _Header extends StatelessWidget {
                   SizedBox(height: 4),
                   Text(
                     'Ask AVA to manage fleet, pricing and bookings, or pull live insights.',
-                    style: TextStyle(color: _textSec, fontSize: 13, height: 1.45),
+                    style:
+                        TextStyle(color: _textSec, fontSize: 13, height: 1.45),
                   ),
                 ],
               ),
@@ -274,19 +282,34 @@ class _QuickActions extends StatelessWidget {
   /// backend `analysis_triggers.py`), so prompts are sent verbatim rather than
   /// translated — only the visible label is localised.
   static const _actions = [
-    (Icons.insights_rounded, 'ava_chip_full_review',
-        'Give me a full business review'),
+    (
+      Icons.insights_rounded,
+      'ava_chip_full_review',
+      'Give me a full business review'
+    ),
     (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
     (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
-    (Icons.price_change_rounded, 'ava_chip_pricing',
-        'How did pricing changes affect bookings?'),
-    (Icons.calendar_month_rounded, 'ava_chip_seasonal',
-        'What are our seasonal patterns?'),
-    (Icons.directions_car_rounded, 'ava_chip_vehicles',
-        'Show me fleet performance by vehicle'),
+    (
+      Icons.price_change_rounded,
+      'ava_chip_pricing',
+      'How did pricing changes affect bookings?'
+    ),
+    (
+      Icons.calendar_month_rounded,
+      'ava_chip_seasonal',
+      'What are our seasonal patterns?'
+    ),
+    (
+      Icons.directions_car_rounded,
+      'ava_chip_vehicles',
+      'Show me fleet performance by vehicle'
+    ),
     (Icons.feedback_rounded, 'ava_chip_complaints', 'Show me open complaints'),
-    (Icons.pending_actions_rounded, 'ava_chip_pending',
-        'List all pending bookings'),
+    (
+      Icons.pending_actions_rounded,
+      'ava_chip_pending',
+      'List all pending bookings'
+    ),
   ];
 
   @override
@@ -370,43 +393,89 @@ class _FollowUps extends StatelessWidget {
   static const _byMode = <String, List<(IconData, String, String)>>{
     'full_review': [
       (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
-      (Icons.directions_car_rounded, 'ava_chip_vehicles',
-          'Show me fleet performance by vehicle'),
-      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
-          'What are our seasonal patterns?'),
+      (
+        Icons.directions_car_rounded,
+        'ava_chip_vehicles',
+        'Show me fleet performance by vehicle'
+      ),
+      (
+        Icons.calendar_month_rounded,
+        'ava_chip_seasonal',
+        'What are our seasonal patterns?'
+      ),
     ],
     'revenue': [
-      (Icons.directions_car_rounded, 'ava_follow_by_vehicle',
-          'Break revenue down by vehicle category'),
-      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
-      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
-          'What are our seasonal patterns?'),
+      (
+        Icons.directions_car_rounded,
+        'ava_follow_by_vehicle',
+        'Break revenue down by vehicle category'
+      ),
+      (
+        Icons.trending_up_rounded,
+        'ava_chip_bookings',
+        'Show me booking trends'
+      ),
+      (
+        Icons.calendar_month_rounded,
+        'ava_chip_seasonal',
+        'What are our seasonal patterns?'
+      ),
     ],
     'bookings': [
-      (Icons.payments_rounded, 'ava_follow_revenue_side',
-          'How is our revenue doing?'),
-      (Icons.price_change_rounded, 'ava_chip_pricing',
-          'How did pricing changes affect bookings?'),
-      (Icons.calendar_month_rounded, 'ava_chip_seasonal',
-          'What are our seasonal patterns?'),
+      (
+        Icons.payments_rounded,
+        'ava_follow_revenue_side',
+        'How is our revenue doing?'
+      ),
+      (
+        Icons.price_change_rounded,
+        'ava_chip_pricing',
+        'How did pricing changes affect bookings?'
+      ),
+      (
+        Icons.calendar_month_rounded,
+        'ava_chip_seasonal',
+        'What are our seasonal patterns?'
+      ),
     ],
     'pricing': [
-      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (
+        Icons.trending_up_rounded,
+        'ava_chip_bookings',
+        'Show me booking trends'
+      ),
       (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
-      (Icons.directions_car_rounded, 'ava_chip_vehicles',
-          'Show me fleet performance by vehicle'),
+      (
+        Icons.directions_car_rounded,
+        'ava_chip_vehicles',
+        'Show me fleet performance by vehicle'
+      ),
     ],
     'seasonal': [
-      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
+      (
+        Icons.trending_up_rounded,
+        'ava_chip_bookings',
+        'Show me booking trends'
+      ),
       (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
-      (Icons.insights_rounded, 'ava_chip_full_review',
-          'Give me a full business review'),
+      (
+        Icons.insights_rounded,
+        'ava_chip_full_review',
+        'Give me a full business review'
+      ),
     ],
     'vehicles': [
       (Icons.payments_rounded, 'ava_chip_revenue', 'How is our revenue doing?'),
-      (Icons.trending_up_rounded, 'ava_chip_bookings', 'Show me booking trends'),
-      (Icons.insights_rounded, 'ava_chip_full_review',
-          'Give me a full business review'),
+      (
+        Icons.trending_up_rounded,
+        'ava_chip_bookings',
+        'Show me booking trends'
+      ),
+      (
+        Icons.insights_rounded,
+        'ava_chip_full_review',
+        'Give me a full business review'
+      ),
     ],
   };
 
@@ -494,8 +563,7 @@ class _InputBar extends StatelessWidget {
                       controller: controller,
                       enabled: enabled,
                       cursorColor: _gold,
-                      style:
-                          const TextStyle(color: _onSurface, fontSize: 14),
+                      style: const TextStyle(color: _onSurface, fontSize: 14),
                       decoration: const InputDecoration(
                         isCollapsed: true,
                         hintText: 'Message AVA…',
@@ -523,9 +591,8 @@ class _InputBar extends StatelessWidget {
               ),
               child: Icon(
                 Icons.send_rounded,
-                color: enabled
-                    ? const Color(0xFF0B0B0D)
-                    : const Color(0xFF5A5040),
+                color:
+                    enabled ? const Color(0xFF0B0B0D) : const Color(0xFF5A5040),
                 size: 20,
               ),
             ),

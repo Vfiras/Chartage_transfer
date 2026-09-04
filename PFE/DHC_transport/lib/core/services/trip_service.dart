@@ -27,12 +27,23 @@ class TripService {
     return {'upcoming': parse('upcoming'), 'past': parse('past')};
   }
 
-  Future<TransportTrip> createBooking(Map<String, dynamic> payload) async {
+  /// Creates a booking and reports how much referral credit the server spent
+  /// on it — the wallet is drawn down server-side, so the client cannot infer
+  /// the amount and has to be told.
+  Future<({TransportTrip trip, double creditsApplied})> createBookingDetailed(
+      Map<String, dynamic> payload) async {
     final response =
         await TransportApiClient.instance.post('/bookings/', payload);
-    return TransportTrip.fromJson(
-        (response['booking'] as Map).cast<String, dynamic>());
+    return (
+      trip: TransportTrip.fromJson(
+          (response['booking'] as Map).cast<String, dynamic>()),
+      creditsApplied:
+          (response['credits_applied'] as num?)?.toDouble() ?? 0.0,
+    );
   }
+
+  Future<TransportTrip> createBooking(Map<String, dynamic> payload) async =>
+      (await createBookingDetailed(payload)).trip;
 
   Future<TransportTrip> updateStatus(String bookingId, String status) async {
     final response = await TransportApiClient.instance.patch(

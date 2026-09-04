@@ -3,6 +3,8 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/services/auth_service.dart';
+import '../core/services/language_service.dart';
+import '../core/services/reward_service.dart';
 import '../core/services/trip_service.dart';
 import '../models/booking_data.dart';
 import '../models/vehicle.dart';
@@ -31,12 +33,41 @@ class BookingConfirmationScreen extends StatefulWidget {
 class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
   bool _loading = false;
 
+  /// Referral wallet balance. The server decides how much is actually spent —
+  /// this is shown so the total on screen matches what will be charged.
+  double _credits = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCredits();
+  }
+
+  Future<void> _loadCredits() async {
+    if (AuthService.instance.isGuest) return;
+    try {
+      final res = await RewardService().getRewardsMe();
+      if (!mounted) return;
+      setState(() =>
+          _credits = (res['referral_credits'] as num?)?.toDouble() ?? 0);
+    } catch (_) {
+      // A rewards hiccup must not block checkout; the server still applies
+      // whatever balance exists when the booking is created.
+    }
+  }
+
+  /// What the wallet will cover on this trip.
+  double get _creditsApplied =>
+      _credits <= 0 ? 0 : (_credits < widget.totalPrice ? _credits : widget.totalPrice);
+
+  double get _payable => widget.totalPrice - _creditsApplied;
+
   Future<void> _confirm() async {
     setState(() => _loading = true);
     final user = AuthService.instance.currentUser;
     final isGuest = AuthService.instance.isGuest;
     try {
-      final trip = await const TripService().createBooking({
+      final result = await const TripService().createBookingDetailed({
         'user_id': isGuest ? null : user?.id,
         'passenger_name':
             isGuest ? 'Guest Passenger' : user?.name ?? 'Passenger',
@@ -74,10 +105,12 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => BookingSuccessScreen(
-            tripId: trip.id,
+            tripId: result.trip.id,
             data: widget.data,
             vehicle: widget.vehicle,
-            totalPrice: widget.totalPrice,
+            // The server is the authority on the final amount.
+            totalPrice: widget.totalPrice - result.creditsApplied,
+            creditsApplied: result.creditsApplied,
           ),
         ),
       );
@@ -367,6 +400,15 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                   '-${data.discountAmount.toStringAsFixed(0)} ${data.currency}',
                               valueColor: AppColors.green,
                             ),
+                          // Referral wallet — applied automatically, no code.
+                          if (_creditsApplied > 0)
+                            _PriceRow(
+                              label: LanguageService.instance
+                                  .t('rewards_balance_row'),
+                              value:
+                                  '-${_creditsApplied.toStringAsFixed(2)} ${data.currency}',
+                              valueColor: AppColors.green,
+                            ),
                           Padding(
                             padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
                             child: Row(
@@ -382,7 +424,7 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                                   ),
                                 ),
                                 Text(
-                                  '${widget.totalPrice.toStringAsFixed(0)} ${data.currency}',
+                                  '${_payable.toStringAsFixed(2)} ${data.currency}',
                                   style: TextStyle(
                                     color: AppColors.secondary,
                                     fontSize: 24,
@@ -392,6 +434,20 @@ class _BookingConfirmationScreenState extends State<BookingConfirmationScreen> {
                               ],
                             ),
                           ),
+                          if (_creditsApplied > 0)
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(18, 0, 18, 16),
+                              child: Text(
+                                LanguageService.instance
+                                    .t('rewards_balance_note'),
+                                style: TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 11.5,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

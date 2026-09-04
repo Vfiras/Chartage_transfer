@@ -2,6 +2,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/user_model.dart';
+import 'push_notification_service.dart';
 import 'transport_api_client.dart';
 
 class AuthService {
@@ -67,6 +68,9 @@ class AuthService {
         _userFromAuthResponse(response, fallbackEmail: identifier.trim());
     _currentUser = user;
     await _saveToStorage(user, _token);
+    // The background poll reads the token from storage, so it can only start
+    // once the session is persisted.
+    await PushNotificationService.instance.start();
     return user;
   }
 
@@ -88,7 +92,40 @@ class AuthService {
     final user = _userFromAuthResponse(response, fallbackEmail: email.trim());
     _currentUser = user;
     await _saveToStorage(user, _token);
+    // The background poll reads the token from storage, so it can only start
+    // once the session is persisted.
+    await PushNotificationService.instance.start();
     return user;
+  }
+
+  /// Requests a password-reset link for [email].
+  ///
+  /// Both reset endpoints take query parameters, not a JSON body — they are
+  /// declared with bare `str` arguments server-side, so FastAPI reads them
+  /// from the query string and a JSON body returns 422.
+  ///
+  /// The response is deliberately the same whether or not the account exists,
+  /// so this never reveals which emails are registered.
+  Future<String> requestPasswordReset(String email) async {
+    final response = await TransportApiClient.instance
+        .post('/auth/forgot-password', {'email': email.trim()});
+    return response['message']?.toString() ??
+        'If an account exists for this email, a reset link has been sent.';
+  }
+
+  /// Completes a reset with the token from the email and a new password.
+  /// Throws when the token is unknown or expired.
+  Future<String> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    // Sent as a JSON body, never as query params: a password in a URL would be
+    // written verbatim into the server's access log.
+    final response = await TransportApiClient.instance.post(
+      '/auth/reset-password',
+      {'token': token.trim(), 'new_password': newPassword},
+    );
+    return response['message']?.toString() ?? 'Password updated successfully';
   }
 
   UserModel continueAsGuest() {
@@ -176,6 +213,9 @@ class AuthService {
   }
 
   Future<void> logout() async {
+    // Stop polling before the token is cleared, so a signed-out device
+    // cannot raise notifications for the account that just left.
+    await PushNotificationService.instance.stop();
     _token = null;
     _currentUser = null;
     _guest = false;

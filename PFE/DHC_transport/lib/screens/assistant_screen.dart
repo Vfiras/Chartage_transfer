@@ -3,19 +3,28 @@ import 'package:flutter/services.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../core/services/auth_service.dart';
+import '../core/services/language_service.dart';
+import '../shared/widgets/client/premium_client_components.dart';
 import 'assistant/assistant_controller.dart';
+import 'assistant/chat_message_model.dart';
 import 'assistant/widgets/assistant_message_bubble.dart';
+import 'assistant/widgets/booking_form_card.dart';
+import 'assistant/widgets/cancel_booking_card.dart';
+import 'assistant/widgets/modify_booking_card.dart';
 import 'assistant/widgets/ava_avatar.dart';
 import 'assistant/widgets/typing_indicator.dart';
 import 'assistant/widgets/user_message_bubble.dart';
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
-const _bg = Color(0xFF0B0B0D);
-const _surfaceElevated = Color(0xFF1C1C1F);
+// Gold is the one constant across themes; every other surface resolves per
+// brightness so the lounge is not a dark island inside a light app.
 const _gold = Color(0xFFC8A96B);
-const _onSurface = Color(0xFFE9E1DA);
-const _warmWhite = Color(0xFFF2ECE3);
-const _textSec = Color(0xFFA1A1AA);
+
+Color _bg(BuildContext c) => PremiumClientTheme.background(c);
+Color _surfaceElevated(BuildContext c) => PremiumClientTheme.elevated(c);
+Color _onSurface(BuildContext c) => PremiumClientTheme.text(c);
+Color _textSec(BuildContext c) => PremiumClientTheme.muted(c);
+Color _hairline(BuildContext c) => PremiumClientTheme.glassBorder(c);
 
 /// The AVA concierge screen — designed as a first-class lounge, not a
 /// support-ticket page.
@@ -121,15 +130,30 @@ class _AssistantScreenState extends State<AssistantScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomPadding = MediaQuery.of(context).viewInsets.bottom;
+    final keyboard = MediaQuery.of(context).viewInsets.bottom;
+    // Clear the input bar exactly: its own height plus the gesture inset it
+    // sits on. A fixed guess left the last reply hidden behind the bar on
+    // devices with a tall home indicator.
+    final listBottomInset =
+        _kInputBarHeight + MediaQuery.of(context).padding.bottom + 24 + keyboard;
 
     return Scaffold(
-      backgroundColor: _bg,
+      backgroundColor: _bg(context),
       resizeToAvoidBottomInset: true,
       body: Column(
         children: [
           // ── App bar: gains the mini portrait once conversing ─────────────
           _TopBar(compressed: _inConversation, onBack: widget.onBack),
+
+          // ── Persistent quick actions ──────────────────────────────────────
+          // Once conversing the lounge is gone, but its starters stay reachable
+          // as a compact rail so a second request never needs typing.
+          if (_inConversation)
+            _SuggestionChips(
+              onAction: _send,
+              enabled: _ctrl.canSend,
+              compact: true,
+            ),
 
           // ── Lounge ⇄ conversation ────────────────────────────────────────
           Expanded(
@@ -140,8 +164,8 @@ class _AssistantScreenState extends State<AssistantScreen> {
                   switchInCurve: Curves.easeOut,
                   switchOutCurve: Curves.easeOut,
                   child: _inConversation
-                      ? _buildConversation(bottomPadding)
-                      : _buildLounge(bottomPadding),
+                      ? _buildConversation(listBottomInset)
+                      : _buildLounge(listBottomInset),
                 ),
 
                 // ── Fixed input bar ────────────────────────────────────────
@@ -164,10 +188,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
   }
 
   /// Zero messages: the concierge receives you.
-  Widget _buildLounge(double bottomPadding) {
+  Widget _buildLounge(double bottomInset) {
     return ListView(
       key: const ValueKey('lounge'),
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 110 + bottomPadding),
+      padding: EdgeInsets.fromLTRB(20, 8, 20, bottomInset),
       children: [
         const SizedBox(height: 22),
         _ConciergeLounge(
@@ -180,10 +204,10 @@ class _AssistantScreenState extends State<AssistantScreen> {
         const SizedBox(height: 20),
         // Quiet hint — inviting without begging.
         Text(
-          'Ask about your trips, our fleet, or anything else.',
+          LanguageService.instance.t('ava_lounge_hint'),
           textAlign: TextAlign.center,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.35),
+            color: _textSec(context).withValues(alpha: 0.75),
             fontSize: 12,
             height: 1.4,
           ),
@@ -199,12 +223,12 @@ class _AssistantScreenState extends State<AssistantScreen> {
   }
 
   /// First message onward: the conversation owns the screen.
-  Widget _buildConversation(double bottomPadding) {
+  Widget _buildConversation(double bottomInset) {
     final messages = _ctrl.messages;
     return ListView(
       key: const ValueKey('conversation'),
       controller: _scrollCtrl,
-      padding: EdgeInsets.fromLTRB(20, 18, 20, 110 + bottomPadding),
+      padding: EdgeInsets.fromLTRB(20, 18, 20, bottomInset),
       children: [
         for (var i = 0; i < messages.length; i++)
           _bubbleFor(
@@ -219,7 +243,51 @@ class _AssistantScreenState extends State<AssistantScreen> {
     );
   }
 
+  /// A card's submission bypasses intent detection — otherwise the sentence
+  /// it produces ("Please book a trip from ...") would match the booking
+  /// detector again and open a second form instead of reaching AVA.
+  Future<void> _submitFromCard(String message) async {
+    if (!_ctrl.canSend) return;
+    HapticFeedback.lightImpact();
+    await _ctrl.sendMessage(message, allowIntentCards: false);
+  }
+
+  Widget _interactiveCardFor(ChatMessage msg) {
+    final seed = msg.cardSeed ?? const {};
+    switch (msg.interactiveCard) {
+      case AvaInteractiveCard.bookingForm:
+        return BookingFormCard(
+          key: ValueKey(msg.id),
+          initialPickup: seed['pickup'] as String?,
+          initialDestination: seed['destination'] as String?,
+          onSubmit: _submitFromCard,
+        );
+      case AvaInteractiveCard.modifyBooking:
+        return ModifyBookingCard(
+          key: ValueKey(msg.id),
+          bookings: _bookingsFrom(seed),
+          onSubmit: _submitFromCard,
+        );
+      case AvaInteractiveCard.cancelBooking:
+        return CancelBookingCard(
+          key: ValueKey(msg.id),
+          bookings: _bookingsFrom(seed),
+          onSubmit: _submitFromCard,
+        );
+      case AvaInteractiveCard.none:
+        return const SizedBox.shrink();
+    }
+  }
+
+  static List<Map<String, dynamic>> _bookingsFrom(Map<String, dynamic> seed) =>
+      ((seed['bookings'] as List?) ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .toList(growable: false);
+
   Widget _bubbleFor(dynamic msg, {required double bottomSpacing}) {
+    if (msg is ChatMessage && msg.isInteractive) {
+      return _interactiveCardFor(msg);
+    }
     if (msg.fromUser) {
       return UserMessageBubble(
         key: ValueKey(msg.id),
@@ -265,9 +333,8 @@ class _TopBar extends StatelessWidget {
         right: 20,
       ),
       decoration: BoxDecoration(
-        color: _bg.withValues(alpha: 0.92),
-        border: Border(
-            bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+        color: _bg(context).withValues(alpha: 0.92),
+        border: Border(bottom: BorderSide(color: _hairline(context))),
       ),
       child: Row(
         children: [
@@ -332,10 +399,10 @@ class _TopBarBtn extends StatelessWidget {
         width: 40, height: 40,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: _surfaceElevated,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+          color: _surfaceElevated(context),
+          border: Border.all(color: _hairline(context)),
         ),
-        child: Icon(icon, color: _onSurface, size: 20),
+        child: Icon(icon, color: _onSurface(context), size: 20),
       ),
     );
   }
@@ -458,7 +525,7 @@ class _ConciergeLoungeState extends State<_ConciergeLounge>
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3.5),
                         decoration: BoxDecoration(
-                          color: const Color(0xF01C1C1F),
+                          color: _surfaceElevated(context),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(
                               color: _gold.withValues(alpha: 0.28)),
@@ -509,11 +576,11 @@ class _ConciergeLoungeState extends State<_ConciergeLounge>
               const SizedBox(height: 10),
 
               // ── The hero: the invitation ────────────────────────────────
-              const Text(
-                'How may I assist you today?',
+              Text(
+                LanguageService.instance.t('ava_lounge_hero'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: _warmWhite,
+                  color: _onSurface(context),
                   fontSize: 26,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 0.5,
@@ -556,50 +623,68 @@ class _SuggestionChips extends StatelessWidget {
   final void Function(String) onAction;
   final bool enabled;
 
-  const _SuggestionChips({required this.onAction, required this.enabled});
+  /// Conversation mode: a slimmer rail pinned under the app bar, so the
+  /// starters stay one tap away without competing with the messages.
+  final bool compact;
 
-  static const _suggestions = <(IconData, String)>[
-    (Icons.edit_calendar_outlined, 'Change my upcoming trip'),
-    (Icons.near_me_outlined, "Where's my driver?"),
-    (Icons.flight_land_outlined, 'Airport meet-and-greet'),
-    (Icons.star_outline_rounded, 'My rewards & benefits'),
+  const _SuggestionChips({
+    required this.onAction,
+    required this.enabled,
+    this.compact = false,
+  });
+
+  /// Label key -> the message actually sent. The sent text is deliberately
+  /// NOT translated: the backend's intent routing matches English phrasing.
+  static const _suggestions = <(IconData, String, String)>[
+    (Icons.edit_calendar_outlined, 'ava_sg_change_trip',
+        'Change my upcoming trip'),
+    (Icons.near_me_outlined, 'ava_sg_driver', "Where's my driver?"),
+    (Icons.flight_land_outlined, 'ava_sg_meet_greet',
+        'Airport meet-and-greet'),
+    (Icons.star_outline_rounded, 'ava_sg_rewards', 'My rewards & benefits'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 42,
+    final l = LanguageService.instance;
+    final height = compact ? 34.0 : 42.0;
+
+    final rail = SizedBox(
+      height: height,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
+        padding: compact
+            ? const EdgeInsets.symmetric(horizontal: 20)
+            : EdgeInsets.zero,
         itemCount: _suggestions.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
+        separatorBuilder: (_, __) => SizedBox(width: compact ? 8 : 10),
         itemBuilder: (context, i) {
-          final (icon, label) = _suggestions[i];
+          final (icon, key, prompt) = _suggestions[i];
           return AnimatedOpacity(
             duration: const Duration(milliseconds: 150),
             opacity: enabled ? 1 : 0.5,
             child: GestureDetector(
-              onTap: enabled ? () => onAction(label) : null,
+              onTap: enabled ? () => onAction(prompt) : null,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding:
+                    EdgeInsets.symmetric(horizontal: compact ? 12 : 16),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _surfaceElevated.withValues(alpha: 0.75),
+                  color: _surfaceElevated(context).withValues(alpha: 0.75),
                   borderRadius: BorderRadius.circular(999),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.07)),
+                  border: Border.all(color: _hairline(context)),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, color: _gold, size: 15),
-                    const SizedBox(width: 8),
+                    Icon(icon, color: _gold, size: compact ? 13 : 15),
+                    SizedBox(width: compact ? 6 : 8),
                     Text(
-                      label,
-                      style: const TextStyle(
-                        color: _onSurface,
-                        fontSize: 13,
+                      l.t(key),
+                      style: TextStyle(
+                        color: _onSurface(context),
+                        fontSize: compact ? 11 : 13,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0.1,
                       ),
@@ -612,10 +697,20 @@ class _SuggestionChips extends StatelessWidget {
         },
       ),
     );
+
+    if (!compact) return rail;
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 2),
+      child: rail,
+    );
   }
 }
 
 // ── Input bar ──────────────────────────────────────────────────────────────────
+
+/// Vertical space the bar occupies above the device's bottom inset:
+/// 10 top padding + 48 control + 10 bottom padding.
+const double _kInputBarHeight = 68;
 
 class _InputBar extends StatefulWidget {
   final TextEditingController controller;
@@ -643,32 +738,77 @@ class _InputBarState extends State<_InputBar> {
     _focus.addListener(() => setState(() {}));
   }
 
-  Future<void> _toggleListen() async {
-    if (_isListening) {
-      await _speech.stop();
-      if (mounted) setState(() => _isListening = false);
-      return;
-    }
-    final available = await _speech.initialize(onError: (_) {
-      if (mounted) setState(() => _isListening = false);
-    });
-    if (!available || !mounted) return;
-    setState(() => _isListening = true);
-    HapticFeedback.mediumImpact();
-    await _speech.listen(
-      onResult: (result) {
-        widget.controller.text = result.recognizedWords;
-        widget.controller.selection = TextSelection.fromPosition(
-          TextPosition(offset: widget.controller.text.length),
-        );
-      },
-      listenOptions: SpeechListenOptions(
-        cancelOnError: true,
-        listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 3),
+  void _unavailable() {
+    if (!mounted) return;
+    setState(() => _isListening = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(LanguageService.instance.t('ava_voice_unavailable')),
+        behavior: SnackBarBehavior.floating,
       ),
     );
-    if (mounted) setState(() => _isListening = false);
+  }
+
+  /// Press to dictate, press again to send.
+  ///
+  /// initialize() throws rather than returning false when the platform has no
+  /// recogniser or the permission is refused (an emulator with no mic is the
+  /// common case), so the whole flow is guarded — a failed dictation must
+  /// never take the chat down with it.
+  Future<void> _toggleListen() async {
+    if (_isListening) {
+      await _stopAndSend();
+      return;
+    }
+    try {
+      final available = await _speech.initialize(
+        onError: (_) => _unavailable(),
+        onStatus: (status) {
+          // The recogniser stops itself after pauseFor; reflect that in the
+          // icon instead of leaving it stuck in the listening state.
+          if (status == 'done' || status == 'notListening') {
+            if (mounted && _isListening) setState(() => _isListening = false);
+          }
+        },
+      );
+      if (!available) {
+        _unavailable();
+        return;
+      }
+      if (!mounted) return;
+      setState(() => _isListening = true);
+      HapticFeedback.mediumImpact();
+      await _speech.listen(
+        onResult: (result) {
+          widget.controller.text = result.recognizedWords;
+          widget.controller.selection = TextSelection.fromPosition(
+            TextPosition(offset: widget.controller.text.length),
+          );
+          if (mounted) setState(() {});
+        },
+        listenOptions: SpeechListenOptions(
+          cancelOnError: true,
+          listenFor: const Duration(seconds: 30),
+          pauseFor: const Duration(seconds: 3),
+        ),
+      );
+    } catch (_) {
+      _unavailable();
+    }
+  }
+
+  Future<void> _stopAndSend() async {
+    try {
+      await _speech.stop();
+    } catch (_) {
+      // Already stopped — nothing to recover from.
+    }
+    if (!mounted) return;
+    setState(() => _isListening = false);
+    // Dictation ends with a send: the point of talking is not to fill a box.
+    if (widget.controller.text.trim().isNotEmpty) {
+      widget.onSend();
+    }
   }
 
   @override
@@ -683,14 +823,16 @@ class _InputBarState extends State<_InputBar> {
     // The field acknowledges attention: gold 20% at rest, 60% in focus.
     final borderAlpha = _focus.hasFocus ? 0.60 : 0.20;
 
+    final l = LanguageService.instance;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         16, 10, 16,
         MediaQuery.of(context).padding.bottom + 10,
       ),
-      decoration: const BoxDecoration(
-        color: _bg,
-        border: Border(top: BorderSide(color: Color(0x14FFFFFF))),
+      decoration: BoxDecoration(
+        color: _bg(context),
+        border: Border(top: BorderSide(color: _hairline(context))),
       ),
       child: Row(
         children: [
@@ -703,17 +845,17 @@ class _InputBarState extends State<_InputBar> {
               decoration: BoxDecoration(
                 color: _isListening
                     ? _gold.withValues(alpha: 0.20)
-                    : _surfaceElevated,
+                    : _surfaceElevated(context),
                 shape: BoxShape.circle,
                 border: Border.all(
                   color: _isListening
                       ? _gold.withValues(alpha: 0.60)
-                      : Colors.white.withValues(alpha: 0.10),
+                      : _hairline(context),
                 ),
               ),
               child: Icon(
                 _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
-                color: _isListening ? _gold : _textSec,
+                color: _isListening ? _gold : _textSec(context),
                 size: 20,
               ),
             ),
@@ -727,7 +869,7 @@ class _InputBarState extends State<_InputBar> {
               height: 50,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: _surfaceElevated,
+                color: _surfaceElevated(context),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(
                     color: _gold.withValues(alpha: borderAlpha)),
@@ -743,16 +885,28 @@ class _InputBarState extends State<_InputBar> {
                       focusNode: _focus,
                       enabled: widget.enabled,
                       cursorColor: _gold,
-                      style: const TextStyle(
-                          color: _onSurface, fontSize: 14),
+                      style: TextStyle(
+                          color: _onSurface(context), fontSize: 14),
+                      // The app theme sets filled + enabled/focused
+                      // OutlineInputBorders. `border:` alone is only the
+                      // fallback, so those kept painting a second rounded
+                      // outline INSIDE this pill — the double ring. Every
+                      // state has to be cleared explicitly.
                       decoration: InputDecoration(
                         isCollapsed: true,
-                        hintText: _isListening
-                            ? 'Listening...'
-                            : 'Message AVA...',
-                        hintStyle: const TextStyle(
-                            color: Color(0xFF6B6460), fontSize: 14),
+                        filled: false,
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        hintText: _isListening
+                            ? l.t('ava_listening')
+                            : l.t('ava_input_hint'),
+                        hintStyle: TextStyle(
+                            color: _textSec(context), fontSize: 14),
                       ),
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => widget.onSend(),
@@ -771,7 +925,7 @@ class _InputBarState extends State<_InputBar> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: widget.enabled ? _gold : _surfaceElevated,
+                color: widget.enabled ? _gold : _surfaceElevated(context),
                 shape: BoxShape.circle,
                 border: widget.enabled
                     ? null
@@ -788,7 +942,9 @@ class _InputBarState extends State<_InputBar> {
               ),
               child: Icon(
                 Icons.send_rounded,
-                color: widget.enabled ? _bg : _textSec,
+                color: widget.enabled
+                    ? const Color(0xFF141313)
+                    : _textSec(context),
                 size: 20,
               ),
             ),

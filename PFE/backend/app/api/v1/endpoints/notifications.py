@@ -19,6 +19,21 @@ async def list_notifications(current_user: dict = Depends(require_client)) -> di
     return {"notifications": notifications}
 
 
+@router.get("/unread-count")
+async def unread_count(current_user: dict = Depends(require_client)) -> dict:
+    """Just the number of unread notifications.
+
+    The app polls this from a background isolate every 15 minutes to decide
+    whether to raise a local notification. Counting server-side keeps that
+    poll to a few bytes instead of shipping 50 documents over mobile data.
+    """
+    db = get_database()
+    count = await db.notifications.count_documents(
+        {"user_id": current_user["_id"], "read": {"$ne": True}}
+    )
+    return {"unread": count}
+
+
 @router.patch("/{notification_id}/read")
 async def mark_as_read(
     notification_id: str,

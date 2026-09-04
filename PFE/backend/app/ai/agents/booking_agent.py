@@ -23,8 +23,8 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from app.ai.agents.shared import (
-    AVA_PERSONA_PROMPT, AgentState, _last_human_text, run_with_confirmation,
-    safe_tool_args, with_persona,
+    AVA_PERSONA_PROMPT, AgentState, _last_human_text, extract_text,
+    run_with_confirmation, safe_tool_args, with_persona,
 )
 from app.ai.model_router import get_model
 from app.ai.tool_registry import get_tools_for_role
@@ -60,7 +60,18 @@ _LOOKUP_ADDENDUM = (
     "appear verbatim in the data.\n"
     "- Describe trips by route (pickup to destination) and date. Never expose raw "
     "IDs, field names, or JSON.\n"
-    "- If the tool returned an error, say so plainly and offer to help."
+    "- If the tool returned an error, say so plainly and offer to help.\n"
+    "\nMODIFYING A BOOKING:\n"
+    "- Never call update_booking without at least one field to change. If the "
+    "client has not said what to change, ask: 'What would you like to change? "
+    "You can update the date, time, pickup address, destination, or passenger "
+    "count.'\n"
+    "- Before applying, state the SPECIFIC change back to them using the old and "
+    "new values, e.g. 'Date: 27 Jul to 15 Aug, time: 14:00 to 15:00. Shall I "
+    "apply that?' — never a bare 'shall I update this booking?'.\n"
+    "- After the tool returns, report the exact changes from its `changes` list. "
+    "If it returns no_changes_specified or values_unchanged, do NOT claim the "
+    "booking was updated — ask what should be different instead."
 )
 
 _BOOKING_SYSTEM = AVA_PERSONA_PROMPT + _LOOKUP_ADDENDUM
@@ -101,6 +112,7 @@ async def classify_node(state: AgentState) -> dict:
         return {"next_node": "action"}
 
     last_text = _last_human_text(state["messages"])
+
     model = get_model()
 
     classify_resp = await model.ainvoke([
@@ -115,7 +127,10 @@ async def classify_node(state: AgentState) -> dict:
         ("human", last_text),
     ])
 
-    decision = classify_resp.content.strip().upper()
+    # extract_text() flattens Gemini's structured block-list content. Reading
+    # .content directly worked only while every reply came back as a plain
+    # string; the fallback model returns blocks, and .strip() then explodes.
+    decision = extract_text(classify_resp).strip().upper()
     # Action requests go to disambiguate first (not action directly) so we can
     # resolve a missing booking reference without consuming Gemini quota.
     route = "disambiguate" if "ACTION" in decision else "lookup"
@@ -396,26 +411,39 @@ async def resolve_selection_node(state: AgentState) -> dict:
     time_str = selected.get("departure_time", "")
     when = f"{date} at {time_str}" if time_str else date
 
-    if action == "cancel":
-        summary = (
-            f"I'd like to cancel your trip from {route}"
-            f"{' on ' + when if when else ''}. "
-            "Reply **yes** to confirm or **no** to cancel."
+    # Modify is not a yes/no decision — there is nothing to confirm until the
+    # client says WHAT to change. Gating it like a cancellation meant "yes"
+    # ran update_booking with only a booking_id, changing nothing while
+    # reporting success. Ask first; the next turn carries the actual edit.
+    if action != "cancel":
+        question = (
+            f"Your trip from {route}{' on ' + when if when else ''} "
+            f"(reference {booking_id}).\n\n"
+            "What would you like to change? You can update the date, time, "
+            "pickup address, destination, or the passenger and luggage count."
         )
-        tool_name = "cancel_booking"
-        args = {"booking_id": booking_id}
-    else:
-        summary = (
-            f"I'd like to modify your trip from {route}"
-            f"{' on ' + when if when else ''}. "
-            "Reply **yes** to confirm or **no** to cancel."
-        )
-        tool_name = "update_booking"
-        args = {"booking_id": booking_id}
+        return {
+            "messages": [AIMessage(content=question)],
+            "pending_action": None,
+            "awaiting_confirmation": False,
+            "awaiting_booking_selection": False,
+            "candidate_bookings": None,
+            "pending_selection_action": None,
+        }
+
+    summary = (
+        f"I'd like to cancel your trip from {route}"
+        f"{' on ' + when if when else ''}. "
+        "Reply **yes** to confirm or **no** to cancel."
+    )
 
     return {
         "messages": [AIMessage(content=summary)],
-        "pending_action": {"name": tool_name, "args": args, "summary": summary},
+        "pending_action": {
+            "name": "cancel_booking",
+            "args": {"booking_id": booking_id},
+            "summary": summary,
+        },
         "awaiting_confirmation": True,
         "awaiting_booking_selection": False,
         "candidate_bookings": None,

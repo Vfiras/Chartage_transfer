@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/services/language_service.dart';
+import '../../core/services/push_notification_service.dart';
 import 'notification_controller.dart';
 import 'notification_model.dart';
 import 'widgets/empty_notifications_widget.dart';
@@ -33,6 +34,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       ..onUnreadCountChanged = widget.onUnreadCountChanged
       ..addListener(_onControllerUpdate)
       ..load();
+    // Android 13+ will not post anything until POST_NOTIFICATIONS is granted.
+    // Asked here rather than at cold start so the system prompt arrives while
+    // the user is actually looking at their notifications. The plugin only
+    // shows the dialog once; later calls return the standing answer.
+    PushNotificationService.instance.requestPermission();
   }
 
   @override

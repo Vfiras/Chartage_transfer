@@ -1,6 +1,6 @@
 # Carthage Transfer — Feature Status
 
-Last updated: 2026-07-27
+Last updated: 2026-09-04
 Stack: Flutter (client + admin) + FastAPI + MongoDB (Motor async) + LangGraph + Gemini 2.5 Flash
 
 ## Legend
@@ -13,256 +13,399 @@ Basis: 15 API routers wired in `api.py`; real MongoDB operations across 15 endpo
 `destinations`, `favorites`, `notifications`, `pricing`, `promotions`, `rewards`, `suppliers`);
 real API-client calls across the Flutter services. Every feature marked ✅ points to a real
 route + DB op or a real service call — verified by reading the endpoint/screen source, not by
-description alone. This revision folds in the 2026-07-07 → 2026-07-09 completion sessions
-(real fleet pricing, cash-payment approval flow, AVA business analytics, complaints management,
-design elevation pass) that the 07-06 version of this file predated.
+description alone.
 
-**2026-07-27 verification session:** wired the two unreachable admin screens (Suppliers,
-Recommendation Management) into the dashboard quick-actions; ran the full booking lifecycle live
-against the running backend (login → cars → batch price-estimate via real Google Directions →
-create cash booking → client+admin notifications → history → admin overview → approve-payment →
-confirm → cancel → complaint create/list/status) — **13/13 steps passed**; ran the 5 AVA
-scenarios (RAG policy, upcoming trips, loyalty, admin business review with analytics event,
-client role-gate refusal) — all pass in isolation (one back-to-back run hit the 5-req/min Gemini
-free-tier cap, fallbacks verified); `flutter analyze` **clean**; debug **APK builds** (exit 0);
-`docker compose config` validates and `docker compose build` runs (Docker Desktop).
+**Screen-by-screen reference:** a separate architecture atlas documents all 27 screens (file
+path, what each renders, which endpoints it calls, the state it owns, notable patterns):
+<https://claude.ai/code/artifact/9bb8e8a6-c6b8-409c-a0e0-79e195c9944f>
+
+---
+
+## What changed since 2026-07-27
+
+Four working sessions landed between 07-27 and 08-30. Two are committed
+(`2309925` admin chrome + AVA analytics, `050bf5a` overflow/status/rewards fixes); the client
+final pass, the AVA interactive cards and the notification service are **implemented, verified
+and currently uncommitted**.
+
+**Closed gaps** (all were open on 07-27):
+| Was | Now |
+|---|---|
+| ❌ Push notifications | ✅ Local notifications + 15-min background poll (no Firebase) |
+| 🔶 Password reset (no SMTP, no in-app completion) | ✅ Both endpoints wired, in-app completion, round-trip verified |
+| 🔶 `POST /admin/seed` left 5 collections dirty | ✅ Clear-list extended to 12 collections |
+| ⚠️ Committed Maps API key | ✅ Gitignored + `maps_config.example.dart` template |
+| 🔶 Voice input untraced on device | ✅ Working, with graceful fallback where no recogniser exists |
+
+**New this period:** AVA interactive booking cards, six-mode AVA business analytics, shared admin
+chrome, manual booking-status control, spendable referral credits, fleet capacity filtering,
+light-mode pass, and the removal of 279 lines of dead code.
+
+### 2026-09-04 pass
+
+| Change | Detail |
+|---|---|
+| Google sign-in removed | Placeholder button + divider + logo painter deleted; email/password only |
+| Password reset hardened | Query params → JSON body (password was landing in the access log) |
+| SMTP delivery wired | Off-thread send, real error logging, `SMTP_PASSWORD`/`SMTP_FROM` aliases, `.env` template |
+| Notification permission fixed | `requestPermission()` had **no call site**; now wired and verified on API 36 |
+| App label corrected | "DHC Transport" → "Carthage Transfer" |
+
+Two of these were latent defects rather than missing features: the reset endpoints put the new
+password in the request URL, and the Android 13+ permission was never actually requested. Both
+would have looked fine in a walkthrough and failed on a real device or in a log review.
+
+**Correction to a previously documented fact:** the Gemini free tier is **20 requests per day per
+model** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`), *not* 5 per minute as the 07-27
+revision recorded. This was observed repeatedly and is the single biggest demo risk — see Known
+Gaps.
 
 ---
 
 ## Authentication
+- ✅ **Email + password only (09-04)** — the login and signup screens carried a Google button,
+  a "Or continue with" divider and a hand-drawn `_GoogleLogoPainter`. None of it was real auth:
+  `onGoogle` fired a "coming soon" snackbar, and `google_sign_in` was never a dependency. The
+  button, divider, painter, `_SocialButton` shell and both `_socialSoon` handlers are gone
+  (~130 lines), along with three now-orphaned EN/FR strings. Confirmed on device.
 - ✅ Register — `POST /auth/signup` → `register_client`, inserts user (409 on duplicate)
 - ✅ Login — `POST /auth/login`, bcrypt verify, returns JWT (`build_token_response`)
 - ✅ JWT storage — Flutter `auth_service.dart` persists token in `shared_preferences`
-- ✅ Logout — client-side token clear (no server session to invalidate; correct for JWT)
-- 🔶 Password reset — `POST /auth/forgot-password` stores a real token in `password_resets` and
-  `POST /auth/reset-password` really validates the token + updates the hash. Gaps: (1) email
-  delivery is best-effort and SMTP is unset by default in `.env`, so no email is actually sent
-  in the demo; (2) the reset URL targets `app_base_url` (web), so there is no in-app deep-link
-  to complete the reset.
+- ✅ Logout — client-side token clear; also stops the notification poll before clearing the token
+- ✅ **Password reset (new 08-30)** — `POST /auth/forgot-password` stores a real token in
+  `password_resets`; `POST /auth/reset-password` validates it and updates the hash. The Flutter
+  screen now calls both (it previously faked success with a 700 ms delay). After requesting a
+  link the screen reveals a second step — reset code + new password — so the flow completes
+  **in-app** without SMTP, which is what makes it demonstrable.
+  **Wire format changed 09-04.** Both endpoints previously declared bare `str` parameters, so
+  FastAPI read them from the **query string** — which put the new password in the request URL,
+  where uvicorn writes it verbatim into the access log. They now take JSON bodies
+  (`ForgotPasswordRequest` / `ResetPasswordRequest`) and the Flutter client posts JSON.
+  Email delivery is wired: `_send_reset_email` runs `smtplib` under `asyncio.to_thread` so the
+  SMTP handshake cannot stall the event loop, and failures are **logged** rather than swallowed
+  by a bare `except: pass` — the previous code made a dead mail server indistinguishable from a
+  successful send. `Settings` accepts either spelling of the credentials
+  (`SMTP_PASS`/`SMTP_PASSWORD`, `FROM_EMAIL`/`SMTP_FROM`) via `AliasChoices`, which matters
+  because it forbids unknown keys and would otherwise refuse to start.
+  Verified live 8/8: short password rejected (400) · bad token rejected (400) · reset succeeds ·
+  login with the new password (200) · login with the old one (401) · **token reuse rejected
+  (400)** · restore · login with the restored password (200).
+  🔶 Remaining: `backend/.env` now carries a commented SMTP block but **no credentials**, so the
+  backend logs `SMTP not configured … no email sent` and the user reads the token from the DB.
+  Filling in a Gmail App Password is the only step left to deliver real mail.
+  ℹ️ The response is intentionally identical for known and unknown addresses. The task asked for
+  a distinct "No account with this email" error; that would let anyone enumerate registered
+  accounts, and it contradicts the project's own `security_architecture.md`, so the generic
+  message was kept. One line in `forgot_password` changes it if that trade is wanted.
 
 ## Client App — Booking Flow
 - ✅ Booking search screen — `booking_search_screen.dart` renders a real `GoogleMap`
-- ✅ Places autocomplete — `places_service.dart` → Google Places API (real key in `maps_config.dart`)
+- ✅ Places autocomplete — `places_service.dart` → Google Places API
 - ✅ Route polyline — `directions_service.dart` → Google Directions API, drawn on the map
 - ✅ Real distance-based pricing engine — `POST /bookings/price-estimate`: Google Directions
   route metrics (haversine×1.3 fallback) × real per-vehicle rate cards
-  (`backend/app/db/fleet_data.py` — 8 real vehicles: Economy, Comfort Sedan, Minivan, Large Van,
-  Minibus, E Class, S Class, V Class — each with initial fee, per-km, per-hour, per-waypoint,
-  return rates, sourced from the live site's booking-system PDFs). Batch mode returns quotes for
-  the whole fleet from one Directions call. Formula: `initial_fee + km × per_km + waypoint
-  components` — per-hour is NOT added on distance transfers (would double-bill).
-  🔶 **Economy vehicle rates are unverified** — the source PDF was truncated; seeded values are
+  (`backend/app/db/fleet_data.py` — 8 vehicles). Batch mode returns quotes for the whole fleet
+  from one Directions call. Formula: `initial_fee + km × per_km + waypoint components` —
+  per-hour is NOT added on distance transfers (would double-bill).
+  🔶 **Economy vehicle rates remain unverified** — source PDF was truncated; seeded values are
   flagged `pricing_verified: false` and the admin Pricing card shows a "VERIFY RATES" badge.
-- ✅ Vehicle selection — `booking_fleet_screen.dart` shows real EUR quotes per vehicle
-  ("ALL-INCLUSIVE" badge), a one-way/return toggle that live-updates prices (cached per trip
-  type), and route metrics (km + drive time). Falls back to a local rules-based TND estimate
-  ("ESTIMATED" badge) only if coordinates are missing or the endpoint fails.
-- ✅ Pricing surcharges — `pricing_service.dart` → `GET /pricing/config` layers night/weekend/
-  last-minute surcharges + promo on top of the real base price
-- ✅ Booking confirmation screen — `booking_confirmation_screen.dart` + `RouteMapView`
-  (interactive map + Directions polyline) → `POST /bookings`
+- ✅ Vehicle selection — real EUR quotes per vehicle, one-way/return toggle that live-updates
+  (cached per trip type), route metrics.
+- ✅ **Capacity filtering (new 08-30)** — vehicles that cannot carry the requested party are
+  hidden, not greyed out. A notice states the filter ("Showing vehicles for 4 passengers,
+  3 bags — 2 too small to fit") and a distinct empty state appears when nothing fits. A vehicle
+  reporting `0` seats/bags is treated as *missing capacity data*, not zero capacity, so
+  incomplete records never empty the list.
+- ✅ Pricing surcharges — `GET /pricing/config` layers night/weekend/last-minute + promo
+- ✅ Booking confirmation screen + `RouteMapView` → `POST /bookings`
+- ✅ **Rewards applied at checkout (new 08-30)** — the confirmation screen shows a "Rewards
+  balance" line and the reduced total; the success screen confirms the amount spent. See Loyalty.
 - 🔶 **Payment flow** — real cash-approval lifecycle, no real payment gateway:
-  - `PaymentMethodScreen` sits between contact details and confirmation. Cash card is a real,
-    selectable path ("Requires Approval" badge). Card is a placeholder ("Coming Soon" badge →
-    bottom sheet redirecting to cash); **no card payment ever actually processes.**
-  - Booking docs carry `payment_method` (`cash`/`card`) + `payment_status`
-    (`pending_approval`/`approved`). Cash booking → `pending_approval` + a notification is
-    pushed to every admin user. Success screen for cash reads "Booking Received — pending
-    approval", not "Confirmed".
+  - `PaymentMethodScreen` sits between contact details and confirmation. Cash is a real path
+    ("Requires Approval"). Card is a placeholder ("Coming Soon" → sheet redirecting to cash);
+    **no card payment ever processes.**
+  - Cash booking → `pending_approval` + notification to every admin. Success screen reads
+    "Booking Received — pending approval".
   - Admin approves via `PATCH /admin/bookings/{id}/approve-payment` → booking flips to
-    `confirmed`, client gets a "Booking confirmed" notification. Verified live end-to-end
-    (2026-07-08 session).
+    `confirmed`, client notified. Verified live.
 
 ## Client App — My Bookings
-- ✅ Upcoming trips list — `trip_service.dart` → `GET /bookings/`
-- ✅ Past trips list — → `GET /bookings/history`
-- ✅ Booking detail view — → `GET /bookings/{id}`
-- ✅ Cancel booking — → `PATCH /bookings/{id}/cancel`
-- ✅ Modify booking — `_ModifyBookingScreen` pre-loads fields → `PUT /bookings/{id}`; 24h
-  modification window enforced client- and server-side; success snackbar on save
+- ✅ Upcoming / past trips — `GET /bookings/history`, segmented Upcoming / History / Canceled
+- ✅ Booking detail view — `GET /bookings/{id}`
+- ✅ Cancel booking — `PATCH /bookings/{id}/cancel`
+- ✅ Modify booking — `PUT /bookings/{id}`; 24h window enforced on both sides. The Modify/Cancel
+  buttons are gated by `PricingService().canChangeBooking()` *before render*, so an action
+  inside the cutoff is never offered.
 
 ## Client App — Loyalty & Promotions
-- ✅ Points balance and tier display — now surfaced as a **"CARTHAGE PRIVILÈGE" membership
-  card** on the Profile tab (dark-lacquer card, tier chip, points hero, gold progress, rides-to-
-  next-tier) → `reward_service.dart` → `GET /rewards/me`; replaces the old buried "Rewards" row.
-  Guests excluded.
-- ✅ Promo code listing — → `GET /rewards/available-promos`
-- ✅ Promo code application at booking — `POST /pricing/promo/validate` applies discount to the quote
+- ✅ "CARTHAGE PRIVILÈGE" membership card on Profile → `GET /rewards/me`
+- ✅ Promo code listing — `GET /rewards/available-promos`
+- ✅ Promo application at booking — `POST /pricing/promo/validate`
+- ✅ **Referral credits are now spendable (fixed 08-30)** — previously `referral_credits` was
+  incremented on payout, displayed in the UI, and **never spent by anything**. Booking creation
+  now draws the wallet down server-side and returns `credits_applied`; the deduction is atomic
+  (`$gte` guard) so two concurrent bookings cannot spend the same balance twice.
+  Verified: €43.35 booking → €38.35 charged, balance → 0, second booking correctly gets nothing.
+- ✅ **Loyalty figures are consistent across admin, client and AVA (fixed 08-30)** — AVA's tool
+  had its own hardcoded tier table (`0/50/150/300`) that had drifted from `rewards_service`
+  (`0/30/100/200`), so AVA told clients "Silver at 50 points" while the Rewards screen said 30.
+  All three now derive from one source. Verified: client `/rewards/me`, the admin loyalty view
+  and AVA all report identical points/tier for the same user.
+- ✅ **Private promo codes no longer leak (fixed 08-30)** — AVA listed *all* active promos with no
+  owner filter, advertising other members' tier/welcome codes that the validator then refused at
+  checkout. AVA's booking quote also checked expiry and usage limit but **not ownership**, so a
+  foreign code would discount the quote. Both closed; 10/10 consistency tests pass.
 
 ## Client App — Destination Guide
-- ✅ Destination listing — `destination_guide_repository.dart` → `GET /destinations/recommendations/`
-- ✅ Destination detail — `destination_detail_screen.dart` from the fetched recommendation
-- ✅ Map on detail screen — `GoogleMap` via `route_map_view` / `tn_locations`
+- ✅ Listing / detail / map — `GET /destinations/recommendations/`, via
+  `destination_guide_repository.dart` (the only feature with a repository layer)
 
 ## Client App — Profile
-- ✅ View profile — `GET /auth/me` → `build_user_payload`
-- ✅ Edit profile — `edit_profile_screen.dart` → `PUT /auth/me` (email-uniqueness guarded)
-- ✅ Profile photo — `image_picker` → `POST /auth/me/avatar` (validated, stored, old avatar
-  deleted); avatar now also renders beside the user's own bubbles in the AVA chat
+- ✅ View / edit profile — `GET /auth/me`, `PUT /auth/me` (email-uniqueness guarded)
+- ✅ Profile photo — `image_picker` → `POST /auth/me/avatar`
+- ✅ Settings — language (EN/FR) and theme toggles, both `ValueNotifier`-backed
+
+## Client App — Favorites
+- ✅ Saved places — `GET/POST/DELETE /favorites/`, detail sheet with notes and a photo album
+- ✅ **Swipeable album (new 08-30)** — tapping a photo opens a `PageView.builder` seeded at that
+  index, so the whole album swipes left/right; each page is an `InteractiveViewer` for
+  pinch-zoom, with a counter shown only when there is more than one photo. Previously each photo
+  had to be opened and closed individually.
 
 ## Client App — Notifications
-- ✅ Notification list — `notification_service.dart` → `GET /notifications/`, mark-read
-  (`PATCH .../read`, `/read-all`), delete (+ undo); unread badges on both the Alerts tab and the
-  Bookings-tab bell
-- ❌ Push notifications — no `firebase_messaging`/FCM in `pubspec.yaml`. In-app list only;
-  nothing is pushed to the device.
+- ✅ Notification list — `GET /notifications/`, mark-read, delete (+ undo), unread badges
+- ✅ Optimistic updates with rollback — `markAllRead()` snapshots the list and restores it on
+  failure
+- ✅ **Out-of-app notifications (new 08-30, no Firebase)** — `flutter_local_notifications` +
+  `workmanager`. A periodic task wakes ~every 15 minutes, reads the JWT from `SharedPreferences`
+  in a background isolate, calls `GET /notifications/unread-count`, and posts a local
+  notification when the count has **grown** since the last check (a last-seen baseline prevents
+  re-announcing the same backlog every cycle).
+  - New endpoint `GET /notifications/unread-count` added so the poll ships **12 bytes instead of
+    7464** — the full list endpoint returns 50 documents, which is wasteful on mobile data every
+    15 minutes.
+  - Channel `carthage_transfer`, importance HIGH. Poll starts on login/signup, stops on logout
+    *before* the token is cleared.
+  - ⚠️ **Corrected 09-04.** The 08-30 revision of this file claimed the Android 13+ runtime
+    permission was requested from the notifications screen. It was not: `requestPermission()`
+    existed but **had no call site anywhere in `lib/`**, so on any device running API 33+ the
+    OS would never have been asked and no notification could ever post. The earlier on-device
+    success came from an emulator where the grant was already in place. It is now called from
+    `NotificationsScreen.initState` (both roles reach that screen), and verified on an **API 36**
+    emulator: permission revoked → screen opened → system dialog shown → granted, confirmed as
+    `granted=true, USER_SET` in `dumpsys`.
+  - **Verified on device**, not just compiled: WorkManager logged `Worker result SUCCESS` and the
+    system posted `Carthage Transfer / 4 new notifications` above the "Silent" divider.
+  - 🔶 Latency is bounded by Android's 15-minute floor on periodic work, and Doze can defer it
+    further. It is a poll, not a push — the report should say so plainly.
 
 ## AVA — Client AI Agent
-- ✅ AVA screen — redesigned "concierge lounge" (2026-07-09): lounge⇄conversation state machine,
-  horizontal quick-action chips with natural first-message labels, once-per-session entrance
-  animation — `assistant_screen.dart`
-- ✅ Chat interface (SSE streaming, typing indicator, markdown bold) — `assistant_api_service.dart`
-  streams `POST /assistant/chat`, parses `data:` events, stops on `done`/`error`
-- ✅ Voice input (speech-to-text) — `speech_to_text: ^7.0.0`, `SpeechToText()` in
-  `assistant_screen.dart` (needs mic permission; not traced end-to-end on a physical device)
-- ✅ Booking agent — `booking_agent.py`: trip history, real-fleet vehicle recommendation
-  (seats≥pax filter, price-sorted, EUR estimates), create/modify/cancel (4-node internal router)
-- ✅ Support agent (RAG) — `support_agent.py` over the 5-doc knowledge base; low-confidence query
-  expansion added for "airport assistance"-style queries that miss the 0.25 relevance floor
-- ✅ Loyalty agent — `loyalty_agent.py`: points, tier, promos (+ deterministic template fallback)
-- ✅ Feedback agent — `feedback_agent.py` → `submit_claim` writes a complaint
-- ✅ Confirmation gate (propose → yes/no → execute) — `run_with_confirmation` in `shared.py`
-- ✅ Safety check node — supervisor `safety` node
-- ✅ Role gate (client cannot reach admin tools) — supervisor `role_gate` + role-scoped tool registry
-- ✅ Audit log — admin tool calls wrapped by `_wrap_with_audit` → `audit_log` collection
-- ✅ Chat message cards (confirmation, selection, result, info, **analytics**) —
-  `ava_card_parser.dart` + card widgets; gold left-accent on AVA bubbles
-- ✅ Friendly error messages — **3 layers**: (1) `invoke_with_fallback` collapses every model
-  failure to a friendly RuntimeError; (2) `_run()` catches any sub-agent exception; (3) the whole
-  supervisor-graph construction is wrapped, so even a graph-build failure yields a friendly SSE
-  event instead of a raw 500. Raw error text never reaches the bubble (re-verified 2026-07-07).
-- ✅ Model routing — **Gemini only**, flat. Local/Ollama tier fully removed.
+- ✅ AVA screen — "concierge lounge" ⇄ conversation state machine, once-per-session entrance
+- ✅ SSE streaming chat, typing indicator, markdown bold
+- ✅ **Voice input verified (08-30)** — `speech_to_text`. `initialize()` *throws* rather than
+  returning false when no recogniser exists (emulator with no mic), which was previously
+  uncaught; now fully guarded, degrading to a snackbar. Stopping sends the transcript. An
+  `onStatus` handler resets the icon when the recogniser auto-stops.
+- ✅ Booking / support (RAG) / loyalty / feedback agents
+- ✅ Confirmation gate, safety check, role gate, audit log
+- ✅ **Interactive booking cards (new 08-30)** — the headline UX change. Booking through chat used
+  to take 6+ messages ("what date?" → "what year?" → "how many passengers?" → …). Intent is now
+  detected **locally in Flutter** before sending; the chat answers with a form card, and only on
+  submit does it send one complete sentence.
+  - `BookingFormCard` — date/time pickers, passenger/luggage steppers, vehicle chips; route
+    pre-filled from the message when stated ("from Carthage airport to Hammamet").
+  - `ModifyBookingCard` — real bookings list, radio select, then progressive field reveal.
+  - `CancelBookingCard` — radio select + irreversibility warning.
+  - **No backend changes and no new SSE event type** — the transport stays the ordinary text
+    flow. Card submission passes `allowIntentCards: false`; that bypass is load-bearing, since
+    the generated sentence re-matches the booking detector and would otherwise loop.
+  - Verified: intent routing 13/13 (including negatives like "What is your cancellation
+    policy?"), all 5 flows on device, and the generated sentence produces a priced confirmation
+    gate in ~6 s with **zero follow-up questions**.
+- ✅ **Booking modification actually modifies (fixed 08-30)** — previously: select a booking →
+  "confirm?" → yes → "booking updated" with **nothing changed**. Two causes: the confirmation was
+  built with only a `booking_id` and no fields, and `update_trip` silently drops `None` values,
+  so it wrote nothing yet returned the booking (which reads as success). The flow now asks *what*
+  to change first, and the tool refuses empty or no-op updates (`no_changes_specified` /
+  `values_unchanged`) and returns a diff of what actually moved.
+- ✅ Chat message cards (confirmation, selection, result, info, analytics) — parsed from reply
+  text; anything unrecognised falls back to a plain bubble, so a card can never break the chat
+- ✅ Friendly error messages — 3 layers; raw provider text never reaches the bubble
+- ✅ **Model failover (new 08-30)** — Gemini's free tier meters per day *per model*, so a single
+  model's exhaustion took AVA down entirely. `CLOUD_FALLBACK` is now wired to a second model with
+  its own budget, and `get_model()` returns a wrapper that fails over on `ainvoke`/`bind_tools`.
+  Previously the fallback existed but was unreachable from the sub-agent paths that serve chat
+  turns. Quota exhaustion now also gets its own message instead of "try again in a moment",
+  which sent users into a retry loop against a limit that clears tomorrow.
+
+## Admin App — Shared chrome (new 08-30)
+- ✅ `AdminTopBar` — one header for every admin screen (title, optional back, notification bell
+  with unread badge, optional action). Replaced seven bespoke app bars.
+- ✅ `AdminNavBar` — delegates to the client's `PremiumClientNav` rather than duplicating the
+  glass-pill animation, so both shells stay visually identical. Unread lives on the top bar's
+  bell, so the nav carries no badge.
 
 ## Admin App — Dashboard
-- ✅ Revenue metrics — `admin_dashboard_screen.dart` → `GET /analytics/dashboard` + `GET /admin/overview`
-- ✅ 7-day booking trend — computed in analytics/overview endpoints
-- ✅ Popular destinations — computed server-side from bookings
-- ✅ Booking counts, open-complaints count — from `GET /admin/overview`
-- ✅ **"Pending Cash Approvals" section** — gold-bordered panel with count badge, horizontal
-  scrollable cards (client, route, date, vehicle, price) → approve sheet → `PATCH
-  /admin/bookings/{id}/approve-payment`, card disappears on approval
+- ✅ Revenue metrics, 7-day trend, popular destinations, booking counts, open complaints
+- ✅ "Pending Cash Approvals" panel → `PATCH /admin/bookings/{id}/approve-payment`
+- ✅ Charts come from shared `admin_charts.dart` primitives (`GoldBarChart`, `GoldPieChart`) —
+  the same ones AVA's analytics card uses, so a chart looks identical in both places. Axis steps
+  snap to "nice" numbers to avoid repeated rounded labels.
+- ⚠️ **Rendering trap documented:** a `BoxDecoration` combining `borderRadius` with a
+  non-uniform `Border` is invalid in Flutter and fails **silently** — the card renders as an empty
+  shell with no exception. Gold accent rails are drawn as a separate sliver inside a `Row`.
 
 ## Admin App — Bookings Management
-- ✅ All bookings list — `admin_bookings_screen.dart` → `GET /admin/bookings`; filter chips
-  All / **Pending Approval** / Pending / Confirmed / On Route / Completed / Cancelled
-- ✅ Booking status update — `booking_edit_sheet.dart` → `PATCH /bookings/{id}/status`
-- ✅ Booking detail view — `admin_booking_details_screen.dart`
+- ✅ All bookings list → `TripService().listTrips()` (`GET /bookings/`); filter pills
+  All / Pending Approval / Pending / Confirmed / On Route / Completed / Cancelled; client-side
+  search over the loaded list
+- ✅ **Manual status control (new 08-30)** — there is no driver app, so the admin is the only
+  actor who can advance a booking. Each card offers the next step (**Confirm → Start trip →
+  Mark as completed**) and the status chip opens a picker that can set *any* status in any order.
+  Terminal states show no advance button. Verified on device: confirmed → on_route → completed.
+- ✅ Booking detail view, edit sheet, delete
 
 ## Admin App — Fleet Management
-- ✅ Vehicle list — `admin_cars_screen.dart` → `GET /cars/all`
-- ✅ Add/edit/delete vehicle — `POST /cars/`, `PUT /cars/{id}`, `DELETE /cars/{id}`
-- ✅ Toggle availability — `PATCH /cars/{id}/availability`
+- ✅ Vehicle list / add / edit / delete / toggle availability
+- ✅ **Category dropdown guard** — the edit sheet builds its options as the union of known
+  categories *and* whatever the car already has; `DropdownButtonFormField` asserts if the current
+  value is not among its items, which previously red-screened on legacy records.
 
-## Admin App — Pricing (per-vehicle rate editor, replaces the old surcharge form)
-- ✅ Per-vehicle rate cards — `admin_pricing_screen.dart` lists every fleet vehicle with live
-  rates (initial/return/per-km/per-hour/waypoint); "VERIFY RATES" badge on Economy
-- ✅ Edit rates — tap → editor sheet, one input per pricing parameter → `PUT /cars/{id}` with the
-  `pricing` object (syncs `base_price` to the initial fee); writes a `pricing_history` record
-  (feeds AVA's pricing-impact analytics)
-- ✅ Surcharge rules (night/weekend/last-minute) still exist and apply server-side —
-  `PUT /pricing/rules` — but the old dedicated surcharge-rules form was removed from the UI
+## Admin App — Pricing
+- ✅ Per-vehicle rate cards with live rates; "VERIFY RATES" badge on Economy
+- ✅ Edit rates → `PUT /cars/{id}` with the `pricing` object; writes a `pricing_history` record
+  that feeds AVA's pricing-impact analysis
+- ✅ Surcharge rules still apply server-side (`PUT /pricing/rules`); dedicated form removed from UI
+
+## Admin App — Promotions & Loyalty
+- ✅ Promotions CRUD — `GET/POST/PUT/DELETE/PATCH toggle`
+- ✅ **Campaign vs member scoping (new 08-30)** — `GET /promotions/` previously dumped per-user
+  reward codes into the admin's campaign list with no attribution, offering Edit on codes that
+  belong to a client. The response now carries `scope` / `origin` / `owner_name`, supports
+  `?scope=campaign|member`, and `PUT` is **refused with 409** on member codes since editing one
+  would desync it from the tier that minted it. Suspend and revoke remain available.
+- ✅ **Loyalty overview** — `GET /promotions/loyalty`: tier spread, total members, referred
+  signups, awaiting-first-ride, member codes issued. Rendered as a summary card above scope tabs.
+  Derived by the same rule the client uses, so the two cannot disagree.
+
+## Admin App — Complaints
+- ✅ List + filter chips + detail sheet → `GET /complaints/`, `PATCH /complaints/{id}/status`
+- ✅ Dashboard stat tile + quick-action with live count
+
+## Admin App — Suppliers / Destination Recommendations
+- ✅ Both reachable via dashboard quick-actions (wired 07-27); backends fully implemented.
+  Collections are empty in the demo DB, so both open to their empty states.
 
 ## Admin App — Users Management
-- 🔶 Users list — backend `GET /admin/users` is real, but there is **no admin Users screen** in
-  Flutter (only dashboard count + AVA insights agent reads users). No dedicated UI.
+- 🔶 Users list — backend `GET /admin/users` is real, but there is **no admin Users screen**.
 - ❌ User detail — no endpoint and no screen.
 
-## Admin App — Suppliers
-- ✅ Suppliers list / Add/edit/delete/toggle — backend fully implemented (`suppliers.py`:
-  GET/POST/PUT/PATCH status/DELETE) and `admin_suppliers_screen.dart` is built. **Now reachable
-  (2026-07-27):** wired as a "Suppliers" quick-action on the admin dashboard
-  (`admin_dashboard_screen.dart` → `onOpenSuppliers` → `AdminShell._pushSuppliers` pushes
-  `AdminSuppliersScreen`). No longer dead code. NB: the `suppliers` collection is empty in the
-  demo DB, so the screen opens to its empty state until suppliers are added.
-
-## Admin App — Promotions
-- ✅ Promotions list — `admin_promotions_screen.dart` (pushed from dashboard) → `GET /promotions/`
-- ✅ Add/edit/delete/toggle — `POST`, `PUT /{id}`, `DELETE /{id}`, `PATCH /{id}/toggle`
-
-## Admin App — Complaints (new since 07-06)
-- ✅ Complaints list — `admin_complaints_screen.dart` (pushed from dashboard) → `GET /complaints/`,
-  filter chips All/Open/In review/Resolved, status badges, detail sheet (user/booking/message/
-  timestamp + status selector)
-- ✅ Update complaint status — `PATCH /complaints/{id}/status` (admin-only; open/in_review/resolved;
-  400 on invalid status, 403 for non-admin) — this closes the gap the 07-06 version of this file
-  flagged as missing
-- ✅ Dashboard "Open complaints" stat tile + quick-action with live count
-
-## Admin App — Destination Recommendation Management
-- ✅ `RecommendationManagementScreen` (route `/admin/recommendations`, registered in
-  `app_router.dart`). **Now reachable (2026-07-27):** wired as a "Destinations" quick-action on
-  the admin dashboard (`onOpenRecommendations` → `AdminShell._pushRecommendations` →
-  `Navigator.pushNamed(AppRoutes.recommendationManagement)`). NB: the `recommendations`
-  collection is empty in the demo DB, so the screen opens to its empty state until entries exist.
-
-## Admin App — Analytics
-- ✅ Dashboard analytics endpoint — `GET /analytics/dashboard`
-- ✅ Admin overview endpoint — `GET /admin/overview`
-
 ## AVA — Admin AI Agent
-- ✅ Admin AVA screen — `admin_assistant_screen.dart`, reached from `admin_profile_screen.dart`
-- ✅ Operations agent — `operations_agent.py`: fleet, pricing, suppliers, promotions (state-changing, gated)
-- ✅ Insights agent — `insights_agent.py`: analytics, user list, booking list (read-only)
-- ✅ **Business analytics / BI pipeline (new since 07-06)** — admin message → supervisor "Guard 0"
-  (deterministic phrase detection, skips the Gemini classify call for analysis requests) →
-  insights agent fast path → `run_business_analysis` tool → `analytics_service.py` (6 real
-  MongoDB aggregation methods: revenue by month/category, booking volume trend, seasonal
-  analysis, pricing-impact analysis via the `pricing_history` collection, KPI summary) →
-  deterministic chart specs/KPIs/insights + **one** dedicated Gemini call for the narrative
-  (degrades to a deterministic summary on quota failure, never crashes the turn) → SSE
-  `"analytics"` event → Flutter `AnalyticsCard` (`fl_chart`: line/area/bar/pie, KPI tiles with
-  trend arrows, gold-dot insight bullets). Verified live: "Give me a full business review" and
-  "How did our pricing changes affect bookings?" both returned numerically-accurate,
-  DB-grounded narratives.
-- ✅ Role enforcement — admin JWT required; `role_gate` + `require_admin`; client JWT cannot reach admin tools
-- ✅ Audit log for admin tool calls — every admin tool wrapped → `audit_log`
+- ✅ Admin AVA screen — operations console, deliberately dark in both app themes (pinned via a
+  local `Theme`, because its message bubbles are shared with the now theme-aware client chat)
+- ✅ Operations agent (state-changing, gated) / Insights agent (read-only)
+- ✅ **Six-mode business analytics (reworked 08-30)** — previously every analytics question ran
+  all six aggregations and returned the same blob, so answers felt repeated. Each mode now runs
+  **only** its own aggregations and returns only its own KPIs and charts:
+
+  | Mode | Charts | KPI tiles |
+  |---|---|---|
+  | `full_review` | 5 | Revenue MTD/YTD, Bookings MTD, Avg Booking, Completed Trips, Top Vehicle |
+  | `revenue` | 2 | Revenue MTD/YTD, Avg Booking, Completed Trips |
+  | `bookings` | 2 | Total, Completed, Cancelled, Pending, Confirmed |
+  | `pricing` | 1 | Price Changes, Vehicles Affected, Net Delta, Changes That Lifted |
+  | `seasonal` | 2 | Peak/Quiet Month, Busiest Week, Weeks Tracked |
+  | `vehicles` | 2 | Top Earner, Top Revenue, Most Booked, Categories Active |
+
+  Each mode has a focused system prompt with explicit "do NOT discuss X" clauses, and the
+  narrative follows a Summary / Key findings / Recommendation contract with the real figures fed
+  into the prompt. Trigger detection is deterministic (no model call) and excludes bare
+  "bookings"/"pending bookings" so list queries stay list queries.
+  Verified: trigger detection 8/8, live SSE end-to-end 5/5 modes, all five test prompts on device.
+- ✅ Analytics card redesigned — KPI tiles, parsed narrative, compact charts with gold tooltips
+  and an expand dialog, key insights
+- ✅ Role enforcement + audit log
 
 ## Backend — Infrastructure
-- ✅ FastAPI app structure — `main.py` `create_app()`, versioned `api_router` under `/api/v1`
-- ✅ MongoDB connection (Motor async) — `core/database.py`, lifespan connect/close, indexes in `db/indexes.py`
-- ✅ JWT authentication middleware — `core/deps.py` (`get_current_user`, `require_admin`), `core/security.py`
-- ✅ CORS configuration — configured from `allowed_origins`
-- ✅ Health endpoint — `GET /health` → `{"status":"ok"}`
-- ✅ Error handling — endpoints raise typed `HTTPException`; AVA path has the raw→friendly guarantee
+- ✅ FastAPI `create_app()`, versioned `api_router` under `/api/v1`
+- ✅ MongoDB (Motor async), lifespan connect/close, indexes
+- ✅ JWT auth middleware, CORS, `GET /health`
+- ✅ Error handling — typed `HTTPException`; AVA path has the raw→friendly guarantee
+- ✅ **`POST /admin/seed` is now a true demo-clean (fixed)** — clear-list extended from 7 to **12**
+  collections (adds `complaints`, `chat_sessions`, `audit_log`, `favorites`, `pricing_history`),
+  so a fresh seed no longer leaves stale test complaints and audit rows visible in the admin UI.
 
 ## AI Infrastructure
-- ✅ RAG knowledge base — 5 real documents in `ai/knowledge/` (`faq`, `pricing_policy`,
-  `terms_and_conditions`, `vehicles`, `destinations`)
-- ✅ ChromaDB vector store — `ai/vectorstore/chroma.sqlite3` (~648 KB, rebuilt 2026-07-08) + collection dir
-- ✅ Staleness guard — `source_manifest.json` (per-file SHA-256); `log_freshness_on_startup()` warns if KB changed since last build
-- ✅ Relevance floor — 0.25 confidence threshold, with low-confidence query expansion (2026-07-07 fix) for queries that miss it (e.g. "airport assistance")
-- ✅ Gemini 2.5 Flash model router — `model_router.py`, flat routing, gated on `GOOGLE_API_KEY`
-- ✅ Supervisor — `supervisor.py`: intent classification (or Guard-0 fast path) → role gate → dispatch → safety → session write
-- ✅ Tool registry — `tool_registry.py`: role-scoped, identity-bound (user_id never LLM-visible), admin tools audited
-- ✅ Evaluation harness — `evaluation/`: 28 test cases + `run_eval.py`; latest baseline
-  `results_2026-06-30_10-29-26.md` (24/28 as-run on a local-model substitute for quota reasons;
-  not re-run against production Gemini since)
+- ✅ RAG knowledge base — real documents in `ai/knowledge/` (now includes `rewards_policy.txt`)
+- ✅ ChromaDB vector store + staleness guard (`source_manifest.json`, per-file SHA-256)
+- ✅ Relevance floor 0.25 with low-confidence query expansion
+- ✅ Gemini model router — **primary + fallback**, gated on `GOOGLE_API_KEY`
+- ✅ Supervisor — classify (or Guard-0 fast path) → role gate → dispatch → safety → session write
+- ✅ **Sticky follow-up routing (fixed 08-30)** — replying "2" to a booking selection landed in
+  the support agent and returned a generic greeting, because the supervisor's sticky-domain guard
+  only recognised "reply **yes** to confirm". A bare number carries no routable keywords, so it
+  was re-classified from scratch. The guard now also covers "please reply with the number" and
+  "what would you like to change?".
+- ✅ **Block-list content crash (fixed 08-30)** — `booking_agent` called `.content.strip()`
+  directly instead of the codebase's `extract_text()` helper. That worked only while every reply
+  was a plain string; the fallback model returns **structured block lists**, and `.strip()` on a
+  list threw `AttributeError`, hanging every booking turn on "preparing your answer". This was
+  the actual cause of "AVA is not responding" — not quota.
+- ✅ Tool registry — role-scoped, identity-bound (user_id never LLM-visible), admin tools audited
+- 🔶 Evaluation harness — 28 cases; latest baseline `results_2026-06-30` (24/28 on a local-model
+  substitute). **Not re-run** since; now several agent generations out of date.
 
-## Design / UX (new since 07-06 — "design elevation pass", 07-08/07-09)
-- ✅ Currency unified to EUR across receipts/trips/promos/confirmation (a real bug was found and
-  fixed: a client-side `_id`-vs-`id` join-key mismatch was silently discarding real EUR quotes
-  and falling back to a truncated, mislabeled "90 TND" estimate — root-caused and fixed 2026-07-09)
-- ✅ `FontWeight.w900` eliminated app-wide (w800 ceiling), one `LuxuryCta` button spec, skeleton
-  loaders replace spinners on fleet/trips/admin-bookings/complaints/pricing
-- ✅ Booking success screen redesigned as an airport-style ticket (route code, perforated fold, self-drawing check)
-- ✅ Destinations screen filter chips now actually filter (previously decorative)
+## Design / UX
+- ✅ Currency unified to EUR; `FontWeight.w900` eliminated (w800 ceiling); skeleton loaders
+- ✅ Booking success screen as an airport-style ticket
+- ✅ **Light mode pass (08-30)** — the AVA screen and booking search/map were stuck dark; both
+  converted to theme-aware tokens (23 hardcoded colours). A subtler bug: `_TierPromoCard` paints
+  a deliberately fixed dark gradient but used `AppColors.textMuted` for its footnote — that token
+  flips to dark grey in light mode, i.e. near-invisible on near-black. Fixed with a fixed light
+  muted.
+  Deliberately **not** changed: status badges, the membership card, the photo lightbox and the
+  admin AVA console all pair a fixed dark surface with fixed light text and are self-consistent
+  in both themes.
+- ✅ **AVA input double border (fixed 08-30)** — the app's global `inputDecorationTheme` sets
+  `enabledBorder`/`focusedBorder`; `border: InputBorder.none` only overrides the *fallback*, so
+  the theme kept painting a second outline inside the pill. Every border state now cleared.
+- ✅ **Overflow fixes** — promo cards (long generated codes + raw ISO expiry) and the analytics
+  KPI tile
+- ✅ **Dead code removed (08-30)** — `_ExploreTab` / `_ExploreFleetCard` / `_SpecChip` were fully
+  implemented but never mounted (leftover from a six-tab layout). 279 lines + 2 orphaned imports
+  deleted; `client_shell.dart` 5157 → 4876.
 
 ---
 
 ## Known Gaps & TODOs
-- ❌ **Real payment gateway** — no Stripe/PayPal/card processor integration. Card payment is a
-  UI placeholder that redirects to cash; only the cash-approval lifecycle is real.
-- ❌ **Push notifications** — no FCM/firebase; notifications are in-app list only.
+- ❌ **Real payment gateway** — no Stripe/PayPal integration. Card payment is a UI placeholder
+  that redirects to cash; only the cash-approval lifecycle is real.
 - ❌ **Admin Users screen** — backend `GET /admin/users` exists; no Flutter UI.
-- ✅ ~~**Admin Suppliers screen** — unreachable~~ — **FIXED 2026-07-27**: wired as a dashboard quick-action.
-- ✅ ~~**Admin Recommendation Management screen** — unreachable~~ — **FIXED 2026-07-27**: wired as a dashboard quick-action.
-- 🔶 **Password reset end-to-end** — backend token flow is real, but SMTP is unset (no email sent) and there is no in-app deep-link to finish the reset.
-- 🔶 **Economy vehicle pricing** — seeded from a truncated source PDF; flagged `pricing_verified: false`, needs a human to read the exact rates from the WordPress admin. (Data issue, not code: the `pricing_verified: false` flag and the "VERIFY RATES" badge both render correctly — verified live via `GET /cars/all` on 2026-07-27.)
-- 🔶 **`POST /admin/seed` is not a full demo-clean** — it clears only 7 collections (users, cars, bookings, destinations, promotions, pricing_rules, notifications) and **leaves complaints, chat_sessions, audit_log, favorites, pricing_history untouched**. As of 2026-07-27 the DB carries ~63 stale complaints (58 from orphan test users like `test-client-ava-001`/`test-stability-*`, mostly "driver was 30 minutes late" fixtures) + ~124 audit-log rows + ~15 chat_sessions from AI test runs. These would show in the admin Complaints screen / "open complaints" stat during a demo. Fix option: extend the seed clear-list, or manually clear those collections before a demo. Nothing was deleted in this session (report-only per instructions).
-- ⚠️ **Committed Maps API key** — `maps_config.dart` contains a live Google Maps key in source. Security concern (rotate / move to a gitignored config), not a functional gap.
-- ℹ️ **Free-tier Gemini quota** — the free tier caps `gemini-2.5-flash` at **5 requests/minute** (`generate_content_free_tier_requests`), observed live 2026-07-27: running the 5 AVA test scenarios back-to-back tripped a 429/RESOURCE_EXHAUSTED on the booking agent (multiple LLM calls per turn). Each scenario passes when run in isolation, and the deterministic fallbacks (booking `_vehicle_template`, analytics deterministic insights) fire correctly on quota exhaustion. Paid billing removes the cap.
-- ℹ️ **Analytics charts are data-sparse in the demo DB** — real aggregations, but only meaningful once bookings accumulate (seeded DB currently has 1 completed booking).
-- ℹ️ **Static seed/preview data** — `lib/data/*.dart` and several `dev_*_main.dart` preview entrypoints are dev-only scaffolding, not used by the live client flows.
+- 🔶 **Notifications are polled, not pushed** — 15-minute Android floor, and Doze can defer
+  further. Describe it accurately in the report; do not call it push.
+- 🔶 **Password-reset email** — endpoints, JSON contract, delivery code and logging are all in
+  place; `backend/.env` just has no SMTP credentials yet, so nothing is actually sent. Fill in
+  `SMTP_HOST/SMTP_USER/SMTP_PASSWORD` (Gmail needs a 16-char App Password) to enable it.
+- 🔶 **Economy vehicle pricing** — seeded from a truncated source PDF; flagged
+  `pricing_verified: false` with a "VERIFY RATES" badge. Data issue, not code.
+- 🔶 **Eval baseline is stale** — last full run 06-30 on a local-model substitute, several agent
+  generations ago. A production re-run would cost ~28 Gemini calls (see quota below).
+- ⚠️ **Gemini free tier = 20 requests/day, per model** — the single biggest demo risk. An
+  analytics turn costs 2 calls (classify + analyst). With failover across two models the
+  practical ceiling is ~40 calls/day. **Enable billing before the defence**, or rehearse with a
+  second API key. Resets at midnight **Pacific**, not local.
+- 🔶 **App icon still default** — the launcher label is now **"Carthage Transfer"** (fixed 09-04;
+  confirmed in the system permission dialog), but the icon is still the stock Flutter logo.
+  Replacing `@mipmap/ic_launcher` is the last branding step.
+- 🔶 **AVA modify exposes a raw booking reference** — the "what would you like to change?" message
+  prints `booking-5eeed90a…` so the model can target the right record. It works, but contradicts
+  the app's own "never expose raw IDs" rule and looks unpolished.
+- 🔶 **Cosmetic:** the booking card's generated sentence says "1 bags". Harmless (the backend
+  parses it), but it reads oddly.
+- ℹ️ **Analytics are data-sparse** — real aggregations, but only meaningful once bookings
+  accumulate.
+- ℹ️ **Uncommitted work** — the client final pass, AVA interactive cards, notification service,
+  dead-code removal and forgot-password wiring are all verified but **not yet committed**.
 
 ## Report Sections Written (`report/`)
 - `introduction.md`
@@ -270,8 +413,12 @@ free-tier cap, fallbacks verified); `flutter analyze` **clean**; debug **APK bui
 - `evaluation_methodology.md`
 - `security_architecture.md`
 
-## Features flagged with genuine uncertainty (need on-device/emulator re-verification)
-- **Voice input** — package + `SpeechToText()` instance are real; full mic→transcript→send wiring not traced end-to-end on a physical device.
-- **7-day trend / popular destinations** — endpoints aggregate real data; numbers are correct against the small seeded DB but haven't been checked against a larger dataset.
-- **Password-reset completion** — token flow is real; whether the reset field actually round-trips through login has not been re-tested since 07-06.
-- **Eval baseline currency** — the last full 28-case run (06-30) used a local-model substitute for some cases to conserve Gemini quota; a production-Gemini re-run has not happened since the 07-07→07-09 agent changes (recommend_vehicle, RAG query expansion, analytics fast path).
+## Verification status
+`flutter analyze` **clean** (verified with an explicit `dart analyze lib` — the cached
+full-project run has served stale results in this repo). Debug APK builds for both `android-x64`
+(emulator) and `android-arm64` (physical device). Backend imports and graphs compile.
+
+**Tested live this period:** AVA analytics 5/5 modes end-to-end · booking-card flow on device
+(all 5 scenarios) · rewards integration 15/15 · admin/client/AVA loyalty consistency 10/10 ·
+booking status chain confirmed→on_route→completed · password-reset round-trip incl. token reuse
+rejection · notification poll posting a real system notification · promo scope + 409 edit guard.

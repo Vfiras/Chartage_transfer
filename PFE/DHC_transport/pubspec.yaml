@@ -22,6 +22,12 @@ dependencies:
   path_provider: ^2.1.5
   shared_preferences: ^2.3.0
   speech_to_text: ^7.0.0
+  # Background-polled local notifications (see core/services/push_notification_service.dart).
+  # Declared now so the foundation is in place; not wired into main() yet.
+  flutter_local_notifications: ^17.2.4
+  # 0.5.x fails to compile against this project's Kotlin/AGP toolchain
+  # (:workmanager:compileDebugKotlin); 0.10.x is the maintained line.
+  workmanager: ^0.10.0
   google_maps_flutter: ^2.9.0
   fl_chart: ^0.69.0
 

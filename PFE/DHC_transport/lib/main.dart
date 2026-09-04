@@ -6,6 +6,7 @@ import 'core/routing/app_routes.dart';
 import 'core/routing/app_router.dart';
 import 'core/services/auth_service.dart';
 import 'core/services/language_service.dart';
+import 'core/services/push_notification_service.dart';
 import 'core/services/theme_service.dart';
 import 'core/constants/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -17,6 +18,14 @@ void main() async {
     LanguageService.instance.loadFromStorage(),
     ThemeService.instance.loadFromStorage(),
   ]);
+  // Notifications come after auth so the background poll only starts for a
+  // signed-in device. Failures here are swallowed inside the service — the
+  // app must start whether or not the OS allows notifications.
+  await PushNotificationService.instance.init();
+  if (AuthService.instance.isAuthenticated) {
+    await PushNotificationService.instance.start();
+  }
+
   runApp(const DhcTransportApp());
 }
 

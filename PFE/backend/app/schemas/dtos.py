@@ -53,6 +53,8 @@ class TripCreate(BaseModel):
     passenger_count: int | None = None
     luggage_count: int | None = None
     promo_code: str | None = None
+    # Referral wallet drawn down server-side; never trusted from the client.
+    credits_used: float | None = None
     dynamic_surcharge: float | None = None
     discount_amount: float | None = None
     guest_email: str | None = None
@@ -319,3 +321,12 @@ class ComplaintCreate(BaseModel):
 
 class ComplaintStatusUpdate(BaseModel):
     status: str  # open | in_review | resolved
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

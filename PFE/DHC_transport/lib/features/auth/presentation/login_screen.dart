@@ -52,14 +52,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _socialSoon(String provider) {
-    final l = LanguageService.instance;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l.t('social_login_soon', args: {'provider': provider})),
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -148,12 +140,6 @@ class _LoginScreenState extends State<LoginScreen> {
             text: l.t('login'),
             loading: _loading,
             onPressed: _handleLogin,
-          ),
-          const SizedBox(height: 26),
-          AuthDividerLabel(text: l.t('continue_with')),
-          const SizedBox(height: 18),
-          AuthSocialButtons(
-            onGoogle: () => _socialSoon('Google'),
           ),
           const SizedBox(height: 62),
           AuthBottomPrompt(

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/widgets/client/premium_client_components.dart';
+
 import '../../../core/services/auth_service.dart';
 import '../../../widgets/common/fallback_network_image.dart';
 import '../chat_message_model.dart';
 
 const _goldBg = Color(0x26C8A96B);   // ~15% gold fill
 const _goldBorder = Color(0x33C8A96B); // ~20% gold border
-const _textColor = Color(0xFFE9E1DA);
+Color _textColor(BuildContext c) => PremiumClientTheme.text(c);
 
 class UserMessageBubble extends StatefulWidget {
   final ChatMessage message;
@@ -84,8 +86,8 @@ class _UserMessageBubbleState extends State<UserMessageBubble>
                       ),
                       child: Text(
                         widget.message.text,
-                        style: const TextStyle(
-                          color: _textColor,
+                        style: TextStyle(
+                          color: _textColor(context),
                           fontSize: 14,
                           height: 1.55,
                           fontWeight: FontWeight.w500,
@@ -97,7 +99,7 @@ class _UserMessageBubbleState extends State<UserMessageBubble>
                       widget.message.timeLabel,
                       // Recedes into a supporting role.
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.40),
+                        color: PremiumClientTheme.muted(context),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                       ),
@@ -134,7 +136,7 @@ class _UserChatAvatar extends StatelessWidget {
         child: (avatarUrl != null && avatarUrl.isNotEmpty)
             ? FallbackNetworkImage(url: avatarUrl, fit: BoxFit.cover)
             : const ColoredBox(
-                color: Color(0xFF1B1B1B),
+                color: Color(0xFF141313),
                 child: Icon(Icons.person_rounded,
                     color: Color(0xFFC8A96B), size: 16),
               ),

@@ -346,18 +346,18 @@ class _SpecChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFF221F1B),
+        color: PremiumClientTheme.elevated(context),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: PremiumClientPalette.text, size: 14),
+          Icon(icon, color: PremiumClientTheme.text(context), size: 14),
           const SizedBox(width: 7),
           Text(
             text,
-            style: const TextStyle(
-              color: PremiumClientPalette.text,
+            style: TextStyle(
+              color: PremiumClientTheme.text(context),
               fontSize: 12,
               fontWeight: FontWeight.w800,
             ),

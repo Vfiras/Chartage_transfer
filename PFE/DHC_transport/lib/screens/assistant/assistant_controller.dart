@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/services/assistant_api_service.dart';
+import '../../core/services/trip_service.dart';
+import 'ava_intent.dart';
 import 'chat_message_model.dart';
 
 class AssistantController extends ChangeNotifier {
@@ -30,9 +32,25 @@ class AssistantController extends ChangeNotifier {
     if (!_disposed) notifyListeners();
   }
 
-  Future<void> sendMessage(String text) async {
+  /// Sends a message, or answers it locally with an interactive card.
+  ///
+  /// A vague booking request used to start a six-turn interrogation. When
+  /// [allowIntentCards] is on and the text reads as book / modify / cancel,
+  /// the chat inserts a form card instead of calling the backend; the card
+  /// later submits ONE complete sentence through this same method with
+  /// [allowIntentCards] off, so AVA receives everything at once and the
+  /// detector cannot re-trigger on the card's own output.
+  Future<void> sendMessage(String text, {bool allowIntentCards = true}) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty || !canSend) return;
+
+    if (allowIntentCards) {
+      final intent = AvaIntentDetector.detect(trimmed);
+      if (intent != AvaIntent.none) {
+        await _insertCard(intent, trimmed);
+        return;
+      }
+    }
 
     _isSending = true;
     _isTyping = true;
@@ -104,6 +122,57 @@ class AssistantController extends ChangeNotifier {
       _isSending = false;
       _notify();
     }
+  }
+
+  /// Shows the user's own message, then the matching form card.
+  ///
+  /// Never throws into the chat: if the bookings lookup fails the card still
+  /// renders (empty), and the card itself explains there is nothing to change.
+  Future<void> _insertCard(AvaIntent intent, String userText) async {
+    _messages.add(ChatMessage.user(userText));
+
+    if (intent == AvaIntent.booking) {
+      final (from, to) = AvaIntentDetector.extractRoute(userText);
+      _messages.add(ChatMessage.interactive(
+        AvaInteractiveCard.bookingForm,
+        seed: {'pickup': from, 'destination': to},
+      ));
+      _notify();
+      return;
+    }
+
+    // Modify and cancel both need the user's upcoming trips to choose from.
+    _isTyping = true;
+    _notify();
+
+    List<Map<String, dynamic>> bookings = const [];
+    try {
+      final history = await const TripService().history();
+      bookings = (history['upcoming'] ?? const [])
+          .where((t) => t.status != 'cancelled' && t.status != 'completed')
+          .map((t) => <String, dynamic>{
+                '_id': t.id,
+                'pickup_location': t.pickupLocation,
+                'destination_name': t.destinationName,
+                'destination_city': t.destinationCity,
+                'departure_date': t.departureDate,
+                'departure_time': t.departureTime,
+                'status': t.status,
+              })
+          .toList(growable: false);
+    } catch (_) {
+      // Leave the list empty — the card says so rather than erroring out.
+    }
+
+    if (_disposed) return;
+    _isTyping = false;
+    _messages.add(ChatMessage.interactive(
+      intent == AvaIntent.modify
+          ? AvaInteractiveCard.modifyBooking
+          : AvaInteractiveCard.cancelBooking,
+      seed: {'bookings': bookings},
+    ));
+    _notify();
   }
 
   static String _friendlyError(String raw) {

@@ -214,11 +214,21 @@ async def classify_intent_node(state: SupervisorState) -> dict:
     messages = state["messages"]
     role = state["role"]
 
-    # Sticky confirmation check
+    # Sticky follow-up check: when the previous turn asked a question whose
+    # answer carries no routable keywords of its own — a bare "2" for a
+    # booking selection, or "the date" when asked what to change — keep the
+    # current domain. Re-classifying those from scratch sent them to support,
+    # which broke the select-a-booking flow mid-way.
+    _STICKY_PROMPTS = (
+        "reply **yes** to confirm",
+        "please reply **yes** to confirm",
+        "please reply with the number",
+        "what would you like to change?",
+    )
     for msg in reversed(messages):
         if hasattr(msg, "type") and msg.type == "ai":
-            content = str(msg.content).lower()
-            if "reply **yes** to confirm" in content or "please reply **yes** to confirm" in content:
+            content = extract_text(msg).lower()
+            if any(marker in content for marker in _STICKY_PROMPTS):
                 return {**base_reset, "domain": state.get("domain", "support")}
             break
 

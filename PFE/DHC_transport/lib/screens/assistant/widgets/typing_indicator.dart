@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/widgets/client/premium_client_components.dart';
+
 import 'ava_avatar.dart';
 
 const _gold = Color(0xFFC8A96B);
-const _surface = Color(0xFF1C1C1F);
+Color _surface(BuildContext c) => PremiumClientTheme.elevated(c);
 
 class TypingIndicator extends StatefulWidget {
   const TypingIndicator({super.key});
@@ -43,14 +45,14 @@ class _TypingIndicatorState extends State<TypingIndicator>
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 15),
             decoration: BoxDecoration(
-              color: _surface,
+              color: _surface(context),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(4),
                 topRight: Radius.circular(18),
                 bottomRight: Radius.circular(18),
                 bottomLeft: Radius.circular(18),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+              border: Border.all(color: PremiumClientTheme.glassBorder(context)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -66,7 +68,7 @@ class _TypingIndicatorState extends State<TypingIndicator>
                 Text(
                   'AVA is preparing your answer…',
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.45),
+                    color: PremiumClientTheme.muted(context),
                     fontSize: 11.5,
                     fontStyle: FontStyle.italic,
                   ),

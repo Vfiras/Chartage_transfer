@@ -138,6 +138,70 @@ const _strings = {
     'admin_qa_suppliers': 'Suppliers',
     'admin_qa_destinations': 'Destinations',
 
+    'reset_password_step2': 'Already have the reset code from your email? Enter it below with a new password.',
+    'reset_password_token': 'Reset code',
+    'reset_password_new': 'New password',
+    'reset_password_apply': 'Set new password',
+    'reset_password_needs_token': 'Enter the reset code and a password of at least 6 characters.',
+
+    // AVA interactive booking cards
+    'ava_bf_title': 'New booking',
+    'ava_bf_from': 'FROM',
+    'ava_bf_to': 'TO',
+    'ava_bf_pickup': 'Pickup location',
+    'ava_bf_destination': 'Destination',
+    'ava_bf_place_hint': 'e.g. Tunis-Carthage Airport',
+    'ava_bf_tap_enter': 'Tap to enter',
+    'ava_bf_set': 'Set',
+    'ava_bf_date': 'Date',
+    'ava_bf_time': 'Time',
+    'ava_bf_select': 'Select',
+    'ava_bf_passengers': 'Passengers',
+    'ava_bf_luggage': 'Luggage',
+    'ava_bf_vehicle': 'Vehicle',
+    'ava_bf_submit': 'Book this trip',
+    'ava_bf_sent': 'Sent to AVA',
+    'ava_bf_incomplete': 'Pick a date, time and vehicle to continue.',
+    'ava_mb_title': 'Modify booking',
+    'ava_mb_select': 'Select a booking',
+    'ava_mb_what': 'What to change?',
+    'ava_mb_new_date': 'New date',
+    'ava_mb_new_time': 'New time',
+    'ava_mb_save': 'Save changes',
+    'ava_cb_title': 'Cancel booking',
+    'ava_cb_select': 'Select a booking to cancel',
+    'ava_cb_warning': 'This action cannot be undone.',
+    'ava_cb_confirm': 'Cancel booking',
+    'ava_cb_back': 'Go back',
+    'ava_cb_dismissed': 'No booking was cancelled.',
+    'ava_no_bookings': 'You have no upcoming bookings to change.',
+
+    // Referral wallet at checkout
+    'rewards_balance_row': 'Rewards balance',
+    'rewards_balance_note':
+        'Your referral balance is applied automatically to this booking.',
+    'rewards_applied_success': '{amount} rewards balance applied',
+
+    // AVA client screen
+    'ava_lounge_hero': 'How may I assist you today?',
+    'ava_lounge_hint': 'Ask about your trips, our fleet, or anything else.',
+    'ava_input_hint': 'Message AVA...',
+    'ava_voice_unavailable': 'Voice input is not available on this device.',
+    'ava_sg_change_trip': 'Change my upcoming trip',
+    'ava_sg_driver': "Where's my driver?",
+    'ava_sg_meet_greet': 'Airport meet-and-greet',
+    'ava_sg_rewards': 'My rewards & benefits',
+
+    // Fleet capacity filtering
+    'fleet_filter_notice':
+        'Showing vehicles for {passengers} passengers, {luggage} bags',
+    'fleet_filter_notice_hidden':
+        'Showing vehicles for {passengers} passengers, {luggage} bags — {hidden} too small to fit',
+    'fleet_no_fit_title': 'No vehicle fits your group',
+    'fleet_no_fit_body':
+        'None of our vehicles can carry {passengers} passengers with {luggage} bags. Try reducing the passengers or luggage.',
+    'fleet_no_fit_action': 'Change my search',
+
     // Admin promotions + loyalty programme
     'admin_loyalty_programme': 'Loyalty programme',
     'admin_loyalty_members': '{n} members',
@@ -395,7 +459,6 @@ const _strings = {
     'dark_mode_desc': 'Premium black and gold interface',
     'already_have_account': 'Already have an account? ',
     'confirm_password': 'Confirm Password',
-    'continue_with': 'Or continue with',
     'create_account': 'Create Account',
     'email_or_phone': 'Email or Phone Number',
     'every_time': 'Every time.',
@@ -406,14 +469,14 @@ const _strings = {
     'password': 'Password',
     'reset_password': 'Reset Password',
     'reset_password_body':
-        'Enter your account email. The operations team will queue reset instructions.',
+        'Enter your account email and we will send you a reset link.',
+    'reset_email_label': 'Email Address',
+    'reset_email_invalid': 'Enter a valid email address.',
     'reset_password_sent':
         'Reset instructions have been queued for the admin team.',
     'send_reset_link': 'Send Reset Link',
     'signup': 'Sign Up',
     'signup_subtitle': 'Sign up to get started',
-    'social_login_soon': '{provider} sign-in is coming soon.',
-    'social_signup_soon': '{provider} sign-up is coming soon.',
     'terms_accept': 'I agree to the Terms & Conditions',
     'terms_required': 'Please accept the terms to continue.',
     'welcome_back': 'Welcome Back',
@@ -542,6 +605,72 @@ const _strings = {
     'admin_qa_complaints': 'Reclamations',
     'admin_qa_suppliers': 'Fournisseurs',
     'admin_qa_destinations': 'Destinations',
+
+    'reset_password_step2': 'Vous avez deja le code recu par email ? Saisissez-le avec un nouveau mot de passe.',
+    'reset_password_token': 'Code de reinitialisation',
+    'reset_password_new': 'Nouveau mot de passe',
+    'reset_password_apply': 'Definir le mot de passe',
+    'reset_password_needs_token': 'Saisissez le code et un mot de passe d au moins 6 caracteres.',
+
+    // Cartes de reservation interactives AVA
+    'ava_bf_title': 'Nouvelle reservation',
+    'ava_bf_from': 'DE',
+    'ava_bf_to': 'A',
+    'ava_bf_pickup': 'Lieu de prise en charge',
+    'ava_bf_destination': 'Destination',
+    'ava_bf_place_hint': 'ex. Aeroport Tunis-Carthage',
+    'ava_bf_tap_enter': 'Appuyez pour saisir',
+    'ava_bf_set': 'Valider',
+    'ava_bf_date': 'Date',
+    'ava_bf_time': 'Heure',
+    'ava_bf_select': 'Choisir',
+    'ava_bf_passengers': 'Passagers',
+    'ava_bf_luggage': 'Bagages',
+    'ava_bf_vehicle': 'Vehicule',
+    'ava_bf_submit': 'Reserver ce trajet',
+    'ava_bf_sent': 'Envoye a AVA',
+    'ava_bf_incomplete': 'Choisissez une date, une heure et un vehicule.',
+    'ava_mb_title': 'Modifier la reservation',
+    'ava_mb_select': 'Selectionnez une reservation',
+    'ava_mb_what': 'Que modifier ?',
+    'ava_mb_new_date': 'Nouvelle date',
+    'ava_mb_new_time': 'Nouvelle heure',
+    'ava_mb_save': 'Enregistrer',
+    'ava_cb_title': 'Annuler la reservation',
+    'ava_cb_select': 'Selectionnez la reservation a annuler',
+    'ava_cb_warning': 'Cette action est irreversible.',
+    'ava_cb_confirm': 'Annuler',
+    'ava_cb_back': 'Retour',
+    'ava_cb_dismissed': 'Aucune reservation annulee.',
+    'ava_no_bookings': 'Vous n avez aucune reservation a modifier.',
+
+    // Portefeuille de parrainage au paiement
+    'rewards_balance_row': 'Solde de recompenses',
+    'rewards_balance_note':
+        'Votre solde de parrainage est applique automatiquement a cette reservation.',
+    'rewards_applied_success': '{amount} de recompenses appliques',
+
+    // Ecran AVA (client)
+    'ava_lounge_hero': 'Comment puis-je vous aider ?',
+    'ava_lounge_hint':
+        'Posez vos questions sur vos trajets, notre flotte, ou autre.',
+    'ava_input_hint': 'Message a AVA...',
+    'ava_voice_unavailable':
+        'La saisie vocale n est pas disponible sur cet appareil.',
+    'ava_sg_change_trip': 'Modifier mon trajet',
+    'ava_sg_driver': 'Ou est mon chauffeur ?',
+    'ava_sg_meet_greet': 'Accueil a l aeroport',
+    'ava_sg_rewards': 'Mes recompenses',
+
+    // Filtrage de la flotte par capacite
+    'fleet_filter_notice':
+        'Vehicules pour {passengers} passagers, {luggage} bagages',
+    'fleet_filter_notice_hidden':
+        'Vehicules pour {passengers} passagers, {luggage} bagages — {hidden} trop petits',
+    'fleet_no_fit_title': 'Aucun vehicule adapte a votre groupe',
+    'fleet_no_fit_body':
+        'Aucun de nos vehicules ne peut transporter {passengers} passagers avec {luggage} bagages. Reduisez les passagers ou les bagages.',
+    'fleet_no_fit_action': 'Modifier ma recherche',
 
     // Promotions et programme de fidelite (admin)
     'admin_loyalty_programme': 'Programme de fidelite',
@@ -803,7 +932,6 @@ const _strings = {
     'dark_mode_desc': 'Interface noire premium avec accents or',
     'already_have_account': 'Vous avez deja un compte ? ',
     'confirm_password': 'Confirmer le mot de passe',
-    'continue_with': 'Ou continuer avec',
     'create_account': 'Creer un compte',
     'email_or_phone': 'Email ou numero de telephone',
     'every_time': 'A chaque trajet.',
@@ -814,14 +942,14 @@ const _strings = {
     'password': 'Mot de passe',
     'reset_password': 'Reinitialiser le mot de passe',
     'reset_password_body':
-        'Entrez l email de votre compte. L equipe operations preparera les instructions.',
+        'Entrez l email de votre compte et nous vous enverrons un lien.',
+    'reset_email_label': 'Adresse e-mail',
+    'reset_email_invalid': 'Saisissez une adresse e-mail valide.',
     'reset_password_sent':
         'Les instructions de reinitialisation ont ete transmises a l equipe admin.',
     'send_reset_link': 'Envoyer le lien',
     'signup': 'Inscription',
     'signup_subtitle': 'Inscrivez-vous pour commencer',
-    'social_login_soon': 'La connexion {provider} arrive bientot.',
-    'social_signup_soon': 'L inscription {provider} arrive bientot.',
     'terms_accept': 'J accepte les conditions generales',
     'terms_required': 'Veuillez accepter les conditions pour continuer.',
     'welcome_back': 'Bon retour',

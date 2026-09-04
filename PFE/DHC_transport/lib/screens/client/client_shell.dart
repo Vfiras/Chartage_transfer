@@ -24,12 +24,10 @@ import '../../core/services/pricing_service.dart';
 import '../../core/services/reward_service.dart';
 import '../../core/services/trip_service.dart';
 import '../../core/services/vehicle_catalog_service.dart';
-import '../../data/fleet_data.dart';
 import '../../data/travel_tips_data.dart';
 import '../assistant/widgets/ava_avatar.dart';
 import '../../models/booking_data.dart';
 import '../../models/vehicle.dart';
-import '../../models/fleet_item.dart';
 import '../../shared/widgets/common/luxury_components.dart';
 import '../../shared/widgets/client/client_top_bar.dart';
 import '../../shared/widgets/client/premium_client_components.dart';
@@ -1143,285 +1141,6 @@ class _GuestNotice extends StatelessWidget {
             onPressed: onLogin,
             child: Text(l.t('login'),
                 style: TextStyle(color: AppColors.secondary)),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// â”€â”€â”€ Explore Tab â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-class _ExploreTab extends StatefulWidget {
-  const _ExploreTab();
-
-  @override
-  State<_ExploreTab> createState() => _ExploreTabState();
-}
-
-class _ExploreTabState extends State<_ExploreTab> {
-  String _active = 'All';
-
-  @override
-  Widget build(BuildContext context) {
-    AppColors.setDarkMode(Theme.of(context).brightness == Brightness.dark);
-    final user = AuthService.instance.currentUser;
-    final isGuest = AuthService.instance.isGuest;
-    final filtered = _active == 'All'
-        ? FleetData.items
-        : FleetData.items.where((e) => e.category == _active).toList();
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(18, 0, 18, 110),
-          children: [
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: Icon(Icons.menu_rounded,
-                      color: AppColors.accentText, size: 20),
-                ),
-                Expanded(
-                  child: Text(
-                    'Carthage Transfer',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: AppColors.secondary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.secondary, width: 1.5),
-                  ),
-                  child: ClipOval(
-                    child: !isGuest && user?.avatarUrl != null
-                        ? FallbackNetworkImage(
-                            url: user!.avatarUrl!, fit: BoxFit.cover)
-                        : Container(
-                            color: AppColors.surface,
-                            child: Icon(Icons.person_rounded,
-                                color: AppColors.secondary, size: 22),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Text(
-              'EXECUTIVE SELECTION',
-              style: TextStyle(
-                color: AppColors.secondary,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 2.5,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Premium Fleet',
-              style: TextStyle(
-                  fontSize: 30,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: FleetData.categories.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
-                itemBuilder: (_, i) {
-                  final cat = FleetData.categories[i];
-                  final selected = cat == _active;
-                  return GestureDetector(
-                    onTap: () => setState(() => _active = cat),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 160),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 18, vertical: 9),
-                      decoration: BoxDecoration(
-                        color:
-                            selected ? AppColors.secondary : AppColors.surface,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color:
-                              selected ? AppColors.secondary : AppColors.border,
-                        ),
-                      ),
-                      child: Text(
-                        cat,
-                        style: TextStyle(
-                          color: selected
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 20),
-            for (final item in filtered) _ExploreFleetCard(item: item),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ExploreFleetCard extends StatelessWidget {
-  final FleetItem item;
-
-  const _ExploreFleetCard({required this.item});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(
-              item.image,
-              height: 190,
-              width: double.infinity,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => Container(
-                height: 190,
-                color: AppColors.surfaceElevated,
-                child: Icon(Icons.directions_car_rounded,
-                    color: AppColors.textMuted, size: 64),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.name,
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.w800),
-                          ),
-                          Text(
-                            item.comfort.toUpperCase(),
-                            style: TextStyle(
-                              color: AppColors.secondary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          item.price,
-                          style: TextStyle(
-                            color: AppColors.secondary,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                        Text(
-                          '/ per hour',
-                          style: TextStyle(
-                              color: AppColors.textMuted, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _SpecChip(
-                        icon: Icons.groups_rounded, label: 'Up to ${item.pax}'),
-                    _SpecChip(
-                        icon: Icons.luggage_rounded,
-                        label: '${item.bags} Bags'),
-                    ...item.features.take(1).map(
-                          (f) => _SpecChip(
-                              icon: Icons.star_outline_rounded, label: f),
-                        ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SpecChip extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _SpecChip({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceElevated,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: AppColors.textSecondary, size: 14),
-          const SizedBox(width: 5),
-          Text(
-            label,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-            ),
           ),
         ],
       ),
@@ -3076,9 +2795,14 @@ class _FavoriteDetailSheetState extends State<_FavoriteDetailSheet> {
     if (mounted) Navigator.of(context).pop();
   }
 
-  void _openFullScreen(String path) {
+  void _openFullScreen(int index) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => _PhotoViewerScreen(path: path)),
+      MaterialPageRoute(
+        builder: (_) => _PhotoViewerScreen(
+          photos: List<String>.from(_photos),
+          initialIndex: index,
+        ),
+      ),
     );
   }
 
@@ -3250,7 +2974,7 @@ class _FavoriteDetailSheetState extends State<_FavoriteDetailSheet> {
                       itemBuilder: (_, i) {
                         final path = _photos[i];
                         return GestureDetector(
-                          onTap: () => _openFullScreen(path),
+                          onTap: () => _openFullScreen(i),
                           onLongPress: () => _confirmRemovePhoto(path),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(12),
@@ -3386,37 +3110,100 @@ class _EmptyAlbum extends StatelessWidget {
 }
 
 /// Pinch/pan viewer for a single memory.
-class _PhotoViewerScreen extends StatelessWidget {
-  final String path;
+/// Full-screen album viewer: opens on the tapped photo and swipes through the
+/// rest, so browsing an album no longer means closing and reopening each shot.
+///
+/// Always black regardless of app theme — a photo viewer is a lightbox.
+class _PhotoViewerScreen extends StatefulWidget {
+  final List<String> photos;
+  final int initialIndex;
 
-  const _PhotoViewerScreen({required this.path});
+  const _PhotoViewerScreen({
+    required this.photos,
+    required this.initialIndex,
+  });
+
+  @override
+  State<_PhotoViewerScreen> createState() => _PhotoViewerScreenState();
+}
+
+class _PhotoViewerScreenState extends State<_PhotoViewerScreen> {
+  late final PageController _pageCtrl;
+  late int _index;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.initialIndex;
+    _pageCtrl = PageController(initialPage: _index);
+  }
+
+  @override
+  void dispose() {
+    _pageCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final total = widget.photos.length;
     return Scaffold(
       backgroundColor: Colors.black,
-      appBar: AppBar(
-        backgroundColor: Colors.black,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.of(context).maybePop(),
-        ),
-      ),
-      body: Center(
-        child: InteractiveViewer(
-          minScale: 1,
-          maxScale: 4,
-          child: Image.file(
-            File(path),
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const Icon(
-                Icons.broken_image_outlined,
-                color: Colors.white54,
-                size: 48),
+      body: Stack(
+        children: [
+          PageView.builder(
+            controller: _pageCtrl,
+            itemCount: total,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (_, i) => InteractiveViewer(
+              minScale: 1,
+              maxScale: 4,
+              child: Center(
+                child: Image.file(
+                  File(widget.photos[i]),
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                      Icons.broken_image_outlined,
+                      color: Colors.white54,
+                      size: 48),
+                ),
+              ),
+            ),
           ),
-        ),
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 6,
+            left: 8,
+            child: IconButton(
+              icon: const Icon(Icons.close_rounded, color: Colors.white),
+              onPressed: () => Navigator.of(context).maybePop(),
+            ),
+          ),
+          // Counter only makes sense with something to count through.
+          if (total > 1)
+            Positioned(
+              bottom: MediaQuery.of(context).padding.bottom + 28,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    '${_index + 1} / $total',
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
@@ -4240,7 +4027,9 @@ class _TierPromoCard extends StatelessWidget {
               Icon(
                 spent ? Icons.hourglass_bottom_rounded : Icons.confirmation_num_outlined,
                 size: 14,
-                color: AppColors.textMuted,
+                // Fixed light muted: this card's gradient is dark in BOTH
+                // themes, so a flipping token would vanish in light mode.
+                color: const Color(0xFF9C9488),
               ),
               const SizedBox(width: 6),
               Expanded(

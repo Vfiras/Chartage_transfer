@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/constants/app_colors.dart';
 import '../core/routing/app_routes.dart';
+import '../core/services/language_service.dart';
 import '../models/booking_data.dart';
 import '../models/vehicle.dart';
 import '../widgets/common/fallback_network_image.dart';
@@ -19,12 +20,17 @@ class BookingSuccessScreen extends StatefulWidget {
   final Vehicle vehicle;
   final double totalPrice;
 
+  /// Referral wallet actually spent on this booking, as reported by the
+  /// server. Zero when the user had no balance.
+  final double creditsApplied;
+
   const BookingSuccessScreen({
     super.key,
     required this.tripId,
     required this.data,
     required this.vehicle,
     required this.totalPrice,
+    this.creditsApplied = 0,
   });
 
   @override
@@ -129,6 +135,44 @@ class _BookingSuccessScreenState extends State<BookingSuccessScreen>
                   shortId: _shortId,
                   pendingApproval: _isPendingApproval,
                 ),
+
+                // Confirms the wallet was actually spent on this trip.
+                if (widget.creditsApplied > 0) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 11),
+                    decoration: BoxDecoration(
+                      color: AppColors.green.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                          color: AppColors.green.withValues(alpha: 0.30)),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.redeem_rounded,
+                            color: AppColors.green, size: 17),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            LanguageService.instance.t(
+                              'rewards_applied_success',
+                              args: {
+                                'amount':
+                                    '${widget.creditsApplied.toStringAsFixed(2)} ${data.currency}'
+                              },
+                            ),
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
 
                 if (_isPendingApproval) ...[
                   const SizedBox(height: 16),

@@ -6,6 +6,11 @@ enum MessageRole { user, assistant }
 /// Optional rich attachment rendered beneath an assistant message.
 enum InlineCard { none, scheduleUpdate }
 
+/// Interactive form cards the app inserts locally (no backend event).
+/// They collect a whole booking / modification / cancellation in one card
+/// instead of AVA asking for each field in its own turn.
+enum AvaInteractiveCard { none, bookingForm, modifyBooking, cancelBooking }
+
 class ChatMessage {
   final String id;
   final String text;
@@ -26,8 +31,16 @@ class ChatMessage {
   /// instead of a plain bubble; [text] carries the analyst narrative.
   final Map<String, dynamic>? analyticsData;
 
+  /// Which interactive form this message renders, if any.
+  final AvaInteractiveCard interactiveCard;
+
+  /// Seed data for that form — pre-filled route, or the bookings to choose
+  /// from. Never sent anywhere; consumed by the widget.
+  final Map<String, dynamic>? cardSeed;
+
   bool get fromUser => role == MessageRole.user;
   bool get isAnalytics => analyticsData != null;
+  bool get isInteractive => interactiveCard != AvaInteractiveCard.none;
 
   ChatMessage({
     String? id,
@@ -40,6 +53,8 @@ class ChatMessage {
     this.cardType = AvaCardType.none,
     this.cardData,
     this.analyticsData,
+    this.interactiveCard = AvaInteractiveCard.none,
+    this.cardSeed,
   })  : id = id ?? _uid(),
         timestamp = timestamp ?? DateTime.now();
 
@@ -74,6 +89,18 @@ class ChatMessage {
         text: text,
         role: MessageRole.assistant,
         isError: true,
+      );
+
+  /// An interactive form card inserted locally by the app.
+  factory ChatMessage.interactive(
+    AvaInteractiveCard card, {
+    Map<String, dynamic> seed = const {},
+  }) =>
+      ChatMessage(
+        text: '',
+        role: MessageRole.assistant,
+        interactiveCard: card,
+        cardSeed: seed,
       );
 
   /// Business-analysis response: narrative + chart/KPI payload.

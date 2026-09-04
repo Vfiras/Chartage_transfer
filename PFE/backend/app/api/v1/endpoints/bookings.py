@@ -143,6 +143,19 @@ async def create_booking(
         "Booking",
     )
 
+    # Referral credit is a wallet balance, applied automatically — the client
+    # never types a code for it. Drawn down BEFORE the booking is written so
+    # the stored total is the amount actually owed.
+    from app.services.rewards_service import redeem_referral_credits
+
+    credits_applied = await redeem_referral_credits(
+        current_user["_id"], float(data.get("total_price") or 0)
+    )
+    if credits_applied > 0:
+        data["credits_used"] = credits_applied
+        data["total_price"] = round(
+            float(data.get("total_price") or 0) - credits_applied, 2)
+
     # create_trip emits the single "Booking received / pending confirmation"
     # notification, so no extra push is needed here.
     booking = await create_trip(data)
@@ -158,7 +171,7 @@ async def create_booking(
             },
         )
 
-    return {"booking": booking}
+    return {"booking": booking, "credits_applied": credits_applied}
 
 
 @router.put("/{booking_id}")

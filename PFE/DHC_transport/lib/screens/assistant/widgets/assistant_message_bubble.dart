@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../shared/widgets/client/premium_client_components.dart';
 import '../ava_card_data.dart';
 import '../chat_message_model.dart';
 import 'ava_avatar.dart';
@@ -10,12 +11,16 @@ import 'confirmation_card.dart';
 import 'result_card.dart';
 import 'selection_card.dart';
 
+// Gold is constant across themes; the surfaces resolve per brightness so the
+// bubbles read correctly in a light app instead of staying a dark island.
 const _gold = Color(0xFFC8A96B);
-const _bg = Color(0xFF0B0B0D);
-const _surface = Color(0xFF1C1C1F);
-const _surfaceSecondary = Color(0xFF141416);
-const _textColor = Color(0xFFE9E1DA);
-const _textSec = Color(0xFFA1A1AA);
+
+Color _bg(BuildContext c) => PremiumClientTheme.background(c);
+Color _surface(BuildContext c) => PremiumClientTheme.elevated(c);
+Color _surfaceSecondary(BuildContext c) => PremiumClientTheme.surface(c);
+Color _textColor(BuildContext c) => PremiumClientTheme.text(c);
+Color _textSec(BuildContext c) => PremiumClientTheme.muted(c);
+Color _hairline(BuildContext c) => PremiumClientTheme.glassBorder(c);
 
 class AssistantMessageBubble extends StatefulWidget {
   final ChatMessage message;
@@ -151,12 +156,12 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
     final showScheduleCard =
         widget.message.inlineCard == InlineCard.scheduleUpdate && isComplete;
 
-    final bubbleBg = isError ? const Color(0xFF1E0A0A) : _surface;
+    final bubbleBg = isError ? const Color(0xFF1E0A0A) : _surface(context);
     final bubbleBorder = isError
         ? const Color(0xFFE53935).withValues(alpha: 0.28)
-        : Colors.white.withValues(alpha: 0.06);
+        : _hairline(context);
     final textStyle = TextStyle(
-      color: isError ? const Color(0xFFE07070) : _textColor,
+      color: isError ? const Color(0xFFE07070) : _textColor(context),
       fontSize: 14,
       height: 1.55,
       fontWeight: FontWeight.w400,
@@ -313,7 +318,7 @@ class _AssistantMessageBubbleState extends State<AssistantMessageBubble>
     }
     return Text(
       m.text,
-      style: const TextStyle(color: _textColor, fontSize: 14, height: 1.55),
+      style: TextStyle(color: _textColor(context), fontSize: 14, height: 1.55),
     );
   }
 }
@@ -329,9 +334,9 @@ class _ScheduleUpdateCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: _surfaceSecondary,
+        color: _surfaceSecondary(context),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: _hairline(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -364,10 +369,10 @@ class _ScheduleUpdateCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             alignment: Alignment.center,
-            child: const Text(
+            child: Text(
               'VIEW FULL DETAILS',
               style: TextStyle(
-                color: _bg,
+                color: _bg(context),
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 2,
@@ -393,7 +398,7 @@ class _CardRow extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 9),
       decoration: BoxDecoration(
         border: Border(
-          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
+          bottom: BorderSide(color: _hairline(context)),
         ),
       ),
       child: Row(
@@ -401,15 +406,15 @@ class _CardRow extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(color: _textSec, fontSize: 13),
+            style: TextStyle(color: _textSec(context), fontSize: 13),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.right,
-              style: const TextStyle(
-                color: _textColor,
+              style: TextStyle(
+                color: _textColor(context),
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
               ),
